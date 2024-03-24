@@ -1,0 +1,73 @@
+version: "3.7"
+services:
+  pyserver:
+    build:
+      context: ./pyserver
+      dockerfile: Dockerfile
+    container_name: pyserver
+    # restart: on-failure
+    ports:
+      - "9000:9000"
+    networks:
+      - net
+    environment:
+      - ENV_FILE=.env.production
+      - ENVIRONMENT=PRODUCTION
+  postgresql:
+    # Use a custom Docker build context for PostgreSQL.
+    build: ./contrib/postgresql
+    container_name: postgres-db
+    restart: on-failure
+    environment:
+      - POSTGRES_USER=${INTERNAL_DATABASE_USER}
+      - POSTGRES_PASSWORD=${INTERNAL_DATABASE_PASSWORD}
+    ports:
+      - "6432:5432"
+    volumes:
+      - postgresql_data:/var/lib/postgresql/data
+    networks:
+      - net
+    healthcheck:
+      test: ["CMD", "pg_isready", "-q", "-d", "postgres", "-U", "postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  qdrant:
+    image: qdrant/qdrant:latest
+    restart: always
+    container_name: qdrant
+    ports:
+      - 6333:6333
+      - 6334:6334
+    expose:
+      - 6333
+      - 6334
+      - 6335
+    configs:
+      - source: qdrant_config
+        target: /contrib/qdrant/config/config.yaml
+    volumes:
+      - ./qdrant_data:/qdrant_data
+  unstructured-api:
+    image: quay.io/unstructured-io/unstructured-api:latest
+    container_name: unstructured-api
+    environment:
+      - UNSTRUCTURED_API_KEY=${UNSTRUCTURED_API_KEY}
+    ports:
+      - 8000:8000
+    networks:
+      - net
+
+configs:
+  qdrant_config:
+    content: |
+      log_level: INFO
+
+networks:
+  net:
+#    driver: bridge
+volumes:
+  cache:
+    driver: local
+  postgresql_data:
+    driver: local

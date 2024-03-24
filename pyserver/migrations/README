@@ -1,0 +1,102 @@
+# Database Migrations Using Alembic
+
+This documentation provides an overview of the database migrations in the project, using Alembic, and offers a step-by-step guide on how to perform migrations. Migrations help in versioning the database schema and apply changes without manual intervention.
+
+## Table of Contents
+
+- [Database Migrations Using Alembic](#database-migrations-using-alembic)
+  - [Table of Contents](#table-of-contents)
+  - [Prerequisites](#prerequisites)
+  - [Initialization](#initialization)
+  - [Running Migrations](#running-migrations)
+    - [Offline Migrations](#offline-migrations)
+    - [Online Migrations](#online-migrations)
+  - [Customizing Migrations](#customizing-migrations)
+  - [Troubleshooting \& FAQ](#troubleshooting--faq)
+
+## Prerequisites
+
+Ensure that you have the following software and libraries installed:
+
+- Python
+- Alembic
+- SQLAlchemy
+- PostgreSQL (or your choice of database)
+
+All other required modules can be installed using:
+
+```bash
+poetry install
+```
+
+## Initialization
+
+Before running migrations, it's essential to have Alembic initialized. If you've cloned the repository, this step is already done for you. If not, run:
+
+```bash
+alembic init migrations
+```
+
+## Running Migrations
+
+If you've clone the repo and simply want to run the latest migration (which is the case for most users), run:
+
+```bash
+alembic upgrade head
+```
+
+### Offline Migrations
+
+Offline migrations generate SQL scripts that can be executed manually against the database. They do not require an active database connection.
+
+To generate an offline migration script:
+
+```bash
+alembic revision --autogenerate -m "Description of changes"
+```
+
+After generating the script, execute the SQL statements in the script against your database.
+
+### Online Migrations
+
+Online migrations interact directly with the database. They require the database to be reachable and operational.
+
+To perform an online migration:
+
+1. First, generate the migration script:
+
+```bash
+alembic revision --autogenerate -m "Description of changes"
+```
+
+2. Apply the migration:
+
+```bash
+alembic upgrade head
+```
+
+## Customizing Migrations
+
+Sometimes, the auto-generated migration might not fit your requirements. You can manually edit the generated migration file located in the `migrations/versions` directory.
+
+Ensure you understand SQLAlchemy and Alembic's operations before modifying these scripts.
+
+## Troubleshooting & FAQ
+
+**Q:** Migration script fails with a specific error related to a column/table not found.
+**A:** Ensure your models and database schema are in sync. Sometimes, if a model has changed but migrations haven't been applied, such errors can occur.
+
+**Q:** How to rollback a migration?
+**A:** You can rollback a migration using:
+
+```bash
+alembic downgrade -1
+```
+
+This rolls back the last applied migration. Adjust the `-1` to the number of steps you wish to go back.
+
+**Q:** Can I merge multiple migration files into one?
+**A:** Yes, but it requires manual editing and understanding of both migration scripts. Ensure you test the merged script in a safe environment before applying it to the production database.
+
+---
+
