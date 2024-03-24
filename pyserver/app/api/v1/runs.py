@@ -220,7 +220,7 @@ async def title_endpoint(api_key: ApiKey, request: TitleRequest) -> Thread:
 if settings.ENABLE_LANGSMITH_TRACING and tracing_is_enabled():
     @router.post("/feedback", tags=["Feedback"], response_model=dict,
                  summary="Send feedback on an individual run to langsmith",
-                 description="Send feedback on an individual run to langsmith.")
+                 description="Send feedback on an individual run to langsmith. **Disabled if ENABLE_LANGSMITH_TRACING is not explicitly set to `true`**.")
     def create_run_feedback(feedback_create_req: FeedbackCreateRequest) -> dict:
         langsmith_client.create_feedback(
             feedback_create_req.run_id,

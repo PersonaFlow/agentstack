@@ -21,7 +21,7 @@ Text:
 
 Your summary:"""
 
-
+# TODO: Make this configurable
 async def completion(*, document: BaseDocumentChunk) -> str:
     content = _generate_content(document=document)
     completion = await client.chat.completions.create(

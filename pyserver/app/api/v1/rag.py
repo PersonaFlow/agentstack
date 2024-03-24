@@ -30,7 +30,7 @@ DEFAULT_TAG = "RAG"
              """)
 async def ingest(
     files: list[UploadFile] = File([], description="List of files to upload."),
-    payload: str = Form(..., description="Ingest request payload as JSON string. (see app.schema.rag.IngestRequestPayload)"),
+    payload: str = Form(..., description="Ingest request payload as JSON string. (see README for example)"),
 ) -> dict:
     settings = get_settings()
 
