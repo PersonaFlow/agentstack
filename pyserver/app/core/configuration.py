@@ -73,7 +73,7 @@ class Settings(BaseSettings):
     TAVILY_API_KEY: Optional[str] = os.getenv("TAVILY_API_KEY", None)
 
     # For Langsmith tracing (Optional)
-    ENABLE_LANGSMITH_TRACING: str = True if os.getenv("ENABLE_LANGSMITH_TRACING") == "true" else False
+    ENABLE_LANGSMITH_TRACING: bool = True if os.getenv("ENABLE_LANGSMITH_TRACING", "false") == "true" else False
     LANGCHAIN_API_KEY: Optional[str] = os.getenv("LANGCHAIN_API_KEY", None)
     LANGCHAIN_ENDPOINT: str = os.getenv("LANGCHAIN_ENDPOINT", "https://api.smith.langchain.com")
     LANGSMITH_PROJECT_NAME: str = os.getenv("LANGSMITH_PROJECT_NAME", "project")

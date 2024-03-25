@@ -1,6 +1,5 @@
 FROM python:3.11-slim as base
-ENV ENV_FILE=../.env.production \
-    ENVIRONMENT=PRODUCTION \
+ENV ENVIRONMENT='' \
     OPENAI_API_KEY='' \
     LANGCHAIN_API_KEY='' \
     LANGCHAIN_ENDPOINT='' \
@@ -37,7 +36,8 @@ RUN apt-get update && apt-get upgrade && apt-get clean
 
 FROM base as builder
 WORKDIR /app
-RUN if [ -f "$ENV_FILE" ]; then set -a && . "$ENV_FILE" && set +a; fi
+
+
 COPY pyproject.toml poetry.lock /app/
 RUN pip install --upgrade pip \
     && pip install poetry \

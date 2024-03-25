@@ -10,9 +10,8 @@ services:
       - "9000:9000"
     networks:
       - net
-    environment:
-      - ENV_FILE=.env.production
-      - ENVIRONMENT=PRODUCTION
+    env_file:
+      - .env.production
   postgresql:
     # Use a custom Docker build context for PostgreSQL.
     build: ./contrib/postgresql
@@ -45,9 +44,11 @@ services:
       - 6335
     configs:
       - source: qdrant_config
-        target: /contrib/qdrant/config/config.yaml
+        target: ./contrib/qdrant/config/config.yaml
     volumes:
       - ./qdrant_data:/qdrant_data
+    networks:
+      - net
   unstructured-api:
     image: quay.io/unstructured-io/unstructured-api:latest
     container_name: unstructured-api
@@ -67,7 +68,7 @@ networks:
   net:
 #    driver: bridge
 volumes:
-  cache:
+  qdrant_data:
     driver: local
   postgresql_data:
     driver: local
