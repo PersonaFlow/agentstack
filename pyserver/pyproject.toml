@@ -20,7 +20,7 @@ pyjwt = {extras = ["crypto"], version = "*"}
 pypdf = "^4.0.1"
 redis = "^5.0.1"
 langsmith = "^0.1.31"
-langchain-core = "^0.1.33"
+langchain-core = "^0.1.35"
 langchain-community = "^0.0.29"
 langchain = "^0.1.4"
 orjson = "^3.9.13"
