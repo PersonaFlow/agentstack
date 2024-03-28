@@ -21,7 +21,7 @@ services:
       - POSTGRES_USER=${INTERNAL_DATABASE_USER}
       - POSTGRES_PASSWORD=${INTERNAL_DATABASE_PASSWORD}
     ports:
-      - "6432:5432"
+      - "5432:5432"
     volumes:
       - postgresql_data:/var/lib/postgresql/data
     networks:
