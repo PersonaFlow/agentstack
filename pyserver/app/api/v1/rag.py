@@ -2,7 +2,6 @@ import orjson
 import asyncio
 import aiohttp
 from fastapi import APIRouter, Form, UploadFile, File
-from app.rag.upload import ingest_runnable
 from app.api.annotations import ApiKey
 from app.schema.rag import (
   IngestRequestPayload,
@@ -11,6 +10,7 @@ from app.schema.rag import (
   IngestFile,
   DocumentProcessorConfig
 )
+from app.rag.ingest_runnable import ingest_runnable
 from app.rag.embedding_service import EmbeddingService
 from app.rag.summarizer import SUMMARY_SUFFIX
 from app.rag.query import query as _query

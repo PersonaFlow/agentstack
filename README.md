@@ -1,19 +1,25 @@
-# LLiMeade
+<p align="center">
+  <img src="asseets/PersonaFlowIcon-512.png" height="256">
+  <h1 align="center">PersonaFlow</h1>
+  <b><i><center>Where AI Meets Individuality for Unmatched Personalization</center></i></b>
+</p>
 
-The LLiMeade project is intended to provide an enterprise AI platform designed to seamlessly integrate into existing systems, enabling the easy addition of Generative AI features to any web application. With a focus on versatility and efficiency, LLiMeade offers a suite of tools and APIs to create complex, configurable agents that can access internal or external data and APIs.
+The PersonaFlow project is intended to provide an AI platform for providing highly personalized experiences fueled by Generative AI. With a focus on scalability and efficiency, PersonaFlow offers a suite of tools and APIs to easily create complex agents and high-performing retrieval augmented generation systems that are driven by _personas_.
+
 
 # Features
 
 - **Assistants API:** Inspired by the OpenGPTs project, this API allows the creation of complex, configurable agents that can interact with various data sources and APIs.
 - **Advanced RAG System:** A fully configurable data ingestion system that allows direct queries or agent-mediated interactions, including:
-  - Intelligent partioning of unstructured and tabular documents by semantic similarity or by document sub-section. Initial experiments have shown this to be a significant improvement over recursive character text splitting methods. 
+  - Intelligent partioning of unstructured and tabular documents by semantic similarity or by document sub-section. Initial experiments have shown this to be a significant improvement over recursive character text splitting methods.
   - Document reranking and summarization
 - **Fully Local** (In progress): Keep data internal and run the entire system on your own infrastructure without relying on 3rd-party LLMs and APIs.
 
 Coming:
-  - Self-reflective assistants
-  - DBT processing
-  - Evaluation and scoring of assistants and data ingestion configurations with side-by-side comparisons
+
+- Self-reflective assistants
+- DBT pipelines for data processing
+- Evaluation and scoring of assistants and data ingestion configurations
 
 # Technology Stack
 
@@ -38,11 +44,9 @@ Follow these instructions if you are only running from Docker and do not need to
 1. Create .env.production file in root using the .env.production.example template.
 2. Run `docker-compose up`
 
-## Kubernetes (TODO)
-
 ## Dev Setup
 
-_Review "LLiMeade PyServer Prerequisites" below for instructions on installing Python and Poetry._
+_Review "PersonaFlow PyServer Prerequisites" below for instructions on installing Python and Poetry._
 
 1. Clone the repo
 2. From root directory, create a new virtual env with `python  -m venv .venv`
@@ -56,7 +60,7 @@ _Review "LLiMeade PyServer Prerequisites" below for instructions on installing P
 10. Navigate to `http://localhost:9000/docs` to see the API documentation.
 11. Continue with "Testing the APIs" below
 
-## LLiMeade PyServer Prerequisites
+## PersonaFlow PyServer Prerequisites
 
 Before starting the dev setup, make sure you have Python 3.11 or above installed:
 
@@ -112,6 +116,7 @@ There are a number of configuration options available for the ingestion process,
     }
   },
   "document_processor": {
+    "summarize": true,
     "encoder": {
       "dimensions": 1536,
       "model_name": "text-embedding-3-small",
@@ -144,12 +149,13 @@ There are a number of configuration options available for the ingestion process,
       "url": "https://unstructured-io.github.io/unstructured/core/extracting.html",
       "name": "Extracting"
     }
-  ],
-  "sumarize": true,
+  ]
 }
+
 ```
 
 **Notes**
+
 - `vector_database`: This block is optional but is useful when collections are held across different vector databases. If omitted, these details will be obtained from environment variables.
 - `summarize`: If true, a separate vector store will be created containing summaries of the documents. If the query involves providing a summary, the corresponding summary collection will be queried instead of the main collection.
 
@@ -181,6 +187,7 @@ Document retrieval can be done directly by calling the `/api/v1/rag/query` endpo
 ```
 
 **Notes**
+
 - `vector_database`: This block is optional but is useful when collections are held across different vector databases. If omitted, these details will be obtained from environment variables.
 - `thread_id`: This is an optional parameter and can be used to tie the query to an existing conversation id for logging purposes.
 - `enable_rerank`: Whether or not to rerank the query results. Currently requires a cohere api key if true (local reranking is not yet implemented).

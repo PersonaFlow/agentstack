@@ -1,19 +1,14 @@
 import re
 from typing import Any
 import structlog
-import tiktoken
 from colorama import Fore, Style
 from semantic_router.encoders.base import BaseEncoder
 from semantic_router.splitters import RollingWindowSplitter
+from app.rag.util import get_tiktoken_length
 
-from .table_parser import TableParser
+from app.rag.table_parser import TableParser
 
 logger = structlog.get_logger()
-
-def _tiktoken_length(text: str):
-    tokenizer = tiktoken.get_encoding("cl100k_base")
-    tokens = tokenizer.encode(text, disallowed_special=())
-    return len(tokens)
 
 class UnstructuredSemanticSplitter:
     def __init__(
@@ -57,7 +52,7 @@ class UnstructuredSemanticSplitter:
         )
 
         # If the full table is within the token limit, return it without splitting
-        if _tiktoken_length(full_table) <= max_split_tokens:
+        if get_tiktoken_length(full_table) <= max_split_tokens:
             return [full_table]
 
         splitted_tables = []  # To store split tables
@@ -73,7 +68,7 @@ class UnstructuredSemanticSplitter:
                 + "".join(current_chunk + [row])
                 + "</tbody></table>"
             )
-            if _tiktoken_length(temp_table) > max_split_tokens:
+            if get_tiktoken_length(temp_table) > max_split_tokens:
                 if current_chunk:
                     # Finalize the current chunk if it's not empty
                     splitted_tables.append(
@@ -117,10 +112,25 @@ class UnstructuredSemanticSplitter:
                 else:
                     print(f"{Fore.RED}{potential_title}: False{Style.RESET_ALL}")
                     continue
-            if current_title not in grouped_elements:
-                grouped_elements[current_title] = []
-            grouped_elements[current_title].append(element)
+            grouped_elements.setdefault(current_title, []).append(element)
         return grouped_elements
+
+    def _append_chunks(
+        self,
+        chunks_with_title: list[dict[str, Any]],
+        title: str,
+        content: str,
+        chunk_index: int,
+        metadata: dict,
+    ):
+        chunks_with_title.append(
+            {
+                "title": title,
+                "content": content,
+                "chunk_index": chunk_index,
+                "metadata": metadata,
+            }
+        )
 
     async def split_grouped_elements(
         self, elements: list[dict[str, Any]], splitter: RollingWindowSplitter
@@ -128,25 +138,13 @@ class UnstructuredSemanticSplitter:
         grouped_elements = self._group_elements_by_title(elements)
         chunks_with_title = []
 
-        def _append_chunks(
-            *, title: str, content: str, chunk_index: int, metadata: dict
-        ):
-            chunks_with_title.append(
-                {
-                    "title": title,
-                    "content": content,
-                    "chunk_index": chunk_index,
-                    "metadata": metadata,
-                }
-            )
-
         for index, (title, elements) in enumerate(grouped_elements.items()):
             if not elements:
                 continue
-            section_metadata = elements[0].get(
-                "metadata", {}
-            )  # Took first element's data
-            accumulated_element_texts: list[str] = []
+            section_metadata = elements[0].get("metadata", {})
+            accumulated_element_texts: list[str] = [
+                element.get("text") for element in elements if element.get("text")
+            ]
             chunks: list[dict[str, Any]] = []
 
             for element in elements:
@@ -157,16 +155,15 @@ class UnstructuredSemanticSplitter:
                     if accumulated_element_texts:
                         splits = splitter(accumulated_element_texts)
                         for split in splits:
-                            _append_chunks(
+                            self._append_chunks(
+                                chunks_with_title,
                                 title=title,
                                 content=split.content,
                                 chunk_index=index,
                                 metadata=section_metadata,
                             )
                         # TODO: reset after PageBreak also
-                        accumulated_element_texts = (
-                            []
-                        )  # Start new accumulation after table
+                        accumulated_element_texts = [] # Start new accumulation after table
 
                     # Add table as a separate chunk or split it if
                     table_html = element.get("metadata", {}).get("text_as_html", "")
@@ -177,9 +174,10 @@ class UnstructuredSemanticSplitter:
                     metadata.pop("text_as_html", None)
                     for table in splitted_tables:
                         if not table:
-                            logger.warning("Empty table encountered")
+                            await logger.warning("Empty table encountered")
                             continue
-                        _append_chunks(
+                        self._append_chunks(
+                            chunks_with_title,
                             title=title,
                             content=table,  # TODO: This should be a summary of table
                             chunk_index=index,
@@ -195,7 +193,8 @@ class UnstructuredSemanticSplitter:
             if accumulated_element_texts:
                 splits = splitter(accumulated_element_texts)
                 for split in splits:
-                    _append_chunks(
+                    self._append_chunks(
+                        chunks_with_title,
                         title=title,
                         content=split.content,
                         chunk_index=index,
