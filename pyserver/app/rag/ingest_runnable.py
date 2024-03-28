@@ -1,7 +1,17 @@
+"""This module provides document ingestion utilities using langchain runnables."""
 from __future__ import annotations
 
 from typing import Any, BinaryIO, List, Optional
 
+from langchain.document_loaders.parsers import BS4HTMLParser, PDFMinerParser
+from langchain.document_loaders.parsers.generic import MimeTypeBasedParser
+from langchain.document_loaders.parsers.msword import MsWordParser
+from langchain.document_loaders.parsers.txt import TextParser
+from langchain.text_splitter import TextSplitter
+from langchain_community.document_loaders import Blob
+from langchain_community.document_loaders.base import BaseBlobParser
+from langchain_core.documents import Document
+from langchain_core.vectorstores import VectorStore
 from langchain.text_splitter import RecursiveCharacterTextSplitter, TextSplitter
 from langchain_community.document_loaders.blob_loaders import Blob
 from langchain_community.vectorstores.qdrant import Qdrant
@@ -16,13 +26,35 @@ from langchain_core.vectorstores import VectorStore
 from langchain_openai import OpenAIEmbeddings
 from qdrant_client import QdrantClient
 
-from .ingest import ingest_blob
-from .parsing import MIMETYPE_BASED_PARSER
 from app.core.configuration import get_settings
+
+
+HANDLERS = {
+#   PDFMinerParser handles parsing of everything in a pdf such as images, tables, etc.
+    "application/pdf": PDFMinerParser(),
+    "text/plain": TextParser(),
+    "text/html": BS4HTMLParser(),
+    "application/msword": MsWordParser(),
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": (
+        MsWordParser()
+    ),
+}
+
+SUPPORTED_MIMETYPES = sorted(HANDLERS.keys())
+
+# PUBLIC API
+
+MIMETYPE_BASED_PARSER = MimeTypeBasedParser(
+    handlers=HANDLERS,
+    fallback_parser=None,
+)
 
 settings = get_settings()
 
 logger = structlog.get_logger()
+
+qdrant_client = QdrantClient(settings.VECTOR_DB_HOST, port = settings.VECTOR_DB_PORT)
+
 
 def _guess_mimetype(file_bytes: bytes) -> str:
     """Guess the mime-type of a file."""
@@ -49,7 +81,45 @@ def _convert_ingestion_input_to_blob(data: BinaryIO) -> Blob:
         mime_type=mimetype,
     )
 
-qdrant_client = QdrantClient(settings.VECTOR_DB_HOST, port = settings.VECTOR_DB_PORT)
+
+def _update_document_metadata(document: Document, assistant_id: str) -> None:
+    """Mutation in place that adds a assistant_id to the document metadata."""
+    document.metadata["assistant_id"] = assistant_id
+
+
+def ingest_blob(
+    blob: Blob,
+    parser: BaseBlobParser,
+    text_splitter: TextSplitter,
+    vectorstore: VectorStore,
+    assistant_id: str,
+    *,
+    batch_size: int = 100,
+) -> list[str]:
+    """Ingest a document into the vectorstore.
+    Code is responsible for taking binary data, parsing it and then indexing it
+    into a vector store.
+
+    This code should be agnostic to how the blob got generated; i.e., it does not
+    know about server/uploading etc.
+    """
+    docs_to_index = []
+    ids = []
+    for document in parser.lazy_parse(blob):
+        docs = text_splitter.split_documents([document])
+        for doc in docs:
+            _update_document_metadata(doc, assistant_id)
+        docs_to_index.extend(docs)
+
+        if len(docs_to_index) >= batch_size:
+            ids.extend(vectorstore.add_documents(docs_to_index))
+            docs_to_index = []
+
+    if docs_to_index:
+        ids.extend(vectorstore.add_documents(docs_to_index))
+
+    return ids
+
 
 class IngestRunnable(RunnableSerializable[BinaryIO, List[str]]):
     """Runnable for ingesting files into a vectorstore."""
