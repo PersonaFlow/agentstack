@@ -6,8 +6,6 @@ from tempfile import NamedTemporaryFile
 from typing import Any, Literal, Optional
 
 import numpy as np
-import requests
-import tiktoken
 import structlog
 from semantic_router.encoders import (
     BaseEncoder,
@@ -23,7 +21,7 @@ from app.schema.rag import (
     IngestFile,
     DocumentProcessorConfig,
 )
-
+from app.rag.util import get_tiktoken_length
 from app.rag.splitter import UnstructuredSemanticSplitter
 from app.rag.summarizer import completion
 from app.vectordbs import get_vector_service
@@ -37,6 +35,23 @@ from app.core.configuration import get_settings
 logger = structlog.get_logger()
 settings = get_settings()
 
+def sanitize_metadata(metadata: dict) -> dict:
+    def sanitize_value(value):
+        if isinstance(value, (str, int, float, bool)):
+            return value
+        elif isinstance(value, list):
+            # Ensure all elements in the list are of type str, int, float, or bool
+            # Convert non-compliant elements to str
+            return [
+                v if isinstance(v, (str, int, float, bool)) else str(v)
+                for v in value
+            ]
+        elif isinstance(value, dict):
+            return {k: sanitize_value(v) for k, v in value.items()}
+        else:
+            return str(value)
+
+    return {key: sanitize_value(value) for key, value in metadata.items()}
 class EmbeddingService:
     def __init__(
         self,
@@ -111,40 +126,25 @@ class EmbeddingService:
                 if unstructured_response.elements is not None:
                     return unstructured_response.elements
                 else:
-                    await logger.error(f"Error partitioning file {file.url}: {unstructured_response}")
+                    await logger.error(f"Error partitioning file: {unstructured_response}")
                     return []
             except SDKError as e:
-                await logger.error(f"Error partitioning file {file.url}: {e}")
+                await logger.error(f"Error partitioning file: {e}")
                 return []
 
-    def _tiktoken_length(self, text: str):
-        tokenizer = tiktoken.get_encoding("cl100k_base")
-        tokens = tokenizer.encode(text, disallowed_special=())
-        return len(tokens)
-
-    def _sanitize_metadata(self, metadata: dict) -> dict:
-        def sanitize_value(value):
-            if isinstance(value, (str, int, float, bool)):
-                return value
-            elif isinstance(value, list):
-                # Ensure all elements in the list are of type str, int, float, or bool
-                # Convert non-compliant elements to str
-                sanitized_list = []
-                for v in value:
-                    if isinstance(v, (str, int, float, bool)):
-                        sanitized_list.append(v)
-                    elif isinstance(v, (dict, list)):
-                        # For nested structures, convert to a string representation
-                        sanitized_list.append(str(v))
-                    else:
-                        sanitized_list.append(str(v))
-                return sanitized_list
-            elif isinstance(value, dict):
-                return {k: sanitize_value(v) for k, v in value.items()}
-            else:
-                return str(value)
-
-        return {key: sanitize_value(value) for key, value in metadata.items()}
+    def _create_base_document(
+        self, document_id: str, file: IngestFile, document_content: str
+    ) -> BaseDocument:
+        return BaseDocument(
+            id=document_id,
+            content=document_content,
+            doc_url=file.url,
+            metadata={
+                "source": file.url,
+                "source_type": "document",
+                "document_type": file.suffix,
+            },
+        )
 
     async def generate_chunks(
         self,
@@ -162,7 +162,7 @@ class EmbeddingService:
                     for element in chunked_elements:
                         chunk_data = {
                             "content": element.get("text"),
-                            "metadata": self._sanitize_metadata(
+                            "metadata": sanitize_metadata(
                                 element.get("metadata")
                             ),
                         }
@@ -185,42 +185,29 @@ class EmbeddingService:
                     continue
 
                 document_id = f"doc_{uuid.uuid4()}"
-                document_content = ""
-                for chunk in chunks:
-                    document_content += chunk.get("content", "")
-                    chunk_id = str(uuid.uuid4())
+                document_content = "".join(chunk.get("content", "") for chunk in chunks)
 
-                    if config.splitter.prefix_title:
-                        content = (
-                            f"{chunk.get('title', '')}\n{chunk.get('content', '')}"
+                doc_chunks.extend(
+                    [
+                        BaseDocumentChunk(
+                            id=str(uuid.uuid4()),
+                            doc_url=file.url,
+                            document_id=document_id,
+                            content=f"{chunk.get('title', '')}\n{chunk.get('content', '')}"
+                            if config.splitter.prefix_title
+                            else chunk.get("content", ""),
+                            source=file.url,
+                            source_type=file.suffix,
+                            chunk_index=chunk.get("chunk_index", None),
+                            title=chunk.get("title", None),
+                            token_count=get_tiktoken_length(chunk.get("content", "")),
+                            metadata=sanitize_metadata(chunk.get("metadata", {})),
                         )
-                    else:
-                        content = chunk.get("content", "")
-                    doc_chunk = BaseDocumentChunk(
-                        id=chunk_id,
-                        doc_url=file.url,
-                        document_id=document_id,
-                        content=content,
-                        source=file.url,
-                        source_type=file.suffix,
-                        chunk_index=chunk.get("chunk_index", None),
-                        title=chunk.get("title", None),
-                        token_count=self._tiktoken_length(chunk.get("content", "")),
-                        metadata=self._sanitize_metadata(chunk.get("metadata", {})),
-                    )
-                    doc_chunks.append(doc_chunk)
-
-                # This object will be used for evaluation purposes
-                BaseDocument(
-                    id=document_id,
-                    content=document_content,
-                    doc_url=file.url,
-                    metadata={
-                        "source": file.url,
-                        "source_type": "document",
-                        "document_type": file.suffix,
-                    },
+                        for chunk in chunks
+                    ]
                 )
+
+                self._create_base_document(document_id, file, document_content)
 
             except Exception as e:
                 await logger.error(f"Error loading chunks: {e}")
@@ -235,46 +222,50 @@ class EmbeddingService:
         batch_size: int = 100,
     ) -> list[BaseDocumentChunk]:
         pbar = tqdm(total=len(chunks), desc="Generating embeddings")
-        sem = asyncio.Semaphore(10)  # Limit to 10 concurrent tasks
+        queue = asyncio.Queue()
 
         async def embed_batch(
             chunks_batch: list[BaseDocumentChunk],
         ) -> list[BaseDocumentChunk]:
-            async with sem:
-                try:
-                    chunk_texts = []
-                    for chunk in chunks_batch:
-                        if not chunk:
-                            await logger.warning("Empty chunk encountered")
-                            continue
-                        chunk_texts.append(chunk.content)
-
-                    if not chunk_texts:
-                        await logger.warning(f"No content to embed in batch {chunks_batch}")
-                        return []
-                    embeddings = encoder(chunk_texts)
-                    for chunk, embedding in zip(chunks_batch, embeddings):
-                        chunk.dense_embedding = np.array(embedding).tolist()
-                    pbar.update(len(chunks_batch))  # Update the progress bar
-                    return chunks_batch
-                except Exception as e:
-                    await logger.error(f"Error embedding a batch of documents: {e}")
-                    raise
+            try:
+                chunk_texts = [
+                    chunk.content
+                    for chunk in chunks_batch
+                    if chunk and chunk.content
+                ]
+                if not chunk_texts:
+                    await logger.warning(f"No content to embed in batch {chunks_batch}")
+                    return []
+                embeddings = encoder(chunk_texts)
+                for chunk, embedding in zip(chunks_batch, embeddings):
+                    chunk.dense_embedding = np.array(embedding).tolist()
+                pbar.update(len(chunks_batch))
+                return chunks_batch
+            except Exception as e:
+                await logger.error(f"Error embedding a batch of documents: {e}")
+                raise
 
         # Create batches of chunks
         chunks_batches = [
             chunks[i : i + batch_size] for i in range(0, len(chunks), batch_size)
         ]
 
-        # Process each batch
-        tasks = [embed_batch(batch) for batch in chunks_batches]
-        chunks_with_embeddings = await asyncio.gather(*tasks)
+        # Add batches to the queue
+        for batch in chunks_batches:
+            await queue.put(batch)
+
+        async def process_batches():
+            while not queue.empty():
+                batch = await queue.get()
+                await embed_batch(batch)
+                queue.task_done()
+
+        # Process batches concurrently
+        tasks = [asyncio.create_task(process_batches()) for _ in range(10)]
+        await asyncio.gather(*tasks)
 
         chunks_with_embeddings = [
-            chunk
-            for batch in chunks_with_embeddings
-            for chunk in batch
-            if chunk is not None
+            chunk for chunk in chunks if chunk.dense_embedding is not None
         ]
         pbar.close()
 
@@ -301,7 +292,7 @@ class EmbeddingService:
         self, documents: list[BaseDocumentChunk]
     ) -> list[BaseDocumentChunk]:
         pbar = tqdm(total=len(documents), desc="Grouping chunks")
-        pages = {}
+        pages: dict[int, BaseDocumentChunk] = {}
         for document in documents:
             page_number = document.metadata.get("page_number", None)
             if page_number not in pages:
@@ -311,22 +302,23 @@ class EmbeddingService:
             pbar.update()
         pbar.close()
 
-        # Limit to 10 concurrent jobs
-        sem = asyncio.Semaphore(10)
+        async def safe_completion(document: BaseDocumentChunk) -> Optional[BaseDocumentChunk]:
+            try:
+                document.content = await completion(document=document)
+                return document
+            except Exception as e:
+                await logger.error(f"Error summarizing document {document.id}: {e}")
+                return None
 
-        async def safe_completion(document: BaseDocumentChunk) -> BaseDocumentChunk:
-            async with sem:
-                try:
-                    document.content = await completion(document=document)
-                    pbar.update()
-                    return document
-                except Exception as e:
-                    await logger.error(f"Error summarizing document {document.id}: {e}")
-                    return None
-
-        pbar = tqdm(total=len(pages), desc="Summarizing documents")
-        tasks = [safe_completion(document) for document in pages.values()]
-        summary_documents = await asyncio.gather(*tasks, return_exceptions=False)
+        pbar = tqdm(desc="Summarizing documents")
+        summary_documents = []
+        for future in asyncio.as_completed(
+            [safe_completion(document) for document in pages.values()]
+        ):
+            document = await future
+            if document:
+                summary_documents.append(document)
+            pbar.update()
         pbar.close()
 
         return summary_documents
