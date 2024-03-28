@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="asseets/PersonaFlowIcon-512.png" height="256">
+  <img src="assets/PersonaFlowIcon-512.png" height="256">
   <h1 align="center">PersonaFlow</h1>
   <b><i><center>Where AI Meets Individuality for Unmatched Personalization</center></i></b>
 </p>
