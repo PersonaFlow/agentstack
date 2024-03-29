@@ -45,8 +45,9 @@ class Settings(BaseSettings):
         env_file = ".env"
         case_sensitive = True
 
-    TITLE: str = "LLiMeade API"
-    VERSION: str = "0.0.1"
+    TITLE: str = "PersonaFlow"
+    VERSION: str = "0.1.0"
+    DESCRIPTION: str = "PersonaFlow API"
     ENVIRONMENT: EnvironmentEnum = os.getenv("ENVIRONMENT", "PRODUCTION")
     LOG_LEVEL: LogLevelEnum = LogLevelEnum.DEBUG if ENVIRONMENT == EnvironmentEnum.LOCAL else LogLevelEnum.ERROR
 

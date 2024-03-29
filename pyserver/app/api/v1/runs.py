@@ -30,7 +30,7 @@ if settings.ENABLE_LANGSMITH_TRACING:
     tracer = LangChainTracer(project_name=settings.LANGSMITH_PROJECT_NAME)
     langsmith_client = Client()
 
-DEFAULT_TAG = "LLM Runs"
+DEFAULT_TAG = "Runs"
 logger = structlog.get_logger()
 router = APIRouter()
 class CreateRunPayload(BaseModel):
@@ -86,6 +86,7 @@ async def _run_input_and_config(
     return input_, config
 
 @router.post("/stream", tags=[DEFAULT_TAG], response_class=EventSourceResponse,
+             operation_id="stream_run",
              summary="Stream an LLM run.",
              description="""
                 Endpoint to stream an LLM response. If the thread_id is not provided, a new thread will be created. <br>
@@ -112,6 +113,7 @@ async def stream_run(
 
 
 @router.post("", tags=[DEFAULT_TAG], response_model=dict,
+             operation_id="create_run",
              summary="Create a run",
              description="Create a run to be processed by the LLM.")
 async def create_run(
@@ -126,6 +128,7 @@ async def create_run(
 
 
 @router.get("/input_schema", tags=[DEFAULT_TAG], response_model=dict,
+            operation_id="get_input_schema",
             summary="Return the input schema of the runnable.",
             description="Return the input schema of the runnable.")
 async def input_schema() -> dict:
@@ -133,6 +136,7 @@ async def input_schema() -> dict:
 
 
 @router.get("/output_schema", tags=[DEFAULT_TAG], response_model=dict,
+            operation_id="get_output_schema",
             summary="Return the output schema of the runnable.",
             description="Return the output schema of the runnable.")
 async def output_schema() -> dict:
@@ -140,6 +144,7 @@ async def output_schema() -> dict:
 
 
 @router.get("/config_schema", tags=[DEFAULT_TAG], response_model=dict,
+            operation_id="get_config_schema",
             summary="Return the config schema of the runnable.",
             description="Return the config schema of the runnable.")
 async def config_schema() -> dict:
@@ -156,6 +161,7 @@ Conversation:
 """
 
 @router.post("/title", tags=[DEFAULT_TAG], response_model=Thread,
+            operation_id="generate_title",
             summary="Generate a title to name the thread.",
             description="Generates a title for the conversation by sending a list of interactions to the model.")
 async def title_endpoint(api_key: ApiKey, request: TitleRequest) -> Thread:
