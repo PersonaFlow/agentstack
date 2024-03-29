@@ -10,6 +10,7 @@ router = APIRouter()
 DEFAULT_TAG = "Messages"
 
 @router.post("", tags=[DEFAULT_TAG], response_model=Message, status_code=status.HTTP_201_CREATED,
+             operation_id="create_message",
              summary="Create a new message",
              description="Creates a new message within a thread.")
 async def create_message(
@@ -23,6 +24,7 @@ async def create_message(
     return message
 
 @router.patch("/{message_id}", tags=[DEFAULT_TAG], response_model=Message,
+              operation_id="update_message",
               summary="Update a specific message",
               description="Updates the details of a specific message by its ID.")
 async def update_message(
@@ -37,6 +39,7 @@ async def update_message(
     raise HTTPException(status_code=404, detail="Message not found")
 
 @router.delete("/{message_id}", tags=[DEFAULT_TAG], status_code=status.HTTP_204_NO_CONTENT,
+               operation_id="delete_message",
                summary="Delete a specific message",
                description="Deletes a specific message by its ID from the database.")
 async def delete_message(

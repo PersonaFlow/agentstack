@@ -29,6 +29,7 @@ router = APIRouter()
 DEFAULT_TAG = "Users"
 
 @router.post("", tags=[DEFAULT_TAG], response_model=User,
+                operation_id="create_user",
                 summary="Create a new user",
                 description="""
                 POST endpoint at `/users` for creating a new user.
@@ -43,7 +44,8 @@ async def create_user(
     user = await user_repo.create_user(data=data)
     return user
 
-@router.get("", tags=[DEFAULT_TAG], response_model=List[User],
+@router.get("", tags=[DEFAULT_TAG], response_model=list[User],
+            operation_id="retrieve_all_users",
             summary="List all users (admin)",
             description="""
                 GET endpoint at `/users` for listing all users. <br>
@@ -60,6 +62,7 @@ async def retrieve_users(
     return records
 
 @router.get("/{user_id}", tags=[DEFAULT_TAG], response_model=User,
+            operation_id="retrieve_user",
             summary="Retrieve a specific user (admin)",
             description="GET endpoint at `/users/{user_id}` for fetching details of a specific user using its user_id.")
 async def retrieve_user(
@@ -74,6 +77,7 @@ async def retrieve_user(
 
 
 @router.patch("/{user_id}", tags=[DEFAULT_TAG], response_model=User,
+              operation_id="update_user",
               summary="Update a specific user (admin)",
               description="PATCH endpoint at `/{user_id}` for updating the details of a specific user.")
 async def update_user(
@@ -88,6 +92,7 @@ async def update_user(
     return record
 
 @router.delete("/{user_id}", tags=[DEFAULT_TAG], status_code=status.HTTP_204_NO_CONTENT,
+               operation_id="delete_user",
                summary="Delete a specific user (admin)",
                description=("""
                    DELETE endpoint at `/users/{user_id}` for removing a specific user using its `user_id`. <br>
@@ -107,6 +112,7 @@ async def delete_user(
 
 
 @router.get("/{user_id}/threads", tags=[DEFAULT_TAG], response_model=List[Thread],
+            operation_id="retrieve_user_threads",
             summary="Retrieve threads by user (admin)",
             description="""
                 GET endpoint at `/users/{user_id}/threads` for fetching all threads associated with a specific user using its id. <br>
@@ -129,6 +135,7 @@ async def retrieve_user_threads(
     )
 
 @router.get("/{user_id}/startup", tags=[DEFAULT_TAG], response_model=User,
+            operation_id="startup",
             summary="Create a new local user if it does not exist, then return the startup configuration for the user.",
             description="""
                         Gets the startup configuration for the user. <br>

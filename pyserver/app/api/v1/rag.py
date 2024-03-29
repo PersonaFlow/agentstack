@@ -21,6 +21,7 @@ router = APIRouter()
 DEFAULT_TAG = "RAG"
 
 @router.post("/ingest", tags=[DEFAULT_TAG],
+             operation_id="ingest_data_from_files",
              summary="Ingest files to be indexed and queried.",
              description="""
               Upload files for ingesting using the advanced RAG system with unstructured library. <br>
@@ -29,6 +30,7 @@ DEFAULT_TAG = "RAG"
             *Note: the payload string should be an IngestRequestPayload (see app.schema.rag.IngestRequestPayload)*
              """)
 async def ingest(
+    api_key: ApiKey,
     files: list[UploadFile] = File([], description="List of files to upload."),
     payload: str = Form(..., description="Ingest request payload as JSON string. (see README for example)"),
 ) -> dict:
@@ -106,11 +108,15 @@ async def notify_webhook(payload: IngestRequestPayload):
 
 @router.post("/query", response_model=QueryResponsePayload,
              tags=[DEFAULT_TAG],
+             operation_id="query_documents",
              summary="Query documents",
              description="""
               Query ingested documents using advanced RAG system with unstructured library. <br>
              """)
-async def query(payload: QueryRequestPayload):
+async def query(
+        api_key: ApiKey,
+        payload: QueryRequestPayload
+    ):
     chunks = await _query(payload=payload)
     response_payload = QueryResponsePayload(success=True, data=chunks)
     response_data = response_payload.model_dump(
@@ -119,6 +125,7 @@ async def query(payload: QueryRequestPayload):
     return response_data
 
 @router.post("/assistant/ingest", tags=[DEFAULT_TAG],
+             operation_id="ingest_files_for_assistant",
              summary="Ingest files for assistant retrieval tool.",
              description="""
              Upload files to the given assistant for ingesting. <br>
@@ -126,9 +133,9 @@ async def query(payload: QueryRequestPayload):
              eg. {"configurable":{"assistant_id":"57f9a247-86f3-4d72-8e23-e9b1701dae6c"}}
              """)
 async def ingest_files_for_assistant(
-    # api_key: ApiKey,
+    api_key: ApiKey,
     files: list[UploadFile] = File(..., description="List of files to upload."),
-    config: str = Form(..., description="RunnableConfig in JSON format.")
+    config: str = Form(..., description="RunnableConfig in JSON format: `{\"configurable\":{\"assistant_id\":\"57f9a247-86f3-4d72-8e23-e9b1701dae6c\"}}`.")
 
 ) -> None:
     config = orjson.loads(config)

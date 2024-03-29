@@ -19,6 +19,7 @@ router = APIRouter()
 DEFAULT_TAG = "Threads"
 
 @router.post("", tags=[DEFAULT_TAG], response_model=Thread, status_code=status.HTTP_201_CREATED,
+             operation_id="create_thread",
              summary="Create a new thread",
              description="Creates a new thread with the provided information. This can optionally be obtained from the api_key. If it is not set in the request, it will attempt to get it from the api_key.")
 async def create_thread(
@@ -38,6 +39,7 @@ async def create_thread(
     return thread
 
 @router.get("", tags=[DEFAULT_TAG], response_model=List[Thread],
+            operation_id="retrieve_all_threads",
             summary="Retrieve all threads",
             description="Retrieves a list of all threads in the database. Should be used as an admin operation only.")
 async def retrieve_threads(
@@ -48,6 +50,7 @@ async def retrieve_threads(
     return threads
 
 @router.get("/{thread_id}", tags=[DEFAULT_TAG], response_model=Thread,
+            operation_id="retrieve_thread",
             summary="Retrieve a specific thread",
             description="Retrieves detailed information about a thread identified by its ID.")
 async def retrieve_thread(
@@ -61,6 +64,7 @@ async def retrieve_thread(
     return thread
 
 @router.patch("/{thread_id}", tags=[DEFAULT_TAG], response_model=Thread,
+              operation_id="update_thread",
               summary="Update a specific thread",
               description="Updates the information of a thread identified by its ID.")
 async def update_thread(
@@ -75,6 +79,7 @@ async def update_thread(
     return thread
 
 @router.delete("/{thread_id}", tags=[DEFAULT_TAG], status_code=status.HTTP_204_NO_CONTENT,
+               operation_id="delete_thread",
                summary="Delete a specific thread",
                description="Deletes a thread identified by its ID from the database.")
 async def delete_thread(
@@ -87,6 +92,7 @@ async def delete_thread(
 
 
 @router.get("/{thread_id}/messages", tags=[DEFAULT_TAG], response_model=List[Message],
+            operation_id="retrieve_messages_for_thread",
             summary="Retrieve all messages by thread id",
             description="Retrieves a list of all messages in a thread identified by its ID.")
 async def retrieve_messages_by_thread_id(
@@ -98,6 +104,7 @@ async def retrieve_messages_by_thread_id(
     return messages
 
 @router.get("/{thread_id}/checkpoints", tags=[DEFAULT_TAG],
+            operation_id="retrieve_checkpoint_messages_for_thread",
             summary="Retrieve checkpoints by thread id",
             description="Retrieves a list of messages in a thread from the checkpoints list identified by its ID.")
 async def retrieve_checkpoints_by_thread_id(
