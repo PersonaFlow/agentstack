@@ -11,6 +11,7 @@ DEFAULT_TAG = "Assistants"
 logger = structlog.get_logger()
 
 @router.post("", tags=[DEFAULT_TAG], response_model=Assistant, status_code=status.HTTP_201_CREATED,
+             operation_id="create_assistant",
              summary="Create a new assistant",
              description="Creates a new assistant with the specified details.")
 async def create_assistant(
@@ -28,6 +29,7 @@ async def create_assistant(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="An error occurred while creating the assistant.")
 
 @router.get("", tags=[DEFAULT_TAG], response_model=list[Assistant],
+            operation_id="retrieve_assistants",
             summary="Retrieve all assistants",
             description="Retrieves a list of all assistants.")
 async def retrieve_assistants(
@@ -38,6 +40,7 @@ async def retrieve_assistants(
     return assistants
 
 @router.get("/{assistant_id}", tags=[DEFAULT_TAG], response_model=Assistant,
+            operation_id="retrieve_assistant",
             summary="Retrieve a specific assistant",
             description="Retrieves detailed information about a specific assistant by its ID.")
 async def retrieve_assistant(
@@ -51,6 +54,7 @@ async def retrieve_assistant(
     raise HTTPException(status_code=404, detail="Assistant not found")
 
 @router.patch("/{assistant_id}", tags=[DEFAULT_TAG], response_model=Assistant,
+              operation_id="update_assistant",
               summary="Update a specific assistant",
               description="Updates the details of a specific assistant by its ID.")
 async def update_assistant(
@@ -64,8 +68,8 @@ async def update_assistant(
         return assistant
     raise HTTPException(status_code=404, detail="Assistant not found")
 
-# TODO: This needs to be protected such that only a user with admin permissions or the owner of the assistant can delete it.
 @router.delete("/{assistant_id}", tags=[DEFAULT_TAG], status_code=status.HTTP_204_NO_CONTENT,
+               operation_id="delete_assistant",
                summary="Delete a specific assistant",
                description="Deletes a specific assistant by its ID from the database.")
 async def delete_assistant(

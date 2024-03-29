@@ -1,7 +1,7 @@
 <p align="center">
   <img src="assets/PersonaFlowIcon-512.png" height="256">
   <h1 align="center">PersonaFlow</h1>
-  <b><i><center>Where AI Meets Individuality for Unmatched Personalization</center></i></b>
+  <p align="center"><b><i>Where AI Meets Individuality for Unmatched Personalization</i></b></p>
 </p>
 
 The PersonaFlow project is intended to provide an AI platform for providing highly personalized experiences fueled by Generative AI. With a focus on scalability and efficiency, PersonaFlow offers a suite of tools and APIs to easily create complex agents and high-performing retrieval augmented generation systems that are driven by _personas_.
@@ -149,7 +149,8 @@ There are a number of configuration options available for the ingestion process,
       "url": "https://unstructured-io.github.io/unstructured/core/extracting.html",
       "name": "Extracting"
     }
-  ]
+  ],
+  "webhook_url": "http://localhost:5000/webhook"
 }
 
 ```
@@ -158,6 +159,7 @@ There are a number of configuration options available for the ingestion process,
 
 - `vector_database`: This block is optional but is useful when collections are held across different vector databases. If omitted, these details will be obtained from environment variables.
 - `summarize`: If true, a separate vector store will be created containing summaries of the documents. If the query involves providing a summary, the corresponding summary collection will be queried instead of the main collection.
+- `webhook_url`: This is an optional webhook that will be called when the ingestion has completed. 
 
 ## Querying
 

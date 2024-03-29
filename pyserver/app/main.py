@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from azure.monitor.opentelemetry import configure_azure_monitor
+from fastapi.openapi.utils import get_openapi
 
 # If we have the `ENVIRONMENT`variable already, we are running in Docker or Kubernetes
 # and do not need to load the.env file
@@ -40,6 +41,22 @@ if settings.ENABLE_LANGSMITH_TRACING:
 
 app = create_app(settings)
 FastAPIInstrumentor.instrument_app(app)
+
+def get_custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+
+    openapi_schema = get_openapi(
+        title=settings.TITLE,
+        version=settings.VERSION,
+        description=settings.DESCRIPTION,
+        routes=app.routes,
+    )
+    openapi_schema["info"]["x-logo"] = {
+        "url": "../../assets/PersonaFlowIcon-512.png"
+    }
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
 
 
 if __name__ == "__main__":
