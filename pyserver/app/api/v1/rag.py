@@ -126,17 +126,19 @@ async def query(
 
 @router.post("/assistant/ingest", tags=[DEFAULT_TAG],
              operation_id="ingest_files_for_assistant",
+             response_model=list[str],
              summary="Ingest files for assistant retrieval tool.",
              description="""
              Upload files to the given assistant for ingesting. <br>
-             *Config must be a RunnableConfig and include the assistant id.* <br>
-             eg. {"configurable":{"assistant_id":"57f9a247-86f3-4d72-8e23-e9b1701dae6c"}}
+             *Config must be a RunnableConfig and include the assistant or thread id.* <br>
+             eg. {"configurable":{"assistant_id":"57f9a247-86f3-4d72-8e23-e9b1701dae6c"}} <br>
+             If file is being uploaded to thread, replace assistant_id with thread_id.
              """)
 async def ingest_files_for_assistant(
     api_key: ApiKey,
     files: list[UploadFile] = File(..., description="List of files to upload."),
     config: str = Form(..., description="RunnableConfig in JSON format: `{\"configurable\":{\"assistant_id\":\"57f9a247-86f3-4d72-8e23-e9b1701dae6c\"}}`.")
-
-) -> None:
+) -> list[str]:
     config = orjson.loads(config)
-    return ingest_runnable.batch([file.file for file in files], config)
+    file_ids = ingest_runnable.batch([file.file for file in files], config)
+    return file_ids[0]

@@ -108,6 +108,8 @@ class Settings(BaseSettings):
     VECTOR_DB_NAME: str = os.getenv("VECTOR_DB_NAME", "qdrant")
     VECTOR_DB_HOST: str = os.getenv("VECTOR_DB_HOST", "localhost")
     VECTOR_DB_PORT: int = os.getenv("VECTOR_DB_PORT", 6333)
+    VECTOR_DB_COLLECTION_NAME: str = os.getenv("VECTOR_DB_COLLECTION_NAME", "documents")
+    VECTOR_DB_COLLECTION_SIZE: int = os.getenv("VECTOR_DB_COLLECTION_SIZE", 1536)
 
     @property
     def VECTOR_DB_CREDENTIALS(self):

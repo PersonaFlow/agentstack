@@ -1,6 +1,7 @@
 """This module provides document ingestion utilities using langchain runnables."""
 from __future__ import annotations
-
+import uuid
+import logging
 from typing import Any, BinaryIO, List, Optional
 
 from langchain.document_loaders.parsers import BS4HTMLParser, PDFMinerParser
@@ -25,7 +26,7 @@ from langchain_core.runnables import (
 from langchain_core.vectorstores import VectorStore
 from langchain_openai import OpenAIEmbeddings
 from qdrant_client import QdrantClient
-
+from app.utils.vector_collection import create_assistants_collection
 from app.core.configuration import get_settings
 
 
@@ -42,7 +43,6 @@ HANDLERS = {
 
 SUPPORTED_MIMETYPES = sorted(HANDLERS.keys())
 
-# PUBLIC API
 
 MIMETYPE_BASED_PARSER = MimeTypeBasedParser(
     handlers=HANDLERS,
@@ -51,9 +51,9 @@ MIMETYPE_BASED_PARSER = MimeTypeBasedParser(
 
 settings = get_settings()
 
-logger = structlog.get_logger()
-
-qdrant_client = QdrantClient(settings.VECTOR_DB_HOST, port = settings.VECTOR_DB_PORT)
+# logger = structlog.get_logger()
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 def _guess_mimetype(file_bytes: bytes) -> str:
@@ -82,82 +82,102 @@ def _convert_ingestion_input_to_blob(data: BinaryIO) -> Blob:
     )
 
 
-def _update_document_metadata(document: Document, assistant_id: str) -> None:
-    """Mutation in place that adds a assistant_id to the document metadata."""
-    document.metadata["assistant_id"] = assistant_id
+def _sanitize_document_content(document: Document) -> Document:
+    """Sanitize the document."""
+    # Without this, PDF ingestion fails with
+    # "A string literal cannot contain NUL (0x00) characters".
+    document.page_content = document.page_content.replace("\x00", "x")
 
+def _update_document_metadata(document: Document, namespace: str, file_id: Optional[str] = None) -> None:
+    """Mutation in place that adds namespace and file_id to the document metadata."""
+    try:
+        document.metadata["namespace"] = namespace
+        document.metadata["file_id"] = file_id if file_id is not None else None
+    except Exception as e:
+        logger.error(f"Error updating document metadata: {e}")
+        raise e
 
 def ingest_blob(
     blob: Blob,
     parser: BaseBlobParser,
     text_splitter: TextSplitter,
     vectorstore: VectorStore,
-    assistant_id: str,
+    namespace: str,
     *,
     batch_size: int = 100,
 ) -> list[str]:
-    """Ingest a document into the vectorstore.
-    Code is responsible for taking binary data, parsing it and then indexing it
-    into a vector store.
-
-    This code should be agnostic to how the blob got generated; i.e., it does not
-    know about server/uploading etc.
-    """
     docs_to_index = []
-    ids = []
-    for document in parser.lazy_parse(blob):
-        docs = text_splitter.split_documents([document])
-        for doc in docs:
-            _update_document_metadata(doc, assistant_id)
-        docs_to_index.extend(docs)
+    file_ids = []
+    try:
+        for document in parser.lazy_parse(blob):
+            file_id = str(uuid.uuid4())
+            file_ids.append(file_id)
+            logger.debug(f"Generated file_id: {file_id}")
 
-        if len(docs_to_index) >= batch_size:
-            ids.extend(vectorstore.add_documents(docs_to_index))
-            docs_to_index = []
+            docs = text_splitter.split_documents([document])
+            logger.debug(f"Split document into {len(docs)} chunks")
 
-    if docs_to_index:
-        ids.extend(vectorstore.add_documents(docs_to_index))
+            for doc in docs:
+                _sanitize_document_content(doc)
+                _update_document_metadata(doc, namespace, file_id)
+            docs_to_index.extend(docs)
 
-    return ids
+            if len(docs_to_index) >= batch_size:
+                logger.debug(f"Adding {len(docs_to_index)} documents to vector store")
+                vectorstore.add_documents(docs_to_index)
+                docs_to_index = []
+
+        if docs_to_index:
+            logger.debug(f"Adding remaining {len(docs_to_index)} documents to vector store")
+            vectorstore.add_documents(docs_to_index)
+        logger.debug(f"Ingested {len(file_ids)} files")
+
+    except Exception as e:
+        logger.error(f"Error ingesting documents: {e}")
+        raise e
+
+    return file_ids
 
 
-class IngestRunnable(RunnableSerializable[BinaryIO, List[str]]):
+class IngestRunnable(RunnableSerializable[BinaryIO, list[str]]):
     """Runnable for ingesting files into a vectorstore."""
 
     text_splitter: TextSplitter
     """Text splitter to use for splitting the text into chunks."""
 
     assistant_id: Optional[str]
-    """Ingested documents will be associated with this assistant id.
-    The assistant ID is used as the namespace, and is filtered on at query time.
+    thread_id: Optional[str]
+    """Ingested documents will be associated with assistant_id or thread_id.
+       The assistant or thread ID is used as the namespace, and is filtered on at query time.
     """
 
     class Config:
         arbitrary_types_allowed = True
 
-    def _create_vectorstore(self) -> VectorStore:
-        index_name = self.assistant_id
-        print(f"index_name: {index_name}")
-        collections = qdrant_client.get_collections()
-        # await logger.info(f"collections: {collections}")
-        if index_name not in [c.name for c in collections.collections]:
-            # await logger.info(f"No index found, creating collection for assistant: {index_name}")
-            qdrant_client.create_collection(
-                collection_name=index_name,
-                vectors_config={
-                    index_name: rest.VectorParams(
-                        size=1536, distance=rest.Distance.COSINE
-                    )
-                },
-                optimizers_config=rest.OptimizersConfigDiff(
-                    indexing_threshold=0,
-                ),
+    @property
+    def namespace(self) -> str:
+        if (self.assistant_id is None and self.thread_id is None) or (
+            self.assistant_id is not None and self.thread_id is not None
+        ):
+            raise ValueError(
+                "Exactly one of assistant_id or thread_id must be provided"
             )
+        return self.assistant_id if self.assistant_id is not None else self.thread_id
+
+    @property
+    def vectorstore(self) -> VectorStore:
+        qdrant_client = QdrantClient(settings.VECTOR_DB_HOST, port = settings.VECTOR_DB_PORT)
+        collection_name = settings.VECTOR_DB_COLLECTION_NAME
+        vector_size = settings.VECTOR_DB_COLLECTION_SIZE
+
+        if not qdrant_client.collection_exists(collection_name):
+            create_assistants_collection(qdrant_client, collection_name, vector_size)
+
         return Qdrant(
             client=qdrant_client,
-            collection_name=index_name,
+            collection_name=collection_name,
             embeddings=OpenAIEmbeddings(),
-            vector_name=index_name,
+            vector_name="default"
         )
 
     class Config:
@@ -165,7 +185,7 @@ class IngestRunnable(RunnableSerializable[BinaryIO, List[str]]):
 
     def invoke(
         self, input: BinaryIO, config: Optional[RunnableConfig] = None
-    ) -> List[str]:
+    ) -> tuple[list[str], list[str]]:
         return self.batch([input], config)
 
     def batch(
@@ -175,22 +195,25 @@ class IngestRunnable(RunnableSerializable[BinaryIO, List[str]]):
         *,
         return_exceptions: bool = False,
         **kwargs: Any | None,
-    ) -> List:
+    ) -> list[str]:
         """Ingest a batch of files into the vectorstore."""
-        vectorstore = self._create_vectorstore()
-        ids = []
-        for data in inputs:
-            blob = _convert_ingestion_input_to_blob(data)
-            ids.extend(
-                ingest_blob(
+        file_ids = []
+        try:
+            for data in inputs:
+                blob = _convert_ingestion_input_to_blob(data)
+                file_ids.extend(ingest_blob(
                     blob,
                     MIMETYPE_BASED_PARSER,
                     self.text_splitter,
-                    vectorstore,
-                    self.assistant_id,
-                )
-            )
-        return ids
+                    self.vectorstore,
+                    self.namespace,
+                ))
+            logger.debug(f"Batch ingested {len(file_ids)} files")
+        except Exception as e:
+            logger.error(f"Error ingesting batch: {e}")
+            raise e
+        print(f"FILE_IDS: {file_ids}")
+        return file_ids
 
 ingest_runnable = IngestRunnable(
     text_splitter=RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200),
@@ -199,5 +222,10 @@ ingest_runnable = IngestRunnable(
         id="assistant_id",
         annotation=str,
         name="Assistant ID",
+    ),
+    thread_id=ConfigurableField(
+        id="thread_id",
+        annotation=str,
+        name="Thread ID",
     ),
 )
