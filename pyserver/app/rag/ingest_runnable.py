@@ -17,7 +17,6 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter, TextSplitter
 from langchain_community.document_loaders.blob_loaders import Blob
 from langchain_community.vectorstores.qdrant import Qdrant
 from qdrant_client.http import models as rest
-import structlog
 from langchain_core.runnables import (
     ConfigurableField,
     RunnableConfig,
@@ -212,7 +211,6 @@ class IngestRunnable(RunnableSerializable[BinaryIO, list[str]]):
         except Exception as e:
             logger.error(f"Error ingesting batch: {e}")
             raise e
-        print(f"FILE_IDS: {file_ids}")
         return file_ids
 
 ingest_runnable = IngestRunnable(
