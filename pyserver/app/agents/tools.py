@@ -15,7 +15,9 @@ from langchain_community.utilities.tavily_search import TavilySearchAPIWrapper
 from langchain_community.vectorstores.qdrant import Qdrant
 from qdrant_client import QdrantClient
 from app.core.configuration import get_settings
-from langchain_openai import OpenAIEmbeddings
+from app.core.retriever import qdrant_vstore
+from qdrant_client.http import models as qdrant_models
+
 # from langchain_robocorp import ActionServerToolkit
 
 settings = get_settings()
@@ -35,19 +37,30 @@ RETRIEVAL_DESCRIPTION = """Can be used to look up information that was uploaded 
 If the user asks a vague question, they are likely meaning to look up info from this retriever, and you should call it!"""
 
 
-def get_retriever(assistant_id: str):
-    qdrant = Qdrant(
-            client = QdrantClient("localhost", port=6333),
-            collection_name = assistant_id,
-            embeddings = OpenAIEmbeddings(),
-            vector_name = assistant_id
+def get_retriever(assistant_id: str, thread_id: str):
+    if assistant_id is None or thread_id is None:
+        return
+
+    return qdrant_vstore.as_retriever(
+            search_kwargs=dict(
+                k=4,
+                score_threshold=0.7,
+                filter=qdrant_models.Filter(
+                    must=[
+                        qdrant_models.FieldCondition(
+                            key="metadata.namespace",
+                            match=qdrant_models.MatchAny(any=[assistant_id, thread_id])
+                        )
+                    ],
+                )
+            )
         )
-    return qdrant.as_retriever()
+
 
 @lru_cache(maxsize=5)
-def get_retrieval_tool(assistant_id: str, description: str):
+def get_retrieval_tool(assistant_id: str, thread_id: str, description: str):
     return create_retriever_tool(
-        get_retriever(assistant_id),
+        get_retriever(assistant_id, thread_id),
         "Retriever",
         description,
     )
@@ -122,8 +135,3 @@ if settings.TAVILY_API_KEY:
     TOOLS[AvailableTools.TAVILY_ANSWER] = _get_tavily_answer
     TOOLS[AvailableTools.TAVILY] = _get_tavily
 
-TOOL_OPTIONS = {e.value: e.value for e in AvailableTools}
-
-# Check if dependencies and env vars for each tool are available
-for k, v in TOOLS.items():
-    v()

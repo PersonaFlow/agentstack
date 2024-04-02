@@ -2,6 +2,7 @@ import orjson
 import asyncio
 import aiohttp
 from fastapi import APIRouter, Form, UploadFile, File
+from fastapi.exceptions import HTTPException
 from app.api.annotations import ApiKey
 from app.schema.rag import (
   IngestRequestPayload,
@@ -16,6 +17,9 @@ from app.rag.summarizer import SUMMARY_SUFFIX
 from app.rag.query import query as _query
 from app.core.configuration import get_settings
 from app.schema.rag import VectorDatabase
+import structlog
+
+logger = structlog.get_logger()
 
 router = APIRouter()
 DEFAULT_TAG = "RAG"
@@ -126,17 +130,26 @@ async def query(
 
 @router.post("/assistant/ingest", tags=[DEFAULT_TAG],
              operation_id="ingest_files_for_assistant",
+             response_model=list[str],
              summary="Ingest files for assistant retrieval tool.",
              description="""
              Upload files to the given assistant for ingesting. <br>
-             *Config must be a RunnableConfig and include the assistant id.* <br>
-             eg. {"configurable":{"assistant_id":"57f9a247-86f3-4d72-8e23-e9b1701dae6c"}}
+             *Config must be a RunnableConfig and include the assistant or thread id.* <br>
+             eg. {"configurable":{"assistant_id":"57f9a247-86f3-4d72-8e23-e9b1701dae6c"}} <br>
+             If file is being uploaded to thread, replace assistant_id with thread_id.
              """)
 async def ingest_files_for_assistant(
     api_key: ApiKey,
     files: list[UploadFile] = File(..., description="List of files to upload."),
     config: str = Form(..., description="RunnableConfig in JSON format: `{\"configurable\":{\"assistant_id\":\"57f9a247-86f3-4d72-8e23-e9b1701dae6c\"}}`.")
+) -> list[str]:
+    if not files:
+        raise HTTPException(status_code=400, detail="No files provided.")
+    try:
+        config = orjson.loads(config)
+        file_ids = ingest_runnable.batch([file.file for file in files], config)
+        return file_ids[0]
+    except Exception as e:
+        await logger.exception(f"Error ingesting batch: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
 
-) -> None:
-    config = orjson.loads(config)
-    return ingest_runnable.batch([file.file for file in files], config)
