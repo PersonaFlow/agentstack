@@ -30,7 +30,6 @@ async def astream_messages(
     root_run_id: Optional[str] = None
     last_messages_list: Optional[list[AnyMessage]] = None
     last_stream_run_id: Optional[str] = None
-    print("input", input)
     async for event in app.astream_events(
         input, config, version="v1", output_keys="__root__"
     ):
@@ -42,7 +41,7 @@ async def astream_messages(
             last_messages_list = event["data"]["chunk"]
 
             yield last_messages_list
-        elif event["event"] == "on_chat_model_start":
+        elif event["event"] == "on_chat_model_start" and last_messages_list is None:
             input_messages_outer = event["data"]["input"].get("messages")
             input_messages = (
                 input_messages_outer[0]
@@ -63,7 +62,7 @@ async def astream_messages(
             is_new_stream_run = (
                 last_stream_run_id is None or last_stream_run_id != event["run_id"]
             )
-            is_diff_msg_type = last_messages_list and type(
+            is_diff_msg_type = last_messages_list and type(  # noqa: E721
                 last_messages_list[-1]
             ) != type(event["data"]["chunk"])
             if is_new_stream_run or is_diff_msg_type:
