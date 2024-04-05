@@ -2,7 +2,7 @@
 from __future__ import annotations
 import uuid
 import logging
-from typing import Any, BinaryIO, List, Optional
+from typing import Any, BinaryIO, Optional
 
 from langchain.document_loaders.parsers import BS4HTMLParser, PDFMinerParser
 from langchain.document_loaders.parsers.generic import MimeTypeBasedParser
@@ -27,7 +27,7 @@ from langchain_openai import OpenAIEmbeddings
 from qdrant_client import QdrantClient
 from app.utils.vector_collection import create_assistants_collection
 from app.core.configuration import get_settings
-
+from app.utils.file_helpers import guess_mime_type
 
 HANDLERS = {
 #   PDFMinerParser handles parsing of everything in a pdf such as images, tables, etc.
@@ -55,24 +55,10 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-def _guess_mimetype(file_bytes: bytes) -> str:
-    """Guess the mime-type of a file."""
-    try:
-        import magic
-    except ImportError as e:
-        raise ImportError(
-            "magic package not found, please install it with `pip install python-magic`"
-        ) from e
-
-    mime = magic.Magic(mime=True)
-    mime_type = mime.from_buffer(file_bytes)
-    return mime_type
-
-
 def _convert_ingestion_input_to_blob(data: BinaryIO) -> Blob:
     """Convert ingestion input to blob."""
     file_data = data.read()
-    mimetype = _guess_mimetype(file_data)
+    mimetype = guess_mime_type(file_data)
     file_name = data.name
     return Blob.from_data(
         data=file_data,
@@ -189,8 +175,8 @@ class IngestRunnable(RunnableSerializable[BinaryIO, list[str]]):
 
     def batch(
         self,
-        inputs: List[BinaryIO],
-        config: RunnableConfig | List[RunnableConfig] | None = None,
+        inputs: list[BinaryIO],
+        config: RunnableConfig | list[RunnableConfig] | None = None,
         *,
         return_exceptions: bool = False,
         **kwargs: Any | None,

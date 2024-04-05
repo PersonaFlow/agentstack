@@ -67,7 +67,6 @@ class AssistantRepository(BaseRepository):
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
             await logger.exception(f"Failed to create assistant due to a database error.", exc_info=True, assistant_data=data)
-            # Raising a general exception, could be converted to a more specific type if needed
             raise HTTPException(status_code=400, detail=f"Failed to create assistant.") from e
 
     @staticmethod
@@ -77,6 +76,8 @@ class AssistantRepository(BaseRepository):
                       Assistant.user_id,
                       Assistant.name,
                       Assistant.config,
+                      Assistant.kwargs,
+                      Assistant.file_ids,
                       Assistant.public,
                       Assistant.created_at,
                       Assistant.updated_at
@@ -125,3 +126,19 @@ class AssistantRepository(BaseRepository):
             await self.postgresql_session.rollback()
             await logger.exception(f"Failed to delete assistant due to a database error: ", exc_info=True, assistant_id=assistant_id)
             raise HTTPException(status_code=400, detail="Failed to delete assistant.")
+
+    async def add_file_to_assistant(self, assistant_id: uuid.UUID, file_id: str) -> Assistant:
+        try:
+            assistant = await self.retrieve_assistant(assistant_id)
+            if assistant:
+                updated_file_ids = assistant.file_ids or []
+                updated_file_ids.append(file_id)
+                updated_data = {"file_ids": updated_file_ids}
+                updated_assistant = await self.update_assistant(assistant_id, updated_data)
+                return updated_assistant
+            else:
+                raise HTTPException(status_code=404, detail="Assistant not found")
+        except SQLAlchemyError as e:
+            await self.postgresql_session.rollback()
+            await logger.exception(f"Failed to add file to assistant due to a database error.", exc_info=True, assistant_id=assistant_id, file_id=file_id)
+            raise HTTPException(status_code=500, detail="Failed to add file to assistant.")

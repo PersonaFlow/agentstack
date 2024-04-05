@@ -3,7 +3,13 @@ from fastapi import APIRouter, status, HTTPException, Depends
 import uuid
 import structlog
 from app.repositories.assistant import get_assistant_repository, AssistantRepository, UniqueConstraintError
-from app.schema.assistant import CreateAssistantSchema, Assistant, UpdateAssistantSchema
+from app.schema.assistant import (
+  CreateAssistantSchema,
+  Assistant,
+  UpdateAssistantSchema,
+  CreateAssistantFileSchema,
+  CreateAssistantFileSchemaResponse
+)
 from app.api.annotations import ApiKey
 
 router = APIRouter()
@@ -79,3 +85,25 @@ async def delete_assistant(
 ):
     await assistant_repository.delete_assistant(assistant_id=assistant_id)
     return {"detail": "Assistant deleted successfully"}
+
+@router.post("/{assistant_id}/files",
+             tags=[DEFAULT_TAG],
+             response_model=CreateAssistantFileSchemaResponse,
+             operation_id="create_assistant_file",
+             summary="Add an uploaded file to an assistant for RAG.",
+             description="Convenience method to add an uploaded file to an assistant for RAG ingestion and retrieval",)
+async def create_assistant_file(
+    api_key: ApiKey,
+    assistant_id: uuid.UUID,
+    data: CreateAssistantFileSchema,
+    assistant_repository: AssistantRepository = Depends(get_assistant_repository)
+) -> CreateAssistantFileSchemaResponse:
+    try:
+        await assistant_repository.add_file_to_assistant(assistant_id, data.file_id)
+        response_data = CreateAssistantFileSchemaResponse(file_id=data.file_id, assistant_id=str(assistant_id))
+        return response_data
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        await logger.exception(f"Error adding file to assistant: {str(e)}")
+        raise HTTPException(status_code=500, detail="An error occurred while adding the file to the assistant.")
