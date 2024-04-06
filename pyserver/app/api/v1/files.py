@@ -3,13 +3,13 @@ import orjson
 from fastapi import APIRouter, status, HTTPException, Depends, UploadFile, File, Query, Form, Body
 import uuid
 import structlog
-from app.repositories.file import get_files_repository, FileRepository
+from app.repositories.file import get_file_repository, FileRepository
 # from app.repositories.api_key import get_api_key_repository, ApiKeyRepository
 from app.schema.file import FileSchema, UploadFileSchema
 from app.api.annotations import ApiKey
 from app.core.configuration import settings
 from typing import Optional
-from app.utils.file_helpers import guess_mime_type
+from app.utils.file_helpers import guess_mime_type, is_mime_type_supported
 
 router = APIRouter()
 DEFAULT_TAG = "Files"
@@ -26,7 +26,7 @@ async def upload_file(
     user_id: str = Form(...),
     filename: Optional[str] = Form(None),
     kwargs: Optional[str] = Form(None),
-    files_repository: FileRepository = Depends(get_files_repository),
+    files_repository: FileRepository = Depends(get_file_repository),
     # api_key_repository: ApiKeyRepository = Depends(get_api_key_repository)
 ) -> FileSchema:
     try:
@@ -40,16 +40,14 @@ async def upload_file(
         file_data["bytes"] = len(file_content)
         kwargs_dict = orjson.loads(kwargs) if kwargs else {}
         file_data["kwargs"] = kwargs_dict
-        # Extract the file extension from the original filename
-        _, file_extension = os.path.splitext(file.filename)
-        file_extension = file_extension[1:]  # Remove the leading dot
 
-        # Detect the MIME type using python-magic
         mime_type = guess_mime_type(file_content)
+        if not is_mime_type_supported(mime_type):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unsupported file type.")
 
         file_data["mime_type"] = mime_type
 
-        file_obj = await files_repository.create_file(data=file_data, file_content=file_content, file_extension=file_extension)
+        file_obj = await files_repository.create_file(data=file_data, file_content=file_content)
         return file_obj
     except Exception as e:
         await logger.exception(f"Error uploading file: {str(e)}")
@@ -63,7 +61,7 @@ async def retrieve_files(
     api_key: ApiKey,
     user_id: str = Query(...),
     purpose: Optional[str] = Query(None),
-    files_repository: FileRepository = Depends(get_files_repository),
+    files_repository: FileRepository = Depends(get_file_repository),
     # api_key_repository: ApiKeyRepository = Depends(get_api_key_repository)
 ) -> list[FileSchema]:
     # user_id = await api_key_repository.find_api_user(api_key)
@@ -77,7 +75,7 @@ async def retrieve_files(
 async def retrieve_file(
     api_key: ApiKey,
     file_id: uuid.UUID,
-    files_repository: FileRepository = Depends(get_files_repository)
+    files_repository: FileRepository = Depends(get_file_repository)
 ) -> FileSchema:
     file = await files_repository.retrieve_file(file_id=file_id)
     if file:
@@ -91,7 +89,7 @@ async def retrieve_file(
 async def delete_file(
     api_key: ApiKey,
     file_id: uuid.UUID,
-    files_repository: FileRepository = Depends(get_files_repository)
+    files_repository: FileRepository = Depends(get_file_repository)
 ):
     await files_repository.delete_file(file_id=file_id)
     return {"detail": "File deleted successfully"}
@@ -99,13 +97,14 @@ async def delete_file(
 @router.get("/{file_id}/content", tags=[DEFAULT_TAG],
             operation_id="retrieve_file_content",
             summary="Retrieve the content of a specific file",
-            description="Retrieves the content of a specific file by its ID.")
+            description="Retrieves the content of a specific file by its ID. Returns a downloadable file.")
 async def retrieve_file_content(
     api_key: ApiKey,
     file_id: uuid.UUID,
-    files_repository: FileRepository = Depends(get_files_repository)
+    files_repository: FileRepository = Depends(get_file_repository)
 ):
-    file_content = await files_repository.retrieve_file_content(file_id=file_id)
-    if file_content:
-        return file_content
-    raise HTTPException(status_code=404, detail="File content not found")
+    try:
+        return await files_repository.retrieve_file_content_as_response(str(file_id))
+    except Exception as e:
+        await logger.exception(f"Error retrieving file content: {str(e)}")
+        raise HTTPException(status_code=500, detail="An server error occurred while retrieving the file content.")

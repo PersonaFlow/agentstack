@@ -1,8 +1,10 @@
 
 from fastapi import APIRouter, status, HTTPException, Depends
 import uuid
+from io import BytesIO
 import structlog
 from app.repositories.assistant import get_assistant_repository, AssistantRepository, UniqueConstraintError
+from app.repositories.file import FileRepository, get_file_repository
 from app.schema.assistant import (
   CreateAssistantSchema,
   Assistant,
@@ -11,6 +13,7 @@ from app.schema.assistant import (
   CreateAssistantFileSchemaResponse
 )
 from app.api.annotations import ApiKey
+from app.rag.ingest_runnable import ingest_runnable
 
 router = APIRouter()
 DEFAULT_TAG = "Assistants"
@@ -96,12 +99,31 @@ async def create_assistant_file(
     api_key: ApiKey,
     assistant_id: uuid.UUID,
     data: CreateAssistantFileSchema,
-    assistant_repository: AssistantRepository = Depends(get_assistant_repository)
-) -> CreateAssistantFileSchemaResponse:
+    assistant_repository: AssistantRepository = Depends(get_assistant_repository),
+    file_repository: FileRepository = Depends(get_file_repository),
+):
     try:
-        await assistant_repository.add_file_to_assistant(assistant_id, data.file_id)
-        response_data = CreateAssistantFileSchemaResponse(file_id=data.file_id, assistant_id=str(assistant_id))
+        assistant = await assistant_repository.retrieve_assistant(assistant_id=assistant_id)
+        if not assistant:
+            logger.exception(f"Assistant not found: {assistant_id}")
+            raise HTTPException(status_code=404, detail="Assistant not found")
+
+        file_content = await file_repository.retrieve_file_content(data.file_id)
+
+        file_content_io = BytesIO(file_content)
+
+        # Trigger the ingestion process
+        config = {"configurable": {"assistant_id": str(assistant_id), "file_id": str(data.file_id)}}
+        ids = ingest_runnable.batch([file_content_io], config)
+        if not ids:
+            await logger.exception(f"Error ingesting file: {data.file_id}")
+            raise HTTPException(status_code=500, detail="An error occurred while ingesting the file.")
+
+        assistant = await assistant_repository.add_file_to_assistant(assistant_id, data.file_id)
+
+        response_data = CreateAssistantFileSchemaResponse(file_id=str(data.file_id), assistant_id=str(assistant_id))
         return response_data
+
     except HTTPException as e:
         raise e
     except Exception as e:

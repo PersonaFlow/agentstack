@@ -1,5 +1,6 @@
 import uuid
 import os
+import mimetypes
 from sqlalchemy import select
 from app.models.file import File
 from app.repositories.base import BaseRepository
@@ -10,11 +11,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.datastore import get_postgresql_session_provider
 from typing import Optional, Any
 from app.core.configuration import settings
-
+from app.utils.file_helpers import guess_file_extension, guess_mime_type
+from fastapi import Response
 
 logger = structlog.get_logger()
 
-def get_files_repository(session: AsyncSession = Depends(get_postgresql_session_provider)):
+def get_file_repository(session: AsyncSession = Depends(get_postgresql_session_provider)):
     return FileRepository(postgresql_session=session)
 
 class FileRepository(BaseRepository):
@@ -22,7 +24,7 @@ class FileRepository(BaseRepository):
     def __init__(self, postgresql_session):
         self.postgresql_session = postgresql_session
 
-    async def create_file(self, data: dict, file_content: bytes, file_extension: str) -> File:
+    async def create_file(self, data: dict, file_content: bytes) -> File:
         """Creates a new file in the database and saves the file content to the local file system."""
         try:
             file = await self.create(model=File, values=data)
@@ -30,8 +32,9 @@ class FileRepository(BaseRepository):
 
             # Create the file_data directory if it doesn't exist
             os.makedirs(settings.FILE_DATA_DIRECTORY, exist_ok=True)
+            file_extension = guess_file_extension(data.get("mime_type"))
 
-            # Save the file content to the local file system using the generated UUID and original file extension
+            # Save the file content to the local file system using the generated UUID
             file_name = f"{file.id}.{file_extension}"
             file_path = os.path.join(settings.FILE_DATA_DIRECTORY, file_name)
             with open(file_path, 'wb') as f:
@@ -42,22 +45,6 @@ class FileRepository(BaseRepository):
             await self.postgresql_session.rollback()
             await logger.exception(f"Failed to create file due to a database error.", exc_info=True, file_data=data)
             raise HTTPException(status_code=400, detail=f"Failed to create file.") from e
-        # """Creates a new file in the database and saves the file content to the local file system."""
-        # try:
-        #     file = await self.create(model=File, values=data)
-        #     await self.postgresql_session.commit()
-
-        #     # Save the file content to the local file system using the generated UUID and original file extension
-        #     file_name = f"{file.id}.{file_extension}"
-        #     file_path = os.path.join(settings.FILE_DATA_DIRECTORY, file_name)
-        #     with open(file_path, 'wb') as f:
-        #         f.write(file_content)
-
-        #     return file
-        # except SQLAlchemyError as e:
-        #     await self.postgresql_session.rollback()
-        #     await logger.exception(f"Failed to create file due to a database error.", exc_info=True, file_data=data)
-        #     raise HTTPException(status_code=400, detail=f"Failed to create file.") from e
 
     @staticmethod
     def _get_retrieve_query() -> select:
@@ -114,13 +101,42 @@ class FileRepository(BaseRepository):
             await logger.exception(f"Failed to delete file content from local file system: ", exc_info=True, file_id=file_id)
             raise HTTPException(status_code=400, detail="Failed to delete file content.")
 
-    async def retrieve_file_content(self, file_id: uuid.UUID) -> Any:
+    async def retrieve_file_content(self, file_id: str) -> Any:
         """Fetches the content of a file by ID from the local file system."""
         try:
-            file_path = os.path.join(settings.FILE_DATA_DIRECTORY, str(file_id))
+            file = await self.retrieve_file(file_id)
+            if not file:
+                logger.exception(f"File not found.", file_id=file_id)
+                raise HTTPException(status_code=404, detail="File not found.")
+
+            file_path = os.path.join(settings.FILE_DATA_DIRECTORY, f"{file.id}")
+
+            if not os.path.exists(file_path):
+                # If the file doesn't exist, try to find it with a guessed extension
+                for ext in mimetypes.guess_all_extensions(file.mime_type):
+                    file_path_with_ext = f"{file_path}{ext}"
+                    if os.path.exists(file_path_with_ext):
+                        file_path = file_path_with_ext
+                        break
+                else:
+                    raise HTTPException(status_code=404, detail="File content not found.")
+
+            await logger.info(f"Reading file content from local file system.", file_id=file_id, file_path=file_path)
             with open(file_path, 'rb') as f:
                 file_content = f.read()
             return file_content
         except FileNotFoundError as e:
             await logger.exception(f"Failed to retrieve file content from local file system.", exc_info=True, file_id=file_id)
             raise HTTPException(status_code=404, detail="File content not found.")
+
+    async def retrieve_file_content_as_response(self, file_id: str) -> Response:
+        """Retrieves the file content as a downloadable response."""
+        file = await self.retrieve_file(file_id)
+        file_content = await self.retrieve_file_content(file_id)
+
+        file_extension = guess_file_extension(file.mime_type)
+        headers = {
+            'Content-Disposition': f'attachment; filename="{file_id}.{file_extension}"'
+        }
+
+        return Response(content=file_content, media_type=file.mime_type, headers=headers)
