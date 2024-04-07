@@ -1,8 +1,7 @@
 from pydantic import BaseModel, Field
 import uuid
-from typing import Optional
+from typing import Optional, Any
 from datetime import datetime
-from fastapi import UploadFile, File
 
 
 
@@ -25,3 +24,10 @@ class UploadFileSchema(BaseModel):
     user_id: Optional[str] = Field(None, description="The ID of the user or org who created the file. Automatically added based on api key if not provided.")
     filename: Optional[str] = Field(None, description="The preferred name for the file. If not provided, the name of the uploaded file will be used.")
     kwargs: Optional[str] = Field(None, description="The file kwargs, containing any additional information about the file. This is a string sent in JSON format.")
+
+
+class DeleteFileResponse(BaseModel):
+    file_id: uuid.UUID = Field(..., description="The ID of the file that was deleted.")
+    num_of_deleted_chunks: int = Field(..., description="The number of chunks deleted from the vector store for this file.")
+    num_of_assistants: int = Field(..., description="The number of assistants that were using this file, of which the file was removed.")
+    assistants: list[dict[str, Any]] = Field(..., description="A list of the IDs and names of the asistants that were using this file, of which the file was removed.")

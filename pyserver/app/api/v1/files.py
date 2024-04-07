@@ -5,15 +5,18 @@ import uuid
 import structlog
 from app.repositories.file import get_file_repository, FileRepository
 # from app.repositories.api_key import get_api_key_repository, ApiKeyRepository
-from app.schema.file import FileSchema, UploadFileSchema
+from app.schema.file import FileSchema, UploadFileSchema, DeleteFileResponse
 from app.api.annotations import ApiKey
 from app.core.configuration import settings
 from typing import Optional
-from app.utils.file_helpers import guess_mime_type, is_mime_type_supported
+from app.utils.file_helpers import guess_mime_type, is_mime_type_supported, guess_file_extension
+from app.vectordbs.qdrant import QdrantService
+from app.repositories.assistant import get_assistant_repository, AssistantRepository
 
 router = APIRouter()
 DEFAULT_TAG = "Files"
 logger = structlog.get_logger()
+
 
 @router.post("", tags=[DEFAULT_TAG], response_model=FileSchema, status_code=status.HTTP_201_CREATED,
              operation_id="upload_file",
@@ -21,11 +24,11 @@ logger = structlog.get_logger()
              description="Uploads a file that can be used across various endpoints. <br> NOTE: MUST INCLUDE `user_id`")
 async def upload_file(
     api_key: ApiKey,
-    file: UploadFile = File(...),
-    purpose: str = Form(...),
-    user_id: str = Form(...),
-    filename: Optional[str] = Form(None),
-    kwargs: Optional[str] = Form(None),
+    file: UploadFile = File(..., description="The file to upload."),
+    purpose: str = Form(..., description="The purpose of the file: 'assistants', 'threads', or 'personas'."),
+    user_id: str = Form(..., description="The user id of the file owner."),
+    filename: Optional[str] = Form(None, description="The preferred name for the file."),
+    kwargs: Optional[str] = Form(None, description="Any additonal metadata to include for this file. This should be a JSON string."),
     files_repository: FileRepository = Depends(get_file_repository),
     # api_key_repository: ApiKeyRepository = Depends(get_api_key_repository)
 ) -> FileSchema:
@@ -53,6 +56,7 @@ async def upload_file(
         await logger.exception(f"Error uploading file: {str(e)}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="An error occurred while uploading the file.")
 
+
 @router.get("", tags=[DEFAULT_TAG], response_model=list[FileSchema],
             operation_id="retrieve_files_for_user",
             summary="Retrieve files",
@@ -68,9 +72,10 @@ async def retrieve_files(
     files = await files_repository.retrieve_files(user_id=user_id, purpose=purpose)
     return files
 
+
 @router.get("/{file_id}", tags=[DEFAULT_TAG], response_model=FileSchema,
             operation_id="retrieve_file",
-            summary="Retrieve a specific file",
+            summary="Retrieve file information",
             description="Retrieves information about a specific file by its ID.")
 async def retrieve_file(
     api_key: ApiKey,
@@ -78,21 +83,56 @@ async def retrieve_file(
     files_repository: FileRepository = Depends(get_file_repository)
 ) -> FileSchema:
     file = await files_repository.retrieve_file(file_id=file_id)
-    if file:
-        return file
-    raise HTTPException(status_code=404, detail="File not found")
+    if not file:
+        raise HTTPException(status_code=404, detail="File not found")
+    return file
 
-@router.delete("/{file_id}", tags=[DEFAULT_TAG], status_code=status.HTTP_204_NO_CONTENT,
+
+@router.delete("/{file_id}", tags=[DEFAULT_TAG],
+               response_model=DeleteFileResponse,
                operation_id="delete_file",
                summary="Delete a specific file",
-               description="Deletes a specific file by its ID.")
+               description="Deletes a specific file by its ID from the database and file system. When a file is deleted, it is also removed from any assistants that may be using it and all associated embeddings are deleted from the vector store.")
 async def delete_file(
     api_key: ApiKey,
     file_id: uuid.UUID,
-    files_repository: FileRepository = Depends(get_file_repository)
+    files_repository: FileRepository = Depends(get_file_repository),
+    assistant_repository: AssistantRepository = Depends(get_assistant_repository),
 ):
-    await files_repository.delete_file(file_id=file_id)
-    return {"detail": "File deleted successfully"}
+    try:
+        file: FileSchema = await files_repository.retrieve_file(file_id=file_id)
+        if not file:
+            raise HTTPException(status_code=404, detail="File not found")
+        if file.purpose == "assistants" or file.purpose == "threads":
+            # delete any embeddings associated with the file from the vector db
+            service = QdrantService()
+            deleted_chunks = await service.delete(str(file_id))
+            # If this is an assistants file, delete the file from any assistants that may be using it
+            assistants = await assistant_repository.remove_all_file_references(file_id)
+            num_of_assistants = len(assistants)
+            if num_of_assistants > 0:
+                await logger.info(f"Deleted file from {num_of_assistants} assistants")
+            else:
+                await logger.info(f"Deleted file from 0 assistants")
+
+        # delete the file from the filesystem
+        ext = guess_file_extension(file.mime_type)
+        file_path = f"{settings.FILE_DATA_DIRECTORY}/{file.id}.{ext}"
+
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+        else:
+            await logger.exception(f"File not found on filesystem: {file_path}")
+        # delete the file from the database
+        await files_repository.delete_file(file_id=file_id)
+
+        return DeleteFileResponse(file_id=file_id, num_of_assistants=num_of_assistants, deleted_chunks=deleted_chunks, assistants=assistants)
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        await logger.exception(f"Error deleting assistant file: {str(e)}")
+        raise HTTPException(status_code=500, detail="An error occurred while deleting the file from the system.")
+
 
 @router.get("/{file_id}/content", tags=[DEFAULT_TAG],
             operation_id="retrieve_file_content",

@@ -1,26 +1,3 @@
-"""
-repositories/assistant.py
-----------
-
-This module provides a repository class, `AssistantRepository`, specifically tailored for operations related to the Assistant model. It extends the base repository, leveraging its generic methods while also adding more domain-specific methods related to assistants.
-
-Classes:
--------
-- `AssistantRepository`: A repository class tailored for the Assistant model.
-    - `create_assistant`: Creates a new assistant in the database.
-    - `_get_retrieve_query`: A private method to construct the default query for assistant retrieval.
-    - `retrieve_assistants`: Fetches all assistants.
-    - `retrieve_assistant`: Fetches a single assistant by ID.
-    - `update_assistant`: Updates an existing assistant.
-    - `delete_assistant`: Removes an assistant from the database.
-
-Key Functionalities:
--------------------
-- **Async Operations**: All methods are asynchronous for efficient, non-blocking operations.
-- **Domain-Specific Methods**: Methods are tailored specifically for assistant-related operations.
-- **Exception handling and logging**: All methods are wrapped in try-except blocks to handle exceptions and log errors, ensuring reliability and ease of debugging.
-
-"""
 import uuid
 from sqlalchemy import select
 from app.models.assistant import Assistant
@@ -86,7 +63,6 @@ class AssistantRepository(BaseRepository):
     async def retrieve_assistants(self, filters: Optional[dict[str, Any]] = None) -> list[Assistant]:
         """Fetches all assistants."""
         try:
-            query = self._get_retrieve_query()
             records = await self.retrieve_all(model=Assistant, filters=filters)
             return records
         except SQLAlchemyError as e:
@@ -142,3 +118,44 @@ class AssistantRepository(BaseRepository):
             await self.postgresql_session.rollback()
             await logger.exception(f"Failed to add file to assistant due to a database error.", exc_info=True, assistant_id=assistant_id, file_id=file_id)
             raise HTTPException(status_code=500, detail="Failed to add file to assistant.")
+
+    async def remove_file_reference(self, assistant_id: uuid.UUID, file_id: str) -> Assistant:
+        try:
+            assistant = await self.retrieve_assistant(assistant_id)
+            if assistant:
+                updated_file_ids = assistant.file_ids or []
+                if file_id in updated_file_ids:
+                    updated_file_ids.remove(file_id)
+                    updated_data = {"file_ids": updated_file_ids}
+                    updated_assistant = await self.update_assistant(assistant_id, updated_data)
+                    return updated_assistant
+                else:
+                    raise HTTPException(status_code=404, detail="File not found")
+            else:
+                raise HTTPException(status_code=404, detail="Assistant not found")
+        except SQLAlchemyError as e:
+                await self.postgresql_session.rollback()
+                await logger.exception(f"Failed to remove file from assistant due to a database error.", exc_info=True, assistant_id=assistant_id, file_id=file_id)
+                raise HTTPException(status_code=500, detail="Failed to remove file from assistant.")
+
+    async def remove_all_file_references(self, file_id: uuid.UUID) -> list[dict[str, Any]]:
+        """Removes the file_id from all assistants that reference it. Returns a list of the id and name of the assistants that were updated."""
+        updated_assistants = []
+        try:
+            filters = {
+                "file_ids": {"contains": [str(file_id)]}
+            }
+            assistants = await self.retrieve_assistants(filters=filters)
+            for assistant in assistants:
+                updated_file_ids = assistant.file_ids
+                updated_file_ids.remove(str(file_id))
+                updated_data = {"file_ids": updated_file_ids}
+                updated_assistant = await self.update_assistant(assistant.id, updated_data)
+                assistant_id = updated_assistant.id
+                assistant_name = updated_assistant.name
+                updated_assistants.append({"id": assistant_id, "name": assistant_name})
+            return updated_assistants
+        except SQLAlchemyError as e:
+            await self.postgresql_session.rollback()
+            await logger.exception(f"Failed to remove file references from assistants due to a database error.", exc_info=True, file_id=file_id)
+            raise HTTPException(status_code=500, detail="Failed to remove file references from assistants.")

@@ -17,17 +17,13 @@ Classes:
     - `delete`: Removes a record from the database based on its UUID.
     - `delete_by_field`: Removes a record based on a specified field.
 
-Key Functionalities:
--------------------
-- **Async Support**: This repository is built for asynchronous database sessions, ensuring efficient non-blocking operations.
-- **Common Table Expressions (CTE)**: Used for modularizing complex SQL statements. This is evident in `retrieve_one` and `retrieve_all` methods.
-- **Generic Methods**: The methods like `create`, `retrieve_one`, etc., are designed generically to work with any model and be adaptable for most common use cases.
-
 """
 
 import uuid
 from typing import Type
-from sqlalchemy import delete, func, select, update, and_
+
+from sqlalchemy import delete, select, update, cast, String
+from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.selectable import Select
 from typing import Optional, Dict, Any
@@ -85,6 +81,7 @@ class BaseRepository:
     async def retrieve_all(self, model: Type[Any], filters: Optional[Dict[str, Any]] = None):
         """
         Retrieves all records that match the given filters.
+        It is made to handle advanced filtering scenarios like array containment.
 
         :param model: The SQLAlchemy model class to query.
         :param filters: A dictionary of filters to apply.
@@ -93,11 +90,21 @@ class BaseRepository:
         query = select(model)
 
         if filters:
-            conditions = [getattr(model, key) == value for key, value in filters.items() if hasattr(model, key)]
+            conditions = []
+            for key, value in filters.items():
+                if hasattr(model, key):
+                    if isinstance(value, dict):
+                        for op, op_value in value.items():
+                            if op == 'contains':
+                                conditions.append(cast(getattr(model, key), ARRAY(String)).contains(op_value))
+                            else:
+                                raise ValueError(f"Unsupported operator: {op}")
+                    else:
+                        conditions.append(getattr(model, key) == value)
             query = query.filter(*conditions)
 
         result = await self.postgresql_session.execute(query)
-        records = result.scalars().all()
+        records = result.scalars().all() or []
         return records
 
     async def update(self, model, values: dict, object_id: uuid.UUID):

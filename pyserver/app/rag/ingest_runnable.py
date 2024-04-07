@@ -12,7 +12,6 @@ from langchain_core.vectorstores import VectorStore
 from langchain.text_splitter import RecursiveCharacterTextSplitter, TextSplitter
 from langchain_community.document_loaders.blob_loaders import Blob
 from langchain_community.vectorstores.qdrant import Qdrant
-from qdrant_client.http import models as rest
 from langchain_core.runnables import (
     ConfigurableField,
     RunnableConfig,

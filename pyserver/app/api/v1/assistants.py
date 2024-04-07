@@ -14,10 +14,14 @@ from app.schema.assistant import (
 )
 from app.api.annotations import ApiKey
 from app.rag.ingest_runnable import ingest_runnable
+from app.core.configuration import get_settings
+from app.vectordbs.qdrant import QdrantService
+
 
 router = APIRouter()
 DEFAULT_TAG = "Assistants"
 logger = structlog.get_logger()
+settings = get_settings()
 
 @router.post("", tags=[DEFAULT_TAG], response_model=Assistant, status_code=status.HTTP_201_CREATED,
              operation_id="create_assistant",
@@ -129,3 +133,28 @@ async def create_assistant_file(
     except Exception as e:
         await logger.exception(f"Error adding file to assistant: {str(e)}")
         raise HTTPException(status_code=500, detail="An error occurred while adding the file to the assistant.")
+
+@router.delete("/{assistant_id}/files/{file_id}", tags=[DEFAULT_TAG],
+             response_model=Assistant,
+             operation_id="delete_assistant_file",
+             summary="Remove a file from an assistant",
+             description="Removes a file from an assistant by its ID. This also deletes the corresponding documents from the vector store.")
+async def delete_assistant_file(
+    api_key: ApiKey,
+    assistant_id: uuid.UUID,
+    file_id: uuid.UUID,
+    assistant_repository: AssistantRepository = Depends(get_assistant_repository),
+):
+    try:
+        service = QdrantService()
+        # delete the associated vector embeddings
+        deleted_chunks = await service.delete(str(file_id), str(assistant_id))
+        await logger.info(f"Deleted {deleted_chunks} chunks")
+        # Delete the file from the assistant's file_ids
+        assistant = await assistant_repository.remove_file_from_assistant(assistant_id, str(file_id))
+        return assistant
+    except Exception as e:
+        await logger.exception(f"Error deleting assistant file: {str(e)}")
+        raise HTTPException(status_code=500, detail="An error occurred while deleting the file from the assistant.")
+
+

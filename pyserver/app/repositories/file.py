@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.datastore import get_postgresql_session_provider
 from typing import Optional, Any
 from app.core.configuration import settings
-from app.utils.file_helpers import guess_file_extension, guess_mime_type
+from app.utils.file_helpers import guess_file_extension
 from fastapi import Response
 
 logger = structlog.get_logger()
@@ -133,10 +133,9 @@ class FileRepository(BaseRepository):
         """Retrieves the file content as a downloadable response."""
         file = await self.retrieve_file(file_id)
         file_content = await self.retrieve_file_content(file_id)
-
         file_extension = guess_file_extension(file.mime_type)
         headers = {
-            'Content-Disposition': f'attachment; filename="{file_id}.{file_extension}"'
+            'Content-Disposition': f'attachment; filename="{file.filename}.{file_extension}"'
         }
 
         return Response(content=file_content, media_type=file.mime_type, headers=headers)
