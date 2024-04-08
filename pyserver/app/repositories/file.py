@@ -1,7 +1,8 @@
 import uuid
 import os
 import mimetypes
-from sqlalchemy import select
+from datetime import datetime
+from sqlalchemy import select, desc, asc
 from app.models.file import File
 from app.repositories.base import BaseRepository
 import structlog
@@ -139,3 +140,33 @@ class FileRepository(BaseRepository):
         }
 
         return Response(content=file_content, media_type=file.mime_type, headers=headers)
+
+    async def retrieve_files_by_ids(
+        self,
+        file_ids: list[uuid.UUID],
+        limit: int = 100,
+        order: str = "desc",
+        before: Optional[datetime] = None,
+        after: Optional[datetime] = None,
+    ) -> list[File]:
+        try:
+            query = select(File).where(File.id.in_(file_ids))
+
+            if before:
+                query = query.filter(File.created_at < before)
+            if after:
+                query = query.filter(File.created_at > after)
+
+            if order == "asc":
+                query = query.order_by(File.created_at.asc())
+            else:
+                query = query.order_by(File.created_at.desc())
+
+            query = query.limit(limit)
+
+            result = await self.postgresql_session.execute(query)
+            records = result.scalars().all()
+            return records
+        except SQLAlchemyError as e:
+            await logger.exception(f"Failed to retrieve files due to a database error.", exc_info=True)
+            raise HTTPException(status_code=500, detail="Failed to retrieve files.")

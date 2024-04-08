@@ -1,6 +1,7 @@
 
 from fastapi import APIRouter, status, HTTPException, Depends
 import uuid
+from datetime import datetime
 from io import BytesIO
 import structlog
 from app.repositories.assistant import get_assistant_repository, AssistantRepository, UniqueConstraintError
@@ -16,7 +17,8 @@ from app.api.annotations import ApiKey
 from app.rag.ingest_runnable import ingest_runnable
 from app.core.configuration import get_settings
 from app.vectordbs.qdrant import QdrantService
-
+from app.schema.file import FileSchema
+from typing import Optional
 
 router = APIRouter()
 DEFAULT_TAG = "Assistants"
@@ -105,7 +107,7 @@ async def create_assistant_file(
     data: CreateAssistantFileSchema,
     assistant_repository: AssistantRepository = Depends(get_assistant_repository),
     file_repository: FileRepository = Depends(get_file_repository),
-):
+) -> CreateAssistantFileSchemaResponse:
     try:
         assistant = await assistant_repository.retrieve_assistant(assistant_id=assistant_id)
         if not assistant:
@@ -144,7 +146,7 @@ async def delete_assistant_file(
     assistant_id: uuid.UUID,
     file_id: uuid.UUID,
     assistant_repository: AssistantRepository = Depends(get_assistant_repository),
-):
+) -> Assistant:
     try:
         service = QdrantService()
         # delete the associated vector embeddings
@@ -157,4 +159,38 @@ async def delete_assistant_file(
         await logger.exception(f"Error deleting assistant file: {str(e)}")
         raise HTTPException(status_code=500, detail="An error occurred while deleting the file from the assistant.")
 
+
+@router.get("/{assistant_id}/files", tags=[DEFAULT_TAG],
+            response_model=list[FileSchema],
+            operation_id="retrieve_assistant_files",
+            summary="Retrieve file information for all files associated with an assistant",
+            description="Returns a list of file objects for all files associated with an assistant.")
+async def retrieve_assistant_files(
+    api_key: ApiKey,
+    assistant_id: uuid.UUID,
+    limit: int = 20,
+    order: str = "desc",
+    before: Optional[datetime] = None,
+    after: Optional[datetime] = None,
+    assistant_repository: AssistantRepository = Depends(get_assistant_repository),
+    files_repository: FileRepository = Depends(get_file_repository),
+) -> list[FileSchema]:
+    try:
+        assistant = await assistant_repository.retrieve_assistant(assistant_id)
+        if not assistant:
+            raise HTTPException(status_code=404, detail="Assistant not found")
+        file_ids = assistant.file_ids or []
+        files = await files_repository.retrieve_files_by_ids(
+            file_ids=file_ids,
+            limit=limit,
+            order=order,
+            before=before,
+            after=after
+        )
+        return files
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        await logger.exception(f"Error retrieving files for assistant: {str(e)}")
+        raise HTTPException(status_code=500, detail="An error occurred while retrieving the files for the assistant.")
 
