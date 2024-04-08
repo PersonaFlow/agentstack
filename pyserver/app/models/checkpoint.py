@@ -25,6 +25,7 @@ class PostgresCheckpoint(Base):
     thread_id: Mapped[str] = mapped_column(
         String(),
         nullable=False,
+        index=True,
         comment="The ID of the thread to which the checkpoint belongs."
     )
     checkpoint: Mapped[LargeBinary] = mapped_column(

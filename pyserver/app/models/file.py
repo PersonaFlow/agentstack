@@ -52,6 +52,7 @@ class File(Base):
         DateTime(timezone=True),
         default=func.now(),
         nullable=False,
+        index=True,
         comment="Created date"
     )
     updated_at: Mapped[datetime] = mapped_column(

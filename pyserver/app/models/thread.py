@@ -47,5 +47,6 @@ class Thread(Base):
         default=func.now(),
         onupdate=func.now(),
         nullable=False,
+        index=True,
         comment="Last updated date"
     )

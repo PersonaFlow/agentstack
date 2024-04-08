@@ -20,7 +20,8 @@ class Assistant(Base):
     )
     user_id: Mapped[str] = mapped_column(
         String(),
-        nullable=True,
+        nullable=False,
+        index=True,
         comment="The ID of the user who created the assistant."
     )
     name: Mapped[str] = mapped_column(
