@@ -74,7 +74,7 @@ class UserRepository(BaseRepository):
                        User.email,
                        User.first_name,
                        User.last_name,
-                       User.additional_kwargs,
+                       User.kwargs,
                        User.created_at,
                        User.updated_at
                     )

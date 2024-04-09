@@ -15,7 +15,7 @@ class Thread(BaseModel):
     user_id: str = Field(..., description="The user id associated with the thread.")
     assistant_id: str = Field(None, description="(Optional) The assistant id associated with the thread.")
     name: Optional[str] = Field(None, description="(Optional) The conversation title of the thread.")
-    additional_kwargs: Optional[dict] = Field(None, description="(Optional) Additional metadata associated with the thread.")
+    kwargs: Optional[dict] = Field(None, description="(Optional) Additional kwargs associated with the thread.")
     created_at: datetime = Field(..., description="Created date")
     updated_at: datetime = Field(..., description="Last updated date")
 
@@ -26,7 +26,7 @@ class CreateThreadSchema(BaseModel):
     assistant_id: str = Field(..., description="(Optional) The assistant id associated with the thread.")
     user_id: str = Field(..., description="The user id associated with the thread.")
     name: Optional[str] = Field(None, description="(Optional) The conversation title of the thread.")
-    additional_kwargs: Optional[dict] = Field(None, description="(Optional) Additional metadata associated with the thread.")
+    kwargs: Optional[dict] = Field(None, description="(Optional) Additional kwargs associated with the thread.")
 
     @validator('user_id')
     def must_not_be_empty(cls, v):
@@ -37,7 +37,7 @@ class CreateThreadSchema(BaseModel):
 class UpdateThreadSchema(BaseModel):
     assistant_id: Optional[str] = Field(None, description="(Optional) The assistant id associated with the thread.")
     name: Optional[str] = Field(None, description="(Optional) The conversation title of the thread.")
-    additional_kwargs: Optional[dict] = Field(None, description="(Optional) Additional metadata associated with the thread.")
+    kwargs: Optional[dict] = Field(None, description="(Optional) Additional kwargs associated with the thread.")
 
 class GroupedThreads(BaseModel):
     Today: Optional[List[Thread]] = Field(None, alias='Today')

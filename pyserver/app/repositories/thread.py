@@ -71,7 +71,7 @@ class ThreadRepository(BaseRepository):
                       Thread.user_id,
                       Thread.assistant_id,
                       Thread.name,
-                      Thread.additional_kwargs,
+                      Thread.kwargs,
                       Thread.created_at,
                       Thread.updated_at
                     )

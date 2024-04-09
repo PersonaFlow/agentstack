@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from semantic_router.encoders import BaseEncoder
 from tqdm import tqdm
 
-from app.schema.rag import DeleteResponse, BaseDocumentChunk
+from app.schema.rag import DeleteDocumentsResponse, BaseDocumentChunk
 import structlog
 from app.core.configuration import get_settings
 
@@ -30,7 +30,7 @@ class BaseVectorDatabase(ABC):
         pass
 
     @abstractmethod
-    async def delete(self, file_url: str) -> DeleteResponse:
+    async def delete(self, file_id: str, assistant_id: str = None) -> DeleteDocumentsResponse:
         pass
 
     async def _generate_vectors(self, input: str) -> list[list[float]]:

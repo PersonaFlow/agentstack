@@ -146,6 +146,7 @@ models/llama-2-7b-chat.ggmlv3.q4_K_M.bin
 models/llama2-chat-message.tmpl
 
 index_data/
+file_data/
 index/
 
 # conda

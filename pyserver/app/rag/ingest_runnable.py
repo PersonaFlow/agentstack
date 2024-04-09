@@ -2,12 +2,8 @@
 from __future__ import annotations
 import uuid
 import logging
-from typing import Any, BinaryIO, List, Optional
+from typing import Any, BinaryIO, Optional
 
-from langchain.document_loaders.parsers import BS4HTMLParser, PDFMinerParser
-from langchain.document_loaders.parsers.generic import MimeTypeBasedParser
-from langchain.document_loaders.parsers.msword import MsWordParser
-from langchain.document_loaders.parsers.txt import TextParser
 from langchain.text_splitter import TextSplitter
 from langchain_community.document_loaders import Blob
 from langchain_community.document_loaders.base import BaseBlobParser
@@ -16,7 +12,6 @@ from langchain_core.vectorstores import VectorStore
 from langchain.text_splitter import RecursiveCharacterTextSplitter, TextSplitter
 from langchain_community.document_loaders.blob_loaders import Blob
 from langchain_community.vectorstores.qdrant import Qdrant
-from qdrant_client.http import models as rest
 from langchain_core.runnables import (
     ConfigurableField,
     RunnableConfig,
@@ -27,26 +22,8 @@ from langchain_openai import OpenAIEmbeddings
 from qdrant_client import QdrantClient
 from app.utils.vector_collection import create_assistants_collection
 from app.core.configuration import get_settings
+from app.utils.file_helpers import guess_mime_type, MIMETYPE_BASED_PARSER
 
-
-HANDLERS = {
-#   PDFMinerParser handles parsing of everything in a pdf such as images, tables, etc.
-    "application/pdf": PDFMinerParser(),
-    "text/plain": TextParser(),
-    "text/html": BS4HTMLParser(),
-    "application/msword": MsWordParser(),
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": (
-        MsWordParser()
-    ),
-}
-
-SUPPORTED_MIMETYPES = sorted(HANDLERS.keys())
-
-
-MIMETYPE_BASED_PARSER = MimeTypeBasedParser(
-    handlers=HANDLERS,
-    fallback_parser=None,
-)
 
 settings = get_settings()
 
@@ -54,32 +31,21 @@ settings = get_settings()
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-
-def _guess_mimetype(file_bytes: bytes) -> str:
-    """Guess the mime-type of a file."""
-    try:
-        import magic
-    except ImportError as e:
-        raise ImportError(
-            "magic package not found, please install it with `pip install python-magic`"
-        ) from e
-
-    mime = magic.Magic(mime=True)
-    mime_type = mime.from_buffer(file_bytes)
-    return mime_type
-
-
 def _convert_ingestion_input_to_blob(data: BinaryIO) -> Blob:
-    """Convert ingestion input to blob."""
     file_data = data.read()
-    mimetype = _guess_mimetype(file_data)
-    file_name = data.name
+    mimetype = guess_mime_type(file_data)
+    # 'name' gets set as the metadata.source field for the doc in the vector db.
+    # Note: we're not yet utilizing the source field
+    if hasattr(data, 'name'):
+        file_name = data.name
+    else:
+        file_name = 'unnamed_file'
+
     return Blob.from_data(
         data=file_data,
         path=file_name,
         mime_type=mimetype,
     )
-
 
 def _sanitize_document_content(document: Document) -> Document:
     """Sanitize the document."""
@@ -102,20 +68,17 @@ def ingest_blob(
     text_splitter: TextSplitter,
     vectorstore: VectorStore,
     namespace: str,
+    file_id: str,
     *,
     batch_size: int = 100,
 ) -> list[str]:
+    """Ingest a document into the vectorstore."""
     docs_to_index = []
-    file_ids = []
+    ids = []
     try:
         for document in parser.lazy_parse(blob):
-            file_id = str(uuid.uuid4())
-            file_ids.append(file_id)
-            logger.debug(f"Generated file_id: {file_id}")
-
             docs = text_splitter.split_documents([document])
             logger.debug(f"Split document into {len(docs)} chunks")
-
             for doc in docs:
                 _sanitize_document_content(doc)
                 _update_document_metadata(doc, namespace, file_id)
@@ -123,19 +86,18 @@ def ingest_blob(
 
             if len(docs_to_index) >= batch_size:
                 logger.debug(f"Adding {len(docs_to_index)} documents to vector store")
-                vectorstore.add_documents(docs_to_index)
+                ids.extend(vectorstore.add_documents(docs_to_index))
                 docs_to_index = []
 
         if docs_to_index:
             logger.debug(f"Adding remaining {len(docs_to_index)} documents to vector store")
-            vectorstore.add_documents(docs_to_index)
-        logger.debug(f"Ingested {len(file_ids)} files")
+            ids.extend(vectorstore.add_documents(docs_to_index))
 
     except Exception as e:
         logger.error(f"Error ingesting documents: {e}")
         raise e
 
-    return file_ids
+    return ids
 
 
 class IngestRunnable(RunnableSerializable[BinaryIO, list[str]]):
@@ -149,6 +111,9 @@ class IngestRunnable(RunnableSerializable[BinaryIO, list[str]]):
     """Ingested documents will be associated with assistant_id or thread_id.
        The assistant or thread ID is used as the namespace, and is filtered on at query time.
     """
+
+    file_id: Optional[str]
+    """The file id of the document to ingest."""
 
     class Config:
         arbitrary_types_allowed = True
@@ -184,34 +149,37 @@ class IngestRunnable(RunnableSerializable[BinaryIO, list[str]]):
 
     def invoke(
         self, input: BinaryIO, config: Optional[RunnableConfig] = None
-    ) -> tuple[list[str], list[str]]:
+    ) -> list[str]:
         return self.batch([input], config)
 
     def batch(
         self,
-        inputs: List[BinaryIO],
-        config: RunnableConfig | List[RunnableConfig] | None = None,
+        inputs: list[BinaryIO],
+        config: RunnableConfig | list[RunnableConfig] | None = None,
         *,
         return_exceptions: bool = False,
         **kwargs: Any | None,
     ) -> list[str]:
         """Ingest a batch of files into the vectorstore."""
-        file_ids = []
+        ids = []
         try:
             for data in inputs:
                 blob = _convert_ingestion_input_to_blob(data)
-                file_ids.extend(ingest_blob(
-                    blob,
-                    MIMETYPE_BASED_PARSER,
-                    self.text_splitter,
-                    self.vectorstore,
-                    self.namespace,
-                ))
-            logger.debug(f"Batch ingested {len(file_ids)} files")
+                ids.extend(
+                    ingest_blob(
+                        blob,
+                        MIMETYPE_BASED_PARSER,
+                        self.text_splitter,
+                        self.vectorstore,
+                        self.namespace,
+                        self.file_id,
+                    )
+                )
         except Exception as e:
             logger.error(f"Error ingesting batch: {e}")
             raise e
-        return file_ids
+
+        return ids
 
 ingest_runnable = IngestRunnable(
     text_splitter=RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200),
@@ -226,4 +194,10 @@ ingest_runnable = IngestRunnable(
         annotation=str,
         name="Thread ID",
     ),
+    file_id=ConfigurableField(
+        id="file_id",
+        annotation=str,
+        name="File ID",
+    )
 )
+

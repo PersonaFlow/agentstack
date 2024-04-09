@@ -31,10 +31,10 @@ class Thread(Base):
         nullable=True,
         comment="The title of the thread."
     )
-    additional_kwargs: Mapped[JSONB] = mapped_column(
+    kwargs: Mapped[JSONB] = mapped_column(
         JSONB(),
         nullable=True,
-        comment="Additional metadata associated with the thread."
+        comment="Additional arguments associated with the thread."
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -47,5 +47,6 @@ class Thread(Base):
         default=func.now(),
         onupdate=func.now(),
         nullable=False,
+        index=True,
         comment="Last updated date"
     )
