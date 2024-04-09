@@ -7,6 +7,7 @@ from app.api.v1 import threads
 from app.api.v1 import messages
 from app.api.v1 import assistants
 from app.api.v1 import rag
+from app.api.v1 import files
 
 api_router = APIRouter()
 # api_router.include_router(feedback.router, tags=["Feedback"])
@@ -17,6 +18,7 @@ api_router.include_router(threads.router, prefix="/threads")
 api_router.include_router(messages.router, prefix="/messages")
 api_router.include_router(assistants.router, prefix="/assistants")
 api_router.include_router(rag.router, prefix="/rag")
+api_router.include_router(files.router, prefix="/files")
 
 
 @api_router.get('/health_check', tags=['Health Check'])

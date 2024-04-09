@@ -20,7 +20,7 @@ class User(BaseModel):
     email: Optional[str] = Field(None, description="(Optional) The email address associated with the user's account. It's a string type and is expected to be unique across the userbase")
     first_name: Optional[str] = Field(None, description="(Optional) The first name of the user.")
     last_name: Optional[str] = Field(None, description="(Optional) The last name of the user.")
-    additional_kwargs: Optional[dict] = Field(None, description="(Optional) Additional metadata associated with the user.")
+    kwargs: Optional[dict] = Field(None, description="(Optional) Additional kwargs associated with the user.")
     created_at: datetime = Field(..., description="Created date")
     updated_at: datetime = Field(..., description="Last updated date")
 
@@ -36,7 +36,7 @@ class CreateUserSchema(BaseModel):
     email: Optional[str] = Field(None, description="(Optional) The email address associated with the user's account. It's a string type and is expected to be unique across the userbase")
     first_name: Optional[str] = Field(None, description="(Optional) The first name of the user.")
     last_name: Optional[str] = Field(None, description="(Optional) The last name of the user.")
-    additional_kwargs: Optional[dict] = Field(None, description="(Optional) Additional metadata associated with the user.")
+    kwargs: Optional[dict] = Field(None, description="(Optional) Additional kwargs associated with the user.")
 
 class UpdateUserSchema(BaseModel):
     username: Optional[str] = Field(None, description="(Optional) The username chosen by the user. It's a string type and does not need to be unique across the userbase.")
@@ -44,5 +44,5 @@ class UpdateUserSchema(BaseModel):
     email: Optional[str] = Field(None, description="(Optional) The email address associated with the user's account. It's a string type and is expected to be unique across the userbase")
     first_name: Optional[str] = Field(None, description="(Optional) The first name of the user.")
     last_name: Optional[str] = Field(None, description="(Optional) The last name of the user.")
-    additional_kwargs: Optional[dict] = Field(None, description="(Optional) Additional metadata associated with the user.")
+    kwargs: Optional[dict] = Field(None, description="(Optional) Additional kwargs associated with the user.")
 

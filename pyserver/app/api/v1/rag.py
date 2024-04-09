@@ -128,28 +128,29 @@ async def query(
     )
     return response_data
 
-@router.post("/assistant/ingest", tags=[DEFAULT_TAG],
-             operation_id="ingest_files_for_assistant",
-             response_model=list[str],
-             summary="Ingest files for assistant retrieval tool.",
-             description="""
-             Upload files to the given assistant for ingesting. <br>
-             *Config must be a RunnableConfig and include the assistant or thread id.* <br>
-             eg. {"configurable":{"assistant_id":"57f9a247-86f3-4d72-8e23-e9b1701dae6c"}} <br>
-             If file is being uploaded to thread, replace assistant_id with thread_id.
-             """)
-async def ingest_files_for_assistant(
-    api_key: ApiKey,
-    files: list[UploadFile] = File(..., description="List of files to upload."),
-    config: str = Form(..., description="RunnableConfig in JSON format: `{\"configurable\":{\"assistant_id\":\"57f9a247-86f3-4d72-8e23-e9b1701dae6c\"}}`.")
-) -> list[str]:
-    if not files:
-        raise HTTPException(status_code=400, detail="No files provided.")
-    try:
-        config = orjson.loads(config)
-        file_ids = ingest_runnable.batch([file.file for file in files], config)
-        return file_ids[0]
-    except Exception as e:
-        await logger.exception(f"Error ingesting batch: {e}")
-        raise HTTPException(status_code=400, detail=str(e))
+# @router.post("/assistant/ingest", tags=[DEFAULT_TAG],
+#              operation_id="ingest_files_for_assistant",
+#              response_model=list[str],
+#              summary="Ingest files for assistant retrieval tool.",
+#              description="""
+#              Upload one or more files to the given assistant for immediate ingesting. <br>
+#              *Config must be a RunnableConfig and include the assistant or thread id.* <br>
+#              eg. {"configurable":{"assistant_id":"57f9a247-86f3-4d72-8e23-e9b1701dae6c"}} <br>
+#              If file is being uploaded to thread, replace assistant_id with thread_id. <br>
+#              """)
+# async def ingest_files_for_assistant(
+#     api_key: ApiKey,
+#     files: list[UploadFile] = File(..., description="List of files to upload."),
+#     config: str = Form(..., description="RunnableConfig in JSON format: `{\"configurable\":{\"assistant_id\":\"57f9a247-86f3-4d72-8e23-e9b1701dae6c\"}}`.")
+# ) -> list[str]:
+#     # TODO: With addition of files api, this needs to also add each file to the database
+#     if not files:
+#         raise HTTPException(status_code=400, detail="No files provided.")
+#     try:
+#         config = orjson.loads(config)
+#         file_ids = ingest_runnable.batch([file.file for file in files], config)
+#         return file_ids[0]
+#     except Exception as e:
+#         await logger.exception(f"Error ingesting batch: {e}")
+#         raise HTTPException(status_code=400, detail=str(e))
 

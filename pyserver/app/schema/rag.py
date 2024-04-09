@@ -28,13 +28,16 @@ class EncoderProvider(str, Enum):
 
 class EncoderConfig(BaseModel):
     provider: EncoderProvider = Field(
-        default=EncoderProvider.cohere, description="Embedding provider"
+        default=EncoderProvider.openai,
+        description="Embedding provider"
     )
     model_name: str = Field(
-        default="embed-multilingual-light-v3.0",
+        default="text-embedding-3-small",
         description="Model name for the encoder",
     )
-    dimensions: int = Field(default=384, description="Dimension of the encoder output")
+    dimensions: int = Field(
+        default=1536,
+        description="Dimension of the encoder output")
 
     _encoder_config = {
         EncoderProvider.cohere: {
@@ -62,7 +65,18 @@ class EncoderConfig(BaseModel):
         # },
         # TODO: Create an ollama encoder, possibly as a contrib
     }
-
+    # @classmethod
+    # def get_encoder(cls, provider: EncoderProvider = None, model_name: str = None) -> BaseEncoder:
+    #     if provider is None:
+    #         provider = cls.model_fields["provider"].default
+    #     _encoder_config = getattr(cls, "_encoder_config", {})
+    #     config = _encoder_config.get(provider)
+    #     if not config:
+    #         raise ValueError(f"Encoder '{provider}' not found.")
+    #     if model_name is None:
+    #         model_name = config["default_model_name"]
+    #     encoder_class = config["class"]
+    #     return encoder_class(name=model_name)
     def get_encoder(self) -> BaseEncoder:
         config = self._encoder_config.get(self.provider)
         if not config:
@@ -70,6 +84,7 @@ class EncoderConfig(BaseModel):
         model_name = self.model_name or config["default_model_name"]
         encoder_class = config["class"]
         return encoder_class(name=model_name)
+
 
 
 class UnstructuredConfig(BaseModel):
@@ -323,11 +338,5 @@ class DeleteRequestPayload(BaseModel):
     vector_database: VectorDatabase
     encoder: EncoderConfig = EncoderConfig()
 
-
-class DeleteResponse(BaseModel):
-    num_of_deleted_chunks: int
-
-
-class DeleteResponsePayload(BaseModel):
-    success: bool
-    data: DeleteResponse
+class DeleteDocumentsResponse(BaseModel):
+    num_deleted_chunks: int

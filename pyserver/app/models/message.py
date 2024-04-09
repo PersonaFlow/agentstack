@@ -32,19 +32,19 @@ class Message(Base):
         String(),
         comment="The content of the message."
     )
-    type: Mapped[str] = mapped_column(
+    role: Mapped[str] = mapped_column(
         String(),
         comment="The type of message (e.g., text, image, etc.)."
-    )
-    additional_kwargs: Mapped[JSONB] = mapped_column(
-        JSONB(),
-        nullable=True,
-        comment="Additional metadata associated with the message."
     )
     example: Mapped[Boolean] = mapped_column(
         Boolean(),
         nullable=True,
         comment="Indicates whether the message is an example message for training or demonstration purposes."
+    )
+    kwargs: Mapped[str] = mapped_column(
+        String(),
+        nullable=True,
+        comment="Additional arguments associated with the message."
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

@@ -60,8 +60,8 @@ class MessageRepository(BaseRepository):
                       Message.user_id,
                       Message.assistant_id,
                       Message.content,
-                      Message.type,
-                      Message.additional_kwargs,
+                      Message.role,
+                      Message.kwargs,
                       Message.example,
                       Message.created_at,
                       Message.updated_at
