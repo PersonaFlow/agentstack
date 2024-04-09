@@ -25,25 +25,22 @@ from app.core.configuration import get_settings
 from app.utils.file_helpers import guess_mime_type, MIMETYPE_BASED_PARSER
 
 
+# TODO: Make Async
+
 settings = get_settings()
 
-# logger = structlog.get_logger()
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 def _convert_ingestion_input_to_blob(data: BinaryIO) -> Blob:
     file_data = data.read()
     mimetype = guess_mime_type(file_data)
-    # 'name' gets set as the metadata.source field for the doc in the vector db.
-    # Note: we're not yet utilizing the source field
-    if hasattr(data, 'name'):
-        file_name = data.name
-    else:
-        file_name = 'unnamed_file'
+    # TODO: set file source to data.name - this gets set as the metadata.source field for the doc in the vector db.
+    # file_name = data.name if hasattr(data, 'name') else 'unnamed_file'
 
     return Blob.from_data(
         data=file_data,
-        path=file_name,
+        # path=file_name,
         mime_type=mimetype,
     )
 
@@ -115,6 +112,7 @@ class IngestRunnable(RunnableSerializable[BinaryIO, list[str]]):
     file_id: Optional[str]
     """The file id of the document to ingest."""
 
+
     class Config:
         arbitrary_types_allowed = True
 
@@ -128,11 +126,12 @@ class IngestRunnable(RunnableSerializable[BinaryIO, list[str]]):
             )
         return self.assistant_id if self.assistant_id is not None else self.thread_id
 
+    # TODO: this needs to come from app.vectordbs.get_vector_service
     @property
     def vectorstore(self) -> VectorStore:
         qdrant_client = QdrantClient(settings.VECTOR_DB_HOST, port = settings.VECTOR_DB_PORT)
         collection_name = settings.VECTOR_DB_COLLECTION_NAME
-        vector_size = settings.VECTOR_DB_COLLECTION_SIZE
+        vector_size = settings.VECTOR_DB_ENCODER_DIMENSIONS
 
         if not qdrant_client.collection_exists(collection_name):
             create_assistants_collection(qdrant_client, collection_name, vector_size)

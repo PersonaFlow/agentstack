@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from qdrant_client import QdrantClient
 from qdrant_client.http import models as rest
@@ -9,6 +9,7 @@ from app.schema.rag import DeleteDocumentsResponse, BaseDocumentChunk
 from app.vectordbs.base import BaseVectorDatabase
 from app.core.configuration import get_settings
 
+
 MAX_QUERY_TOP_K = 5
 settings = get_settings()
 
@@ -17,10 +18,10 @@ logger = structlog.get_logger()
 class QdrantService(BaseVectorDatabase):
     def __init__(
         self,
-        credentials: dict = None,
+        credentials: dict = settings.VECTOR_DB_CREDENTIALS,
         index_name: str = settings.VECTOR_DB_COLLECTION_NAME,
-        dimension: int = settings.VECTOR_DB_COLLECTION_SIZE,
-        encoder: BaseEncoder = None,
+        dimension: int = settings.VECTOR_DB_ENCODER_DIMENSIONS,
+        encoder: Optional[BaseEncoder] = None,
         enable_rerank: bool = False,
     ):
         super().__init__(
@@ -30,19 +31,9 @@ class QdrantService(BaseVectorDatabase):
             encoder=encoder,
             enable_rerank=enable_rerank,
         )
-        # if encoder is None:
-        #     encoder = EncoderConfig.get_encoder()
-
-        if credentials is None:
-            credentials = {
-                "host": settings.VECTOR_DB_HOST,
-                "port": settings.VECTOR_DB_PORT,
-                "api_key": settings.VECTOR_DB_API_KEY,
-            }
 
         self.client = QdrantClient(
             credentials["host"],
-            port=credentials["port"],
             api_key=credentials["api_key"],
             https=False
         )
@@ -78,6 +69,7 @@ class QdrantService(BaseVectorDatabase):
             )
 
         self.client.upsert(collection_name=self.index_name, wait=True, points=points)
+    
 
     async def query(self, input: str, top_k: int = MAX_QUERY_TOP_K) -> List:
         vectors = await self._generate_vectors(input=input)
@@ -101,37 +93,28 @@ class QdrantService(BaseVectorDatabase):
             for result in search_result
         ]
 
-    async def delete(self, file_id: str, assistant_id: str = None) -> DeleteDocumentsResponse:
-        if assistant_id is None or assistant_id == "":
-            must_conditions = [
-                rest.FieldCondition(
-                    key="metadata.file_id", match=rest.MatchValue(value=str(file_id))
-                )
-            ]
-        else:
-            must_conditions = [
-                rest.FieldCondition(
-                    key="metadata.file_id", match=rest.MatchValue(value=str(file_id))
-                ),
-                rest.FieldCondition(
-                    key="metadata.assistant_id", match=rest.MatchValue(value=str(assistant_id))
-                )
-            ]
+    async def delete(self, file_id: str, assistant_id: Optional[str] = None) -> DeleteDocumentsResponse:
+
+        must_conditions = [
+            rest.FieldCondition(key="metadata.file_id", match=rest.MatchValue(value=str(file_id)))
+        ]
+        if assistant_id:
+            must_conditions.append(
+                rest.FieldCondition(key="metadata.namespace", match=rest.MatchValue(value=str(assistant_id)))
+            )
+
+        common_filter = rest.Filter(must=must_conditions)
 
         deleted_chunks = self.client.count(
             collection_name=self.index_name,
-            count_filter=rest.Filter(
-                must=must_conditions
-            ),
+            count_filter=common_filter,
             exact=True,
         )
         await logger.info(f"Preparing to delete {deleted_chunks.count} chunks")
+
         self.client.delete(
             collection_name=self.index_name,
-            points_selector=rest.FilterSelector(
-                filter=rest.Filter(
-                    must=must_conditions
-                )
-            ),
+            points_selector=rest.FilterSelector(filter=common_filter),
         )
+
         return DeleteDocumentsResponse(num_deleted_chunks=deleted_chunks.count)
