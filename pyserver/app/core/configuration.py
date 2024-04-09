@@ -10,7 +10,6 @@ import sys
 import enum
 from pathlib import Path
 from dotenv import load_dotenv
-from fastapi import FastAPI
 from pydantic_settings import BaseSettings
 from pydantic import ValidationError
 import structlog
@@ -53,6 +52,7 @@ class Settings(BaseSettings):
 
     BASE_DIR: Path = Path(__file__).parents[1]
     APP_DIR: Path = BASE_DIR.joinpath("app")
+    FILE_DATA_DIRECTORY: Path = BASE_DIR.joinpath("file_data")
     PATCH_DIR: Path = BASE_DIR.joinpath("patches")
 
     # Key to be sent as x-api-key header to authenticate requests
@@ -123,6 +123,8 @@ class Settings(BaseSettings):
         }
 
     EXCLUDE_REQUEST_LOG_ENDPOINTS: list[str] = ["/docs"]
+
+    MAX_FILE_UPLOAD_SIZE: int = int(os.getenv("MAX_FILE_UPLOAD_SIZE", 100000000))
 
 
 def get_settings() -> Settings:
