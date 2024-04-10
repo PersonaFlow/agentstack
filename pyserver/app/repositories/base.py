@@ -92,15 +92,19 @@ class BaseRepository:
         if filters:
             conditions = []
             for key, value in filters.items():
-                if hasattr(model, key):
-                    if isinstance(value, dict):
-                        for op, op_value in value.items():
-                            if op == 'contains':
-                                conditions.append(cast(getattr(model, key), ARRAY(String)).contains(op_value))
-                            else:
-                                raise ValueError(f"Unsupported operator: {op}")
-                    else:
-                        conditions.append(getattr(model, key) == value)
+                if not hasattr(model, key):
+                    continue
+
+                if not isinstance(value, dict):
+                    conditions.append(getattr(model, key) == value)
+                    continue
+
+                for op, op_value in value.items():
+                    if op != 'contains':
+                        raise ValueError(f"Unsupported operator: {op}")
+
+                    conditions.append(cast(getattr(model, key), ARRAY(String)).contains(op_value))
+
             query = query.filter(*conditions)
 
         result = await self.postgresql_session.execute(query)

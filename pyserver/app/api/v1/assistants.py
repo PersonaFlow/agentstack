@@ -16,7 +16,7 @@ from app.schema.assistant import (
 from app.api.annotations import ApiKey
 from app.rag.ingest_runnable import ingest_runnable
 from app.core.configuration import get_settings
-from app.vectordbs.qdrant import QdrantService
+from app.vectordbs import get_vector_service
 from app.schema.file import FileSchema
 from typing import Optional
 
@@ -114,6 +114,8 @@ async def create_assistant_file(
             logger.exception(f"Assistant not found: {assistant_id}")
             raise HTTPException(status_code=404, detail="Assistant not found")
 
+        # TODO: Add a check to make sure the file_id is not already in the list of Assistant file_ids once testing is finished
+
         file_content = await file_repository.retrieve_file_content(data.file_id)
 
         file_content_io = BytesIO(file_content)
@@ -148,12 +150,12 @@ async def delete_assistant_file(
     assistant_repository: AssistantRepository = Depends(get_assistant_repository),
 ) -> Assistant:
     try:
-        service = QdrantService()
+        service = get_vector_service()
         # delete the associated vector embeddings
         deleted_chunks = await service.delete(str(file_id), str(assistant_id))
         await logger.info(f"Deleted {deleted_chunks} chunks")
         # Delete the file from the assistant's file_ids
-        assistant = await assistant_repository.remove_file_from_assistant(assistant_id, str(file_id))
+        assistant = await assistant_repository.remove_file_reference_from_assistant(assistant_id, str(file_id))
         return assistant
     except Exception as e:
         await logger.exception(f"Error deleting assistant file: {str(e)}")
