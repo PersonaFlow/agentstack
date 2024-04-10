@@ -14,6 +14,8 @@ from pydantic_settings import BaseSettings
 from pydantic import ValidationError
 import structlog
 from typing import Optional
+from app.schema.rag import VectorDatabase, VectorDatabaseType, EncoderConfig, EncoderProvider
+from semantic_router.encoders import BaseEncoder
 
 logger = structlog.get_logger()
 
@@ -52,8 +54,8 @@ class Settings(BaseSettings):
 
     BASE_DIR: Path = Path(__file__).parents[1]
     APP_DIR: Path = BASE_DIR.joinpath("app")
-    FILE_DATA_DIRECTORY: Path = BASE_DIR.joinpath("file_data")
-    PATCH_DIR: Path = BASE_DIR.joinpath("patches")
+    FILE_DATA_DIRECTORY: Path = BASE_DIR.parent.joinpath("file_data")
+    PATCH_DIR: Path = BASE_DIR.parent.joinpath("patches")
 
     # Key to be sent as x-api-key header to authenticate requests
     # WARNING: Auth disabled if not provided
@@ -109,22 +111,34 @@ class Settings(BaseSettings):
     VECTOR_DB_HOST: str = os.getenv("VECTOR_DB_HOST", "localhost")
     VECTOR_DB_PORT: int = os.getenv("VECTOR_DB_PORT", 6333)
     VECTOR_DB_COLLECTION_NAME: str = os.getenv("VECTOR_DB_COLLECTION_NAME", "documents")
-    VECTOR_DB_COLLECTION_SIZE: int = os.getenv("VECTOR_DB_COLLECTION_SIZE", 1536)
+    VECTOR_DB_ENCODER_DIMENSIONS: int = os.getenv("VECTOR_DB_ENCODER_DIMENSIONS", 1536)
+    VECTOR_DB_ENCODER_MODEL: str = os.getenv("VECTOR_DB_ENCODER_MODEL", "text-embedding-3-small")
+    VECTOR_DB_ENCODER_NAME: str = os.getenv("VECTOR_DB_ENCODER_NAME", "openai")
+
+    @property
+    def VECTOR_DB_CONFIG(self):
+        return {
+            "host": f"http://{self.VECTOR_DB_HOST}:{self.VECTOR_DB_PORT}",
+            "api_key": self.VECTOR_DB_API_KEY,
+        }
 
     @property
     def VECTOR_DB_CREDENTIALS(self):
-        """Fallback if vector db config isn't provided in ingest/query request payload."""
-        return {
-            "type": self.VECTOR_DB_NAME,
-            "config": {
-                "host": f"http://{self.VECTOR_DB_HOST}:{self.VECTOR_DB_PORT}",
-                "api_key": self.VECTOR_DB_API_KEY,
-            }
-        }
+        return VectorDatabase(
+            type=VectorDatabaseType(self.VECTOR_DB_NAME),
+            config=self.VECTOR_DB_CONFIG
+        )
+    def get_default_encoder(self) -> BaseEncoder:
+        return EncoderConfig(
+            provider=EncoderProvider(self.VECTOR_DB_ENCODER_NAME),
+            model_name=self.VECTOR_DB_ENCODER_MODEL,
+            dimensions=self.VECTOR_DB_ENCODER_DIMENSIONS,
+        ).get_encoder()
 
     EXCLUDE_REQUEST_LOG_ENDPOINTS: list[str] = ["/docs"]
 
-    MAX_FILE_UPLOAD_SIZE: int = int(os.getenv("MAX_FILE_UPLOAD_SIZE", 100000000))
+    # Defaults to 25mb
+    MAX_FILE_UPLOAD_SIZE: int = int(os.getenv("MAX_FILE_UPLOAD_SIZE", 25000000))
 
 
 def get_settings() -> Settings:

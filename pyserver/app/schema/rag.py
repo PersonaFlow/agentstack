@@ -4,17 +4,14 @@ from typing import Literal, Optional
 from fastapi import UploadFile
 from pydantic import BaseModel, Field, validator
 from semantic_router.encoders import BaseEncoder, CohereEncoder, OpenAIEncoder, HuggingFaceEncoder, AzureOpenAIEncoder
-from app.core.configuration import get_settings
-from urllib.parse import unquote, urlparse
+# from app.rag.ollama_encoder import OllamaEncoder
 
-settings = get_settings()
-
-class DatabaseType(Enum):
+class VectorDatabaseType(Enum):
     qdrant = "qdrant"
 
 
 class VectorDatabase(BaseModel):
-    type: DatabaseType
+    type: VectorDatabaseType
     config: dict
 
 
@@ -24,7 +21,8 @@ class EncoderProvider(str, Enum):
     openai = "openai"
     huggingface = "huggingface"
     azure_openai = "azure_openai"
-
+    mistral = "mistral"
+    # ollama = "ollama"
 
 class EncoderConfig(BaseModel):
     provider: EncoderProvider = Field(
@@ -39,53 +37,44 @@ class EncoderConfig(BaseModel):
         default=1536,
         description="Dimension of the encoder output")
 
-    _encoder_config = {
-        EncoderProvider.cohere: {
-            "class": CohereEncoder,
-            "default_model_name": "embed-multilingual-light-v3.0",
-            "default_dimensions": 384,
-        },
-        EncoderProvider.openai: {
-            "class": OpenAIEncoder,
-            "default_model_name": "text-embedding-3-small",
-            "default_dimensions": 1536,
-        },
-        # TODO: huggingface encoders requires pytorch and transformers which adds a lot of weight to the docker image.
-        # ...will need to branstorm solution
-        # EncoderProvider.huggingface: {
-        #     "class": HuggingFaceEncoder,
-        #     "default_model_name": settings.HUGGINGFACE_EMBEDDING_MODEL_NAME or "distilbert-base-uncased",
-        #     "default_dimensions": 1024,
-        # },
-        # TODO: Add Azure OpenAI Encoder
-        # EncoderProvider.azure_openai: {
-        #     "class": AzureOpenAIEncoder,
-        #     "default_model_name": "text-embedding-3-small",
-        #     "default_dimensions": 1536,
-        # },
-        # TODO: Create an ollama encoder, possibly as a contrib
-    }
-    # @classmethod
-    # def get_encoder(cls, provider: EncoderProvider = None, model_name: str = None) -> BaseEncoder:
-    #     if provider is None:
-    #         provider = cls.model_fields["provider"].default
-    #     _encoder_config = getattr(cls, "_encoder_config", {})
-    #     config = _encoder_config.get(provider)
-    #     if not config:
-    #         raise ValueError(f"Encoder '{provider}' not found.")
-    #     if model_name is None:
-    #         model_name = config["default_model_name"]
-    #     encoder_class = config["class"]
-    #     return encoder_class(name=model_name)
+    @classmethod
+    def get_encoder_config(cls, encoder_provider: EncoderProvider):
+        encoder_configs = {
+            EncoderProvider.cohere: {
+                "class": CohereEncoder,
+                "default_model_name": "embed-multilingual-light-v3.0",
+                "default_dimensions": 384,
+            },
+            EncoderProvider.openai: {
+                "class": OpenAIEncoder,
+                "default_model_name": "text-embedding-3-small",
+                "default_dimensions": 1536,
+            },
+              # TODO: huggingface encoders requires pytorch and transformers which adds a lot of weight to the docker image.
+            # ...will need to branstorm solution
+            # EncoderProvider.huggingface: {
+            #     "class": HuggingFaceEncoder,
+            #     "default_model_name": settings.HUGGINGFACE_EMBEDDING_MODEL_NAME or "distilbert-base-uncased",
+            #     "default_dimensions": 1024,
+            # },
+            # TODO: Add Azure OpenAI Encoder
+            # EncoderProvider.azure_openai: {
+            #     "class": AzureOpenAIEncoder,
+            #     "default_model_name": "text-embedding-3-small",
+            #     "default_dimensions": 1536,
+            # },
+            # TODO: Create an ollama encoder
+            }
+        return encoder_configs.get(encoder_provider)
+
     def get_encoder(self) -> BaseEncoder:
-        config = self._encoder_config.get(self.provider)
-        if not config:
+        encoder_config = self.get_encoder_config(self.provider)
+        if not encoder_config:
             raise ValueError(f"Encoder '{self.provider}' not found.")
-        model_name = self.model_name or config["default_model_name"]
-        encoder_class = config["class"]
-        return encoder_class(name=model_name)
-
-
+        model_name = self.model_name or encoder_config["default_model_name"]
+        dimensions = self.dimensions or encoder_config["default_dimensions"]
+        encoder_class = encoder_config["class"]
+        return encoder_class(name=model_name, dimensions=dimensions)
 
 class UnstructuredConfig(BaseModel):
     partition_strategy: Literal["auto", "hi_res"] = Field(default="auto")
@@ -314,17 +303,6 @@ class QueryResponsePayload(BaseModel):
             "success": self.success,
             "data": [chunk.dict(exclude=exclude) for chunk in self.data],
         }
-
-# Vector DBs
-
-class DatabaseType(Enum):
-    qdrant = "qdrant"
-
-
-class VectorDatabase(BaseModel):
-    type: DatabaseType
-    config: dict
-
 
 
 # Delete docs

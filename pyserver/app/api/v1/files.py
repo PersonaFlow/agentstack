@@ -35,23 +35,24 @@ async def upload_file(
     try:
         # if user_id is None:
         #     user_id = await api_key_repository.find_api_user(api_key)
+        mime_type = guess_mime_type(file_content)
+        if not is_mime_type_supported(mime_type):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unsupported file type.")
+
         file_content = await file.read()
         if len(file_content) > settings.MAX_FILE_UPLOAD_SIZE:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="File size exceeds the maximum allowed size.")
+
         data = UploadFileSchema(purpose=purpose, user_id=user_id, filename=filename, kwargs=kwargs)
         file_data = data.model_dump()
         file_data["bytes"] = len(file_content)
         kwargs_dict = orjson.loads(kwargs) if kwargs else {}
         file_data["kwargs"] = kwargs_dict
-
-        mime_type = guess_mime_type(file_content)
-        if not is_mime_type_supported(mime_type):
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unsupported file type.")
-
         file_data["mime_type"] = mime_type
 
         file_obj = await files_repository.create_file(data=file_data, file_content=file_content)
         return file_obj
+    
     except Exception as e:
         await logger.exception(f"Error uploading file: {str(e)}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="An error occurred while uploading the file.")

@@ -119,7 +119,7 @@ class AssistantRepository(BaseRepository):
             await logger.exception(f"Failed to add file to assistant due to a database error.", exc_info=True, assistant_id=assistant_id, file_id=file_id)
             raise HTTPException(status_code=500, detail="Failed to add file to assistant.")
 
-    async def remove_file_reference(self, assistant_id: uuid.UUID, file_id: str) -> Assistant:
+    async def remove_file_reference_from_assistant(self, assistant_id: uuid.UUID, file_id: str) -> Assistant:
         try:
             assistant = await self.retrieve_assistant(assistant_id)
             if assistant:
