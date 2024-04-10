@@ -24,17 +24,14 @@ def get_vector_service(
     }
 
     service = services.get(credentials.type.value)
-
     if service is None:
         raise ValueError(f"Unsupported provider: {credentials.type.value}")
 
     encoder_config = EncoderConfig.get_encoder_config(encoder_provider)
-
     if encoder_config is None:
         raise ValueError(f"Unsupported encoder provider: {encoder_provider}")
 
     encoder_class = encoder_config["class"]
-
     if not issubclass(encoder_class, BaseEncoder):
         raise ValueError(f"Encoder class {encoder_class} is not a subclass of BaseEncoder")
 
