@@ -1,25 +1,51 @@
 <p align="center">
   <img src="assets/PersonaFlowIcon-512.png" height="256">
   <h1 align="center">PersonaFlow</h1>
-  <p align="center"><b><i>Where AI Meets Individuality for Unmatched Personalization</i></b></p>
+  <h2 align="center"><b><i>Where AI Meets Individuality for Unmatched Personalization</i></b></h2>
 </p>
 
-The PersonaFlow project is intended to provide an AI platform for providing highly personalized experiences fueled by Generative AI. With a focus on scalability and efficiency, PersonaFlow offers a suite of tools and APIs to easily create complex agents and high-performing retrieval augmented generation systems that are driven by _personas_.
+<p align="center">
+  <a href="https://discord.gg/zqHHYGuHFd"> 
+    <img
+      src="https://img.shields.io/discord/1086345563026489514?label=&logo=discord&style=for-the-badge&logoWidth=20&logoColor=white&labelColor=000000&color=blueviolet">
+  </a>
+</p>
 
 
-# Features
+**The PersonaFlow platform aims to provide highly personalized user experiences fueled by Generative AI. With a focus on scalability and efficiency, PersonaFlow offers a suite of tools and APIs to create complex agents and high-performing retrieval augmented generation (RAG) systems driven by _personas_ and with a focus on:**
 
-- **Assistants API:** Inspired by the OpenGPTs project, this API allows the creation of complex, configurable agents that can interact with various data sources and APIs.
-- **Advanced RAG System:** A fully configurable data ingestion system that allows direct queries or agent-mediated interactions, including:
-  - Intelligent partioning of unstructured and tabular documents by semantic similarity or by document sub-section. Initial experiments have shown this to be a significant improvement over recursive character text splitting methods.
-  - Document reranking and summarization
-- **Fully Local** (In progress): Keep data internal and run the entire system on your own infrastructure without relying on 3rd-party LLMs and APIs.
+- Context optimization
+  - Intelligent partitioning of ingested data
+  - Personalized decision-making based on multiple data vectors 
+  - Dynamically adjusting retrieval and generation parameters based on user information
+- Enterprise feasibility: scalability, cost efficiency, and privacy
+- Agent development, testing, and evaluation via the PersonaFlow administration tool
+- Easy integration of generative AI features into applications via the PersonaFlow client SDKs
 
-Coming:
+This repo is the orchestration server for the PersonaFlow platform. It is a REST API that allows you to create and manage agentic assistants, run the agents against various LLMs, create and save user-specific chat threads, and more. 
 
-- Self-reflective assistants
-- DBT pipelines for data processing
-- Evaluation and scoring of assistants and data ingestion configurations
+Much of the API and business language is modeled after the OpenAI Assistants API and uses LangChain as the primary orchestration framework. The assistants implementation began from an early iteration of OpenGPTs, which was then refactored and expanded with additional infrastructure, agent options, file management, an improved and highly configurable RAG system, and a suite of agent-based features. It will be further expanded with personalization features, additional RAG optimization techniques, and more.
+
+ <p align="center" style="color:green"><b><i>Note: This project is in the very early stages of development and testing. Breaking changes should therefore be expected until the first stable release.</i></b></p>
+
+
+>Web site and documentation are in the works, but in the meantime you can find the API documentation [on SwaggerHub](https://app.swaggerhub.com/apis-docs/DanOrlando/personaflow/0.1.0).
+
+# Roadmap
+
+- [X] Assistants API
+- [X] File management
+- [X] Advanced RAG with adaptive chunking and summarization
+- [ ] Advanced RAG assistants integration
+- [ ] More agent types (self-reflection, etc.)
+- [ ] Persona generation
+- [ ] PersonaGen integration
+- [ ] Evaluation and scoring of assistants and RAG configurations
+- [ ] TypeScript SDK
+- [ ] Python SDK
+- [ ] Admin tool
+
+
 
 # Technology Stack
 
@@ -91,7 +117,7 @@ To test the APIs, you can use the Swagger UI at `http://localhost:9000/docs`.
 
 ## Document Processing
 
-Currently there is 2 systems of document processing. The `/api/v1/rag/assistants/ingest` endpoint ingests document uploads where the name of the collection that is created is the `assistant_id`, which is then used as a retrieval tool for the respective assistant.
+Currently there are 2 systems of document processing. The `/api/v1/rag/assistants/ingest` endpoint ingests document uploads where the name of the collection that is created is the `assistant_id`, which is then used as a retrieval tool for the respective assistant.
 
 The `/api/v1/rag/ingest` and `/api/v1/rag/query` exist as standalone endpoints for document processing. These endpoints only support embeddings generated by OpenAI and Cohere at the moment, with support for Azure OpenAI, Huggingface embeddings, and Ollama for local embedding models soon to come.
 
