@@ -157,8 +157,8 @@ There are a number of configuration options available for the ingestion process,
       "max_tokens": 1000,
       "min_tokens": 30,
       "name": "semantic",
-      "prefix_summary": true,
-      "prefix_title": true,
+      "split_summary": true,
+      "split_titles": true,
       "rolling_window_size": 1
     }
   },
@@ -185,7 +185,7 @@ There are a number of configuration options available for the ingestion process,
 
 - `vector_database`: This block is optional but is useful when collections are held across different vector databases. If omitted, these details will be obtained from environment variables.
 - `summarize`: If true, a separate vector store will be created containing summaries of the documents. If the query involves providing a summary, the corresponding summary collection will be queried instead of the main collection.
-- `webhook_url`: This is an optional webhook that will be called when the ingestion has completed. 
+- `webhook_url`: This is an optional webhook that will be called when the ingestion has completed.
 
 ## Querying
 

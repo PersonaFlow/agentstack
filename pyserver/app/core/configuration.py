@@ -14,7 +14,15 @@ from pydantic_settings import BaseSettings
 from pydantic import ValidationError
 import structlog
 from typing import Optional
-from app.schema.rag import VectorDatabase, VectorDatabaseType, EncoderConfig, EncoderProvider
+from app.schema.rag import (
+    VectorDatabase,
+    VectorDatabaseType,
+    EncoderConfig,
+    EncoderProvider,
+    UnstructuredConfig,
+    SplitterConfig,
+    DocumentProcessorConfig
+)
 from semantic_router.encoders import BaseEncoder
 
 logger = structlog.get_logger()
@@ -89,8 +97,14 @@ class Settings(BaseSettings):
     INTERNAL_DATABASE_PASSWORD: str = os.getenv("INTERNAL_DATABASE_PASSWORD", "internal")
     INTERNAL_DATABASE_HOST: str = os.getenv("INTERNAL_DATABASE_HOST", "localhost")
     INTERNAL_DATABASE_PORT: int = os.getenv("INTERNAL_DATABASE_PORT", 5432)
-    INTERNAL_DATABASE_DATABASE: str = os.getenv("INTERNAL_DATABASE_DATABASE", "llimeade")
+    INTERNAL_DATABASE_DATABASE: str = os.getenv("INTERNAL_DATABASE_DATABASE", "internal")
     INTERNAL_DATABASE_SCHEMA: str = os.getenv("INTERNAL_DATABASE_SCHEMA", "pyserver")
+
+    EXCLUDE_REQUEST_LOG_ENDPOINTS: list[str] = ["/docs"]
+
+    # Defaults to 25mb
+    MAX_FILE_UPLOAD_SIZE: int = int(os.getenv("MAX_FILE_UPLOAD_SIZE", 25000000))
+
 
     @property
     def INTERNAL_DATABASE_URI(self):  # noqa
@@ -104,6 +118,8 @@ class Settings(BaseSettings):
     AZURE_OPENAI_API_BASE: Optional[str] = os.getenv("AZURE_OPENAI_API_BASE", None)
     AZURE_OPENAI_API_KEY: Optional[str] = os.getenv("AZURE_OPENAI_API_KEY", None)
     AZURE_OPENAI_API_VERSION: Optional[str] = os.getenv("AZURE_OPENAI_API_VERSION", None)
+
+    # **** All variables below can be overriden by the APIs ****
 
     # Vector DB environment variables
     VECTOR_DB_API_KEY: str = os.getenv("VECTOR_DB_API_KEY")
@@ -128,17 +144,55 @@ class Settings(BaseSettings):
             type=VectorDatabaseType(self.VECTOR_DB_NAME),
             config=self.VECTOR_DB_CONFIG
         )
-    def get_default_encoder(self) -> BaseEncoder:
+
+    @property
+    def DEFAULT_ENCODER_CONFIG(self):
         return EncoderConfig(
             provider=EncoderProvider(self.VECTOR_DB_ENCODER_NAME),
             model_name=self.VECTOR_DB_ENCODER_MODEL,
             dimensions=self.VECTOR_DB_ENCODER_DIMENSIONS,
-        ).get_encoder()
+        )
 
-    EXCLUDE_REQUEST_LOG_ENDPOINTS: list[str] = ["/docs"]
+    DEFAULT_PARTITION_STRATEGY: str = os.getenv("DEFAULT_PARTITION_STRATEGY", "auto")
+    DEFAULT_HI_RES_MODEL_NAME: str = os.getenv("DEFAULT_HI_RES_MODEL_NAME", "detectron2_onnx")
+    PROCESS_UNSTRUCTURED_TABLES: bool = True if os.getenv("PROCESS_UNSTRUCTURED_TABLES", "false") == "true" else False
 
-    # Defaults to 25mb
-    MAX_FILE_UPLOAD_SIZE: int = int(os.getenv("MAX_FILE_UPLOAD_SIZE", 25000000))
+    @property
+    def DEFAULT_UNSTRUCTURED_CONFIG(self):
+        return UnstructuredConfig(
+            partition_strategy=self.UNSTRUCTURED_API_KEY,
+            hi_res_model_name=self.UNSTRUCTURED_BASE_URL,
+            process_tables=self.PROCESS_UNSTRUCTURED_TABLES == "true",
+        )
+
+    DEFAULT_CHUNKING_STRATEGY: str = os.getenv("DEFAULT_CHUNKING_STRATEGY", "semantic")
+    DEFAULT_SEMANTIC_CHUNK_MIN_TOKENS: str = int(os.getenv("DEFAULT_SEMANTIC_CHUNK_MIN_TOKENS", 30))
+    DEFAULT_SEMANTIC_CHUNK_MAX_TOKENS: int = int(os.getenv("DEFAULT_SEMANTIC_CHUNK_MAX_TOKENS", 500))
+    SEMANTIC_ROLLING_WINDOW_SIZE: int = int(os.getenv("SEMANTIC_ROLLING_WINDOW_SIZE", 1))
+    SPLIT_TITLES: bool = False if os.getenv("SPLIT_TITLES", "true") == "false" else True
+    SPLIT_SUMMARY: bool = False if os.getenv("SPLIT_SUMMARY", "true") == "false" else True
+
+    @property
+    def DEFAULT_SPLITTER_CONFIG(self):
+        return SplitterConfig(
+            name=self.DEFAULT_CHUNKING_STRATEGY,
+            min_tokens=self.DEFAULT_SEMANTIC_CHUNK_MIN_TOKENS,
+            max_tokens=self.DEFAULT_SEMANTIC_CHUNK_MAX_TOKENS,
+            rolling_window_size=self.SEMANTIC_ROLLING_WINDOW_SIZE,
+            split_titles=self.SPLIT_TITLES,
+            split_summary=self.SPLIT_SUMMARY,
+        )
+
+    CREATE_SUMMARY_COLLECTION: bool = True if os.getenv("CREATE_SUMMARY_COLLECTION", "false") == "true" else False
+
+    @property
+    def DEFAULT_DOCUMENT_PROCESSOR_CONFIG(self):
+        return DocumentProcessorConfig(
+            splitter=self.DEFAULT_SPLITTER_CONFIG,
+            encoder=self.DEFAULT_ENCODER_CONFIG,
+            unstructured=self.DEFAULT_UNSTRUCTURED_CONFIG,
+            summarize=self.CREATE_SUMMARY_COLLECTION,
+        )
 
 
 def get_settings() -> Settings:

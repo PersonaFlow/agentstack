@@ -41,6 +41,7 @@ def upgrade() -> None:
     sa.Column('filename', sa.String(), nullable=False, comment='The name of the file.'),
     sa.Column('purpose', sa.String(), nullable=False, comment='The purpose of the file - either thread, assistants, or personas.'),
     sa.Column('mime_type', sa.String(), nullable=False, comment='The mime type of the file.'),
+    sa.Column('source', sa.String(), nullable=False, comment='The source of the file. For local files, this will be the local file path plus filename and extension.'),
     sa.Column('bytes', sa.Integer(), nullable=False, comment='The bytes of the file. (Added automatically when file is uploaded)'),
     sa.Column('created_at', sa.DateTime(timezone=True), nullable=False, comment='Created date'),
     sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False, comment='Last updated date'),
