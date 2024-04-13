@@ -38,6 +38,11 @@ class File(Base):
         nullable=False,
         comment="The mime type of the file."
     )
+    source: Mapped[str] = mapped_column(
+        String(),
+        nullable=False,
+        comment="The source of the file. For local files, this will be the local file path plus filename and extension."
+    )
     bytes: Mapped[str] = mapped_column(
         Integer(),
         nullable=False,
