@@ -99,76 +99,28 @@ class SplitterConfig(BaseModel):
         description="Only for `semantic` method, cumulative window size "
         "for comparing similarity between elements",
     )
-    prefix_title: bool = Field(
+    split_titles: bool = Field(
         default=True, description="Add to split titles, headers, only `semantic` method"
     )
-    prefix_summary: bool = Field(
+    split_summary: bool = Field(
         default=True, description="Add to split sub-document summary"
     )
 
 
 class DocumentProcessorConfig(BaseModel):
-    summarize: bool = Field(default=False, description="Create a separate index of document summaries")
+    summarize: bool = Field(default=False, description="Create a separate collection of document summaries")
     encoder: EncoderConfig = EncoderConfig()
     unstructured: UnstructuredConfig = UnstructuredConfig()
     splitter: SplitterConfig = SplitterConfig()
 
 
-
-# Files
-class FileType(Enum):
-    pdf = "pdf"
-    docx = "docx"
-    txt = "txt"
-    pptx = "pptx"
-    md = "markdown"
-    csv = "csv"
-    xlsx = "xlsx"
-    html = "html"
-    json = "json"
-
-class IngestFile(BaseModel):
-    url: Optional[str] = None
-    name: Optional[str] = None
-    content: Optional[bytes] = None  # Add this attribute to store file content
-
-    @classmethod
-    def from_url(cls, url: str):
-        return cls(url=url, name=url.split("/")[-1])
-
-    @classmethod
-    def from_upload_file(cls, upload_file: UploadFile):
-        return cls(
-            url=f"file://{upload_file.filename}",
-            name=upload_file.filename,
-            content=upload_file.file.read(),
-        )
-
-    @property
-    def type(self) -> FileType | None:
-        filename = self.name or self.url
-        if filename:
-            extension = filename.split(".")[-1].lower()
-            try:
-                return FileType(extension)
-            except KeyError:
-                raise ValueError(f"Unsupported file type for filename: {filename}")
-        return None
-
-    @property
-    def suffix(self) -> str:
-        file_type = self.type
-        if file_type is not None:
-            # return file_type.suffix()
-            return f".{file_type.value}"
-        else:
-            raise ValueError("File type is undefined, cannot determine suffix.")
-
+# TODO: add descriptions
 class IngestRequestPayload(BaseModel):
-    index_name: str
+    files: list[uuid.UUID]
+    index_name: str = None
+    namespace: Optional[str] = Field(None, description="This must be the assistant_id to use with assistants")
     vector_database: Optional[VectorDatabase] = None
     document_processor: DocumentProcessorConfig = DocumentProcessorConfig()
-    files: Optional[list[IngestFile]] = None
     webhook_url: Optional[str] = None
 
 # Query Schemas
@@ -185,7 +137,7 @@ class QueryRequestPayload(BaseModel):
 
 class QueryResponseData(BaseModel):
     content: str
-    doc_url: str
+    source: str
     page_number: Optional[int]
     metadata: Optional[dict] = None
 
@@ -194,16 +146,16 @@ class QueryResponseData(BaseModel):
 
 class BaseDocument(BaseModel):
     id: str
-    content: str
-    doc_url: str
+    page_content: str
     metadata: dict | None = None
 
 
 class BaseDocumentChunk(BaseModel):
     id: str
     document_id: str
-    content: str
-    doc_url: str | None = None
+    page_content: str
+    file_id: str | None = None
+    namespace: str | None = None
     source: str | None = None
     source_type: str | None = None
     chunk_index: int | None = None
@@ -219,8 +171,9 @@ class BaseDocumentChunk(BaseModel):
             "chunk_id",
             "chunk_index",
             "document_id",
-            "doc_url",
-            "content",
+            "file_id",
+            "namespace",
+            "page_content",
             "source",
             "source_type",
             "title",
@@ -278,8 +231,9 @@ class BaseDocumentChunk(BaseModel):
             "chunk_id": self.id,
             "chunk_index": self.chunk_index or "",
             "document_id": self.document_id,
-            "doc_url": self.doc_url,
-            "content": self.content,
+            "file_id": self.file_id,
+            "namespace": self.namespace,
+            "page_content": self.page_content,
             "source": self.source,
             "source_type": self.source_type,
             "title": self.title or "",

@@ -56,10 +56,10 @@ class BaseVectorDatabase(ABC):
         deduplicated_documents = [
             doc
             for doc in documents
-            if doc.content not in seen and not seen.add(doc.content)
+            if doc.page_content not in seen and not seen.add(doc.page_content)
         ]
         docs_text = list(
-            doc.content
+            doc.page_content
             for doc in tqdm(
                 deduplicated_documents,
                 desc=f"Reranking {len(deduplicated_documents)} documents",

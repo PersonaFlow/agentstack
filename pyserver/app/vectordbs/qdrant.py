@@ -43,7 +43,7 @@ class QdrantService(BaseVectorDatabase):
             self.client.create_collection(
                 collection_name=self.index_name,
                 vectors_config={
-                    "content": rest.VectorParams(
+                    "page_content": rest.VectorParams(
                         size=dimension, distance=rest.Distance.COSINE
                     )
                 },
@@ -58,24 +58,27 @@ class QdrantService(BaseVectorDatabase):
             points.append(
                 rest.PointStruct(
                     id=chunk.id,
-                    vector={"content": chunk.dense_embedding},
+                    vector={"page_content": chunk.dense_embedding},
                     payload={
                         "document_id": chunk.document_id,
-                        "content": chunk.content,
-                        "doc_url": chunk.doc_url,
+                        "page_content": chunk.page_content,
+                        "source": chunk.source,
+                        "namespace": chunk.namespace,
+                        "file_id": chunk.file_id,
+                        "chunk_index": chunk.chunk_index,
                         **(chunk.metadata if chunk.metadata else {}),
                     },
                 )
             )
 
         self.client.upsert(collection_name=self.index_name, wait=True, points=points)
-    
+
 
     async def query(self, input: str, top_k: int = MAX_QUERY_TOP_K) -> List:
         vectors = await self._generate_vectors(input=input)
         search_result = self.client.search(
             collection_name=self.index_name,
-            query_vector=("content", vectors[0]),
+            query_vector=("page_content", vectors[0]),
             limit=top_k,
             with_payload=True,
         )
@@ -83,10 +86,9 @@ class QdrantService(BaseVectorDatabase):
             BaseDocumentChunk(
                 id=result.id,
                 source_type=result.payload.get("filetype"),
-                source=result.payload.get("doc_url"),
+                source=result.payload.get("source"),
                 document_id=result.payload.get("document_id"),
-                content=result.payload.get("content"),
-                doc_url=result.payload.get("doc_url"),
+                page_content=result.payload.get("page_content"),
                 page_number=result.payload.get("page_number"),
                 metadata={**result.payload},
             )

@@ -13,7 +13,7 @@ def get_vector_service(
     *,
     index_name: str = settings.VECTOR_DB_COLLECTION_NAME,
     credentials: VectorDatabase = settings.VECTOR_DB_CREDENTIALS,
-    encoder: BaseEncoder = settings.get_default_encoder(),
+    encoder: BaseEncoder = settings.DEFAULT_ENCODER_CONFIG.get_encoder(),
     encoder_provider: EncoderProvider = EncoderProvider(settings.VECTOR_DB_ENCODER_NAME),
     dimensions: Optional[int] = settings.VECTOR_DB_ENCODER_DIMENSIONS,
     enable_rerank: bool = False,

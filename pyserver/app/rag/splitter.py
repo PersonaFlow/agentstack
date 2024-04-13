@@ -119,14 +119,14 @@ class UnstructuredSemanticSplitter:
         self,
         chunks_with_title: list[dict[str, Any]],
         title: str,
-        content: str,
+        page_content: str,
         chunk_index: int,
         metadata: dict,
     ):
         chunks_with_title.append(
             {
                 "title": title,
-                "content": content,
+                "page_content": page_content,
                 "chunk_index": chunk_index,
                 "metadata": metadata,
             }
@@ -158,7 +158,7 @@ class UnstructuredSemanticSplitter:
                             self._append_chunks(
                                 chunks_with_title,
                                 title=title,
-                                content=split.content,
+                                page_content=split.content,
                                 chunk_index=index,
                                 metadata=section_metadata,
                             )
@@ -179,7 +179,7 @@ class UnstructuredSemanticSplitter:
                         self._append_chunks(
                             chunks_with_title,
                             title=title,
-                            content=table,  # TODO: This should be a summary of table
+                            page_content=table,  # TODO: This should be a summary of table
                             chunk_index=index,
                             # TODO: Think of how to pass this to LLM
                             metadata={"table_content": table, **metadata},
@@ -196,7 +196,7 @@ class UnstructuredSemanticSplitter:
                     self._append_chunks(
                         chunks_with_title,
                         title=title,
-                        content=split.content,
+                        page_content=split.content,
                         chunk_index=index,
                         metadata=section_metadata,
                     )
