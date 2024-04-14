@@ -18,7 +18,7 @@ logger = structlog.get_logger()
 class QdrantService(BaseVectorDatabase):
     def __init__(
         self,
-        credentials: dict = settings.VECTOR_DB_CREDENTIALS,
+        credentials: dict = settings.VECTOR_DB_CONFIG,
         index_name: str = settings.VECTOR_DB_COLLECTION_NAME,
         dimension: int = settings.VECTOR_DB_ENCODER_DIMENSIONS,
         encoder: Optional[BaseEncoder] = None,

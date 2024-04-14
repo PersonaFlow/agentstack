@@ -14,7 +14,7 @@ from app.rag.embedding_service import EmbeddingService
 from app.rag.summarizer import SUMMARY_SUFFIX
 from app.rag.query import query as _query
 from app.core.configuration import get_settings
-from app.schema.rag import VectorDatabase
+from app.schema.rag import VectorDatabase, VectorDatabaseType
 from app.repositories.file import FileRepository, get_file_repository
 from app.schema.file import FileSchema
 import structlog
@@ -27,6 +27,7 @@ DEFAULT_TAG = "RAG"
 
 
 @router.post("/ingest", tags=[DEFAULT_TAG],
+             response_model=dict,
              operation_id="ingest_data_from_files",
              summary="Ingest files to be indexed and queried.",
              description="""
@@ -37,10 +38,10 @@ async def ingest(
     payload: IngestRequestPayload,
     file_repository: FileRepository = Depends(get_file_repository)
 ) -> dict:
-    vector_db_creds = payload.vector_database if payload.vector_database else settings.VECTOR_DB_CREDENTIALS
-    document_processor_config = payload.document_processor if payload.document_processor else settings.DEFAULT_DOCUMENT_PROCESSOR_CONFIG
+    vector_db_creds = payload.vector_database
+    document_processor_config = payload.document_processor
     encoder = document_processor_config.encoder.get_encoder()
-    collection_name = payload.index_name if payload.index_name else settings.VECTOR_DB_COLLECTION_NAME
+    collection_name = payload.index_name
     namespace = payload.namespace if payload.namespace else str(uuid.uuid4())
     files_to_ingest = []
 
@@ -83,21 +84,21 @@ async def ingest(
 
     # Optionally notify via webhook if specified
     if payload.webhook_url:
-        await notify_webhook(payload)
+        await notify_webhook(payload.webhook_url, collection_name)
 
     return {"success": True}
 
 
-async def notify_webhook(payload: IngestRequestPayload):
-    if payload.webhook_url:
-        async with aiohttp.ClientSession() as session:
-            await session.post(
-                url=payload.webhook_url,
-                json={"index_name": payload.index_name, "status": "completed"},
-            )
+async def notify_webhook(webhook_url: str, collection_name: str):
+    async with aiohttp.ClientSession() as session:
+        await session.post(
+            url=webhook_url,
+            json={"index_name": collection_name, "status": "completed"},
+        )
 
 
-@router.post("/query", response_model=QueryResponsePayload,
+@router.post("/query",
+             response_model=QueryResponsePayload,
              tags=[DEFAULT_TAG],
              operation_id="query_documents",
              summary="Query documents",

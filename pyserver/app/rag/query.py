@@ -1,7 +1,7 @@
 import structlog
-from semantic_router.encoders import CohereEncoder
 from semantic_router.layer import RouteLayer
 from semantic_router.route import Route
+from semantic_router.encoders import BaseEncoder
 
 from app.schema.rag import BaseDocumentChunk, QueryRequestPayload
 from .summarizer import SUMMARY_SUFFIX
@@ -18,7 +18,7 @@ STRUCTURED_DATA = [
 logger = structlog.get_logger()
 settings = get_settings()
 
-def create_route_layer() -> RouteLayer:
+def create_route_layer(encoder: BaseEncoder) -> RouteLayer:
     routes = [
         Route(
             name="summarize",
@@ -31,8 +31,6 @@ def create_route_layer() -> RouteLayer:
             score_threshold=0.5,
         )
     ]
-    cohere_api_key = settings.COHERE_API_KEY
-    encoder = CohereEncoder(cohere_api_key=cohere_api_key) if cohere_api_key else None
     return RouteLayer(encoder=encoder, routes=routes)
 
 
@@ -44,22 +42,24 @@ async def get_documents(
         logger.error(f"No documents found for query: {payload.input}")
         return []
 
-    reranked_chunks = []
-
-    reranked_chunks.extend(
-        await vector_service.rerank(query=payload.input, documents=chunks)
-    )
-    return reranked_chunks
+    if payload.enable_rerank:
+        reranked_chunks = []
+        reranked_chunks.extend(
+            await vector_service.rerank(query=payload.input, documents=chunks)
+        )
+        return reranked_chunks
+    else:
+        return chunks
 
 
 async def query(payload: QueryRequestPayload) -> list[BaseDocumentChunk]:
-    rl = create_route_layer()
-    decision = rl(payload.input).name
     encoder = payload.encoder.get_encoder()
+    rl = create_route_layer(encoder)
+    decision = rl(payload.input).name
 
     if decision == "summarize":
         vector_service: BaseVectorDatabase = get_vector_service(
-            index_name=f"{payload.index_name}{SUMMARY_SUFFIX}",
+            index_name=f"{payload.index_name}_{SUMMARY_SUFFIX}",
             credentials=payload.vector_database,
             encoder=encoder,
         )

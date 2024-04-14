@@ -9,7 +9,7 @@ api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
 settings = Settings()
 
 async def get_api_key(api_key_header: str = Security(api_key_header)):
-    key = settings.LLIMEADE_API_KEY
+    key = settings.PERSONAFLOW_API_KEY
     if key:
         if api_key_header == key:
             return api_key_header

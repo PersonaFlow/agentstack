@@ -18,7 +18,6 @@ from unstructured_client.models.errors import SDKError
 from app.schema.rag import (
     BaseDocument,
     BaseDocumentChunk,
-    IngestFile,
     DocumentProcessorConfig,
 )
 from app.rag.util import get_tiktoken_length
