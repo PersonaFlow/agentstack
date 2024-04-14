@@ -158,7 +158,7 @@ There are a number of configuration options available for the ingestion process,
       "min_tokens": 30,
       "name": "semantic",
       "split_summary": true,
-      "split_titles": true,
+      "prefix_titles": true,
       "rolling_window_size": 1
     }
   },

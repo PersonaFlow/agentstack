@@ -190,7 +190,7 @@ class EmbeddingService:
                             file_id=str(file.id),
                             namespace=str(self.namespace),
                             page_content=f"{chunk.get('title', '')}\n{chunk.get('page_content', '')}"
-                            if config.splitter.split_titles
+                            if config.splitter.prefix_titles
                             else chunk.get("page_content", ""),
                             source=file.source,
                             source_type=file.mime_type,

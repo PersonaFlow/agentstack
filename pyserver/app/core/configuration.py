@@ -136,7 +136,7 @@ class Settings(BaseSettings):
     DEFAULT_SEMANTIC_CHUNK_MIN_TOKENS: int = int(os.getenv("DEFAULT_SEMANTIC_CHUNK_MIN_TOKENS", 30))
     DEFAULT_SEMANTIC_CHUNK_MAX_TOKENS: int = int(os.getenv("DEFAULT_SEMANTIC_CHUNK_MAX_TOKENS", 500))
     SEMANTIC_ROLLING_WINDOW_SIZE: int = int(os.getenv("SEMANTIC_ROLLING_WINDOW_SIZE", 1))
-    SPLIT_TITLES: bool = False if os.getenv("SPLIT_TITLES", "true") == "false" else True
+    PREFIX_TITLES: bool = False if os.getenv("PREFIX_TITLES", "true") == "false" else True
     SPLIT_SUMMARY: bool = False if os.getenv("SPLIT_SUMMARY", "true") == "false" else True
 
     CREATE_SUMMARY_COLLECTION: bool = True if os.getenv("CREATE_SUMMARY_COLLECTION", "false") == "true" else False

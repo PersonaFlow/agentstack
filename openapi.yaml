@@ -1661,31 +1661,35 @@ components:
       title: CreateUserSchema
     DeleteFileResponse:
       properties:
-        file_id:
-          type: string
-          format: uuid
-          title: File Id
-          description: The ID of the file that was deleted.
-        num_of_deleted_chunks:
-          type: integer
-          title: Num Of Deleted Chunks
-          description:
-            The number of chunks deleted from the vector store for this
-            file.
-        num_of_assistants:
-          type: integer
-          title: Num Of Assistants
-          description:
-            The number of assistants that were using this file, of which
-            the file was removed.
-        assistants:
-          items:
-            type: object
-          type: array
-          title: Assistants
-          description:
-            A list of the IDs and names of the asistants that were using
-            this file, of which the file was removed.
+        summarize:
+          type: boolean
+          title: Summarize
+          description: Create a separate index of document summaries
+          default: false
+        encoder:
+          allOf:
+            - "$ref": "#/components/schemas/EncoderConfig"
+          default:
+            provider: cohere
+            model_name: embed-multilingual-light-v3.0
+            dimensions: 384
+        unstructured:
+          allOf:
+            - "$ref": "#/components/schemas/UnstructuredConfig"
+          default:
+            partition_strategy: auto
+            hi_res_model_name: detectron2_onnx
+            process_tables: false
+        splitter:
+          allOf:
+            - "$ref": "#/components/schemas/SplitterConfig"
+          default:
+            name: semantic
+            min_tokens: 30
+            max_tokens: 400
+            rolling_window_size: 1
+            prefix_titles: true
+            split_summary: true
       type: object
       required:
         - file_id
@@ -1785,6 +1789,71 @@ components:
           title: Detail
       type: object
       title: HTTPValidationError
+    IngestFile:
+      properties:
+        url:
+          anyOf:
+            - type: string
+            - type: "null"
+          title: Url
+        name:
+          anyOf:
+            - type: string
+            - type: "null"
+          title: Name
+        content:
+          anyOf:
+            - type: string
+              format: binary
+            - type: "null"
+          title: Content
+      type: object
+      title: IngestFile
+    IngestRequestPayload:
+      properties:
+        index_name:
+          type: string
+          title: Index Name
+        vector_database:
+          anyOf:
+            - "$ref": "#/components/schemas/VectorDatabase"
+            - type: "null"
+        document_processor:
+          allOf:
+            - "$ref": "#/components/schemas/DocumentProcessorConfig"
+          default:
+            summarize: false
+            encoder:
+              dimensions: 384
+              model_name: embed-multilingual-light-v3.0
+              provider: cohere
+            unstructured:
+              hi_res_model_name: detectron2_onnx
+              partition_strategy: auto
+              process_tables: false
+            splitter:
+              max_tokens: 400
+              min_tokens: 30
+              name: semantic
+              split_summary: true
+              prefix_titles: true
+              rolling_window_size: 1
+        files:
+          anyOf:
+            - items:
+                "$ref": "#/components/schemas/IngestFile"
+              type: array
+            - type: "null"
+          title: Files
+        webhook_url:
+          anyOf:
+            - type: string
+            - type: "null"
+          title: Webhook Url
+      type: object
+      required:
+        - index_name
+      title: IngestRequestPayload
     LLMType:
       type: string
       enum:
@@ -1931,6 +2000,45 @@ components:
       required:
         - configurable
       title: RunnableConfigurableAlternativesConfig
+    SplitterConfig:
+      properties:
+        name:
+          type: string
+          enum:
+            - semantic
+            - by_title
+          title: Name
+          description: Splitter name, `semantic` or `by_title`
+          default: semantic
+        min_tokens:
+          type: integer
+          title: Min Tokens
+          description: Only for `semantic` method
+          default: 30
+        max_tokens:
+          type: integer
+          title: Max Tokens
+          description: Only for `semantic` and `recursive` methods
+          default: 400
+        rolling_window_size:
+          type: integer
+          title: Rolling Window Size
+          description:
+            Only for `semantic` method, cumulative window size for comparing
+            similarity between elements
+          default: 1
+        prefix_titles:
+          type: boolean
+          title: Prefix Title
+          description: Add to split titles, headers, only `semantic` method
+          default: true
+        split_summary:
+          type: boolean
+          title: Prefix Summary
+          description: Add to split sub-document summary
+          default: true
+      type: object
+      title: SplitterConfig
     Thread:
       properties:
         id:

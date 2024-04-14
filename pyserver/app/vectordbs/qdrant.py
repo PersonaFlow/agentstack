@@ -82,15 +82,27 @@ class QdrantService(BaseVectorDatabase):
             limit=top_k,
             with_payload=True,
         )
+        # return [
+        #     BaseDocumentChunk.from_metadata({**result.payload, "chunk_id": result.id})
+        #     for result in search_result
+        # ]
         return [
             BaseDocumentChunk(
                 id=result.id,
-                source_type=result.payload.get("filetype"),
+                document_id=result.payload.get("document_id", ""),
+                page_content=result.payload.get("page_content", ""),
+                file_id=result.payload.get("file_id"),
+                namespace=result.payload.get("namespace"),
                 source=result.payload.get("source"),
-                document_id=result.payload.get("document_id"),
-                page_content=result.payload.get("page_content"),
+                source_type=result.payload.get("filetype"),
+                chunk_index=result.payload.get("chunk_index"),
+                title=result.payload.get("title"),
+                token_count=result.payload.get("token_count"),
                 page_number=result.payload.get("page_number"),
-                metadata={**result.payload},
+                metadata={
+                    k: v for k, v in result.payload.items()
+                    if k not in ["document_id", "page_content", "file_id", "namespace", "source", "source_type", "chunk_index", "title", "token_count", "page_number"]
+                },
             )
             for result in search_result
         ]

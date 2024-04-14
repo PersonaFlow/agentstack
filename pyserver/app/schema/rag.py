@@ -109,8 +109,8 @@ class SplitterConfig(BaseModel):
         description="Only for `semantic` method, cumulative window size "
         "for comparing similarity between elements",
     )
-    split_titles: bool = Field(
-        default=settings.SPLIT_TITLES, description="Add to split titles, headers, only `semantic` method"
+    prefix_titles: bool = Field(
+        default=settings.PREFIX_TITLES, description="Add to split titles, headers, only `semantic` method"
     )
     split_summary: bool = Field(
         default=settings.SPLIT_SUMMARY, description="Add to split sub-document summary"
