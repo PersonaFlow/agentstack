@@ -33,13 +33,12 @@ def create_route_layer(encoder: BaseEncoder) -> RouteLayer:
     ]
     return RouteLayer(encoder=encoder, routes=routes)
 
-
 async def get_documents(
     *, vector_service: BaseVectorDatabase, payload: QueryRequestPayload
 ) -> list[BaseDocumentChunk]:
     chunks = await vector_service.query(input=payload.input, top_k=5)
     if not len(chunks):
-        logger.error(f"No documents found for query: {payload.input}")
+        await logger.info(f"No documents found for query: {payload.input}")
         return []
 
     if payload.enable_rerank:
@@ -52,7 +51,7 @@ async def get_documents(
         return chunks
 
 
-async def query(payload: QueryRequestPayload) -> list[BaseDocumentChunk]:
+async def query_documents(payload: QueryRequestPayload) -> list[BaseDocumentChunk]:
     encoder = payload.encoder.get_encoder()
     rl = create_route_layer(encoder)
     decision = rl(payload.input).name
@@ -62,6 +61,7 @@ async def query(payload: QueryRequestPayload) -> list[BaseDocumentChunk]:
             index_name=f"{payload.index_name}_{SUMMARY_SUFFIX}",
             credentials=payload.vector_database,
             encoder=encoder,
+            namespace=payload.namespace,
         )
         return await get_documents(vector_service=vector_service, payload=payload)
 
@@ -73,3 +73,28 @@ async def query(payload: QueryRequestPayload) -> list[BaseDocumentChunk]:
     )
 
     return await get_documents(vector_service=vector_service, payload=payload)
+
+
+# def get_documents(
+#     *, vector_service: BaseVectorDatabase, payload: QueryRequestPayload
+# ) -> list[BaseDocumentChunk]:
+#     chunks = vector_service.query(input=payload.input, top_k=5)
+#     if not len(chunks):
+#         return []
+
+#     return chunks
+
+# def query_documents(payload: QueryRequestPayload) -> list[BaseDocumentChunk]:
+#     encoder = payload.encoder.get_encoder()
+#     rl = create_route_layer(encoder)
+#     decision = rl(payload.input).name
+
+#     vector_service: BaseVectorDatabase = get_vector_service(
+#         index_name=payload.index_name,
+#         credentials=payload.vector_database,
+#         encoder=encoder,
+#         namespace=payload.namespace,
+#     )
+
+#     return get_documents(vector_service=vector_service, payload=payload)
+

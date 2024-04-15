@@ -12,12 +12,12 @@ from app.schema.rag import (
 from app.rag.ingest_runnable import ingest_runnable
 from app.rag.embedding_service import EmbeddingService
 from app.rag.summarizer import SUMMARY_SUFFIX
-from app.rag.query import query as _query
+from app.rag.query import query_documents
 from app.core.configuration import get_settings
-from app.schema.rag import VectorDatabase, VectorDatabaseType
 from app.repositories.file import FileRepository, get_file_repository
 from app.schema.file import FileSchema
 import structlog
+from app.rag.custom_retriever import Retriever
 
 logger = structlog.get_logger()
 settings = get_settings()
@@ -109,12 +109,27 @@ async def query(
         api_key: ApiKey,
         payload: QueryRequestPayload
     ):
-    chunks = await _query(payload=payload)
+    chunks = await query_documents(payload=payload)
     response_payload = QueryResponsePayload(success=True, data=chunks)
     response_data = response_payload.model_dump(
         exclude=set(payload.exclude_fields) if payload.exclude_fields else None
     )
     return response_data
+
+@router.post("/query-lc-retriever")
+async def query_lc_retriever(
+    api_key: ApiKey,
+    payload: QueryRequestPayload
+):
+    metadata: dict = {}
+    if payload.namespace:
+        metadata["namespace"] = payload.namespace
+
+    retriever = Retriever(
+        metadata=metadata,
+    )
+    documents = await retriever.aget_relevant_documents(query=payload.input)
+    return documents
 
 
 

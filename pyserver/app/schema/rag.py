@@ -25,6 +25,14 @@ class VectorDatabase(BaseModel):
 
 
 # Ingest Schemas
+
+class ContextType(str, Enum):
+    """Context where files or generated embeddings are used."""
+    assistants = "assistants"
+    threads = "threads"
+    rag = "rag"
+    personas = "personas"
+
 class EncoderProvider(str, Enum):
     cohere = "cohere"
     openai = "openai"
@@ -98,7 +106,7 @@ class UnstructuredConfig(BaseModel):
 
 class SplitterConfig(BaseModel):
     name: Literal["semantic", "by_title"] = Field(
-        default=settings.DEFAULT_CHUNKING_STRATEGY, description="Splitter name, `semantic` or `by_title`"
+        default=settings.DEFAULT_CHUNKING_STRATEGY, description="Splitter method"
     )
     min_tokens: int = Field(default=settings.DEFAULT_SEMANTIC_CHUNK_MIN_TOKENS, description="Only for `semantic` method")
     max_tokens: int = Field(
@@ -110,12 +118,11 @@ class SplitterConfig(BaseModel):
         "for comparing similarity between elements",
     )
     prefix_titles: bool = Field(
-        default=settings.PREFIX_TITLES, description="Add to split titles, headers, only `semantic` method"
+        default=settings.PREFIX_TITLES, description="Add to prefix titles in chunk, only `semantic` method"
     )
     split_summary: bool = Field(
         default=settings.SPLIT_SUMMARY, description="Add to split sub-document summary"
-    )
-
+)
 
 class DocumentProcessorConfig(BaseModel):
     summarize: bool = Field(default=settings.CREATE_SUMMARY_COLLECTION, description="Create a separate collection of document summaries")
@@ -123,33 +130,26 @@ class DocumentProcessorConfig(BaseModel):
     unstructured: UnstructuredConfig = Field(default=UnstructuredConfig(), description="UnstructuredIO configuration. If not provided, this comes from the env config.")
     splitter: SplitterConfig = Field(default=SplitterConfig(), description="Document partition manager configuration. If not provided, this comes from the env config.")
 
-
-# TODO: add descriptions
 class IngestRequestPayload(BaseModel):
     files: list[uuid.UUID] = Field(..., description="An array of file ids to ingest")
-    index_name: str = Field(default=settings.VECTOR_DB_COLLECTION_NAME, description="Name of the vector database follection to ingest the files into. If not provided, the `VECTOR_DB_COLLECTION_NAME` env var is used.")
+    purpose: Optional[ContextType] = Field(default=ContextType.assistants, description="Context of where the embeddings will be used.")
+    index_name: Optional[str] = Field(default=settings.VECTOR_DB_COLLECTION_NAME, description="Name of the vector database follection to ingest the files into. If not provided, the `VECTOR_DB_COLLECTION_NAME` env var is used.")
     namespace: Optional[str] = Field(None, description="Context of the embeddings: This is the assistant_id, thread_id, file_id, or random uuid that is used for filtering the results.")
     vector_database: Optional[VectorDatabase] = Field(default=VectorDatabase(), description="Vector database to store the embeddings. If not provided, this comes from the env config.")
-    document_processor: DocumentProcessorConfig = Field(default=DocumentProcessorConfig(), description="Document processor configuration. If not provided, this comes from the env config.")
+    document_processor: Optional[DocumentProcessorConfig] = Field(default=DocumentProcessorConfig(), description="Document processor configuration. If not provided, this comes from the env config.")
     webhook_url: Optional[str] = Field(None, description="Webhook url to send the notification to when the ingestion is completed.")
 
 # Query Schemas
 class QueryRequestPayload(BaseModel):
     input: str = Field(..., description="Input text to query")
     namespace: Optional[str] = Field(None, description="Context of the query: This is the assistant_id, thread_id, file_id, or random uuid that is used for filtering the results.")
+    context: Optional[ContextType] = Field(default=ContextType.assistants, description="Context of where the embeddings will be used.")
     index_name: Optional[str] = Field(default=settings.VECTOR_DB_COLLECTION_NAME, description="Name of the vector database follection to query from. If not provided, the `VECTOR_DB_COLLECTION_NAME` env var is used.")
     vector_database: Optional[VectorDatabase] = Field(default=VectorDatabase(), description="Vector database to query from. If not provided, this comes from the env config.")
     encoder: Optional[EncoderConfig] = Field(default=EncoderConfig(), description="Embeddings provider configuration. If not provided, this comes from the env config.")
     enable_rerank: Optional[bool] = Field(default=settings.ENABLE_RERANK_BY_DEFAULT, description="Enable reranking of the results. *NOTE: `COHERE_API_KEY` env var is required to use this feature.*")
     interpreter_mode: Optional[bool] = Field(False, description="Enable code interpreter mode.")
-    exclude_fields: list[str] = Field(None, description="List of fields to exclude from the results.")
-
-
-class QueryResponseData(BaseModel):
-    content: str
-    source: str
-    page_number: Optional[int]
-    metadata: Optional[dict] = None
+    exclude_fields: Optional[list[str]] = Field(None, description="List of fields to exclude from the results.")
 
 
 # Documents
@@ -170,6 +170,7 @@ class BaseDocumentChunk(BaseModel):
     source_type: str | None = None
     chunk_index: int | None = None
     title: str | None = None
+    purpose: ContextType | None = None
     token_count: int | None = None
     page_number: int | None = None
     metadata: dict | None = None
@@ -186,6 +187,7 @@ class BaseDocumentChunk(BaseModel):
             "page_content",
             "source",
             "source_type",
+            "purpose",
             "title",
             "token_count",
             "page_number",
@@ -247,6 +249,7 @@ class BaseDocumentChunk(BaseModel):
             "source": self.source,
             "source_type": self.source_type,
             "title": self.title or "",
+            "purpose": self.purpose,
             "token_count": self.token_count,
             **(self.metadata or {}),
         }

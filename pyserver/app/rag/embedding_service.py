@@ -61,6 +61,7 @@ class EmbeddingService:
         dimensions: Optional[int],
         files: Optional[list[File]] = None,
         namespace: Optional[str] = None,
+        purpose: Optional[str] = None,
     ):
         self.encoder = encoder
         self.files = files
@@ -68,6 +69,7 @@ class EmbeddingService:
         self.vector_credentials = vector_credentials
         self.dimensions = dimensions
         self.namespace = namespace
+        self.purpose = purpose
         self.unstructured_client = UnstructuredClient(
             api_key_auth=settings.UNSTRUCTURED_API_KEY,
             server_url=settings.UNSTRUCTURED_BASE_URL,
@@ -138,6 +140,7 @@ class EmbeddingService:
                 "document_type": file.mime_type,
                 "file_id": str(file.id),
                 "namespace": self.namespace,
+                "purpose": self.purpose,
             },
         )
 
@@ -145,9 +148,9 @@ class EmbeddingService:
         self,
         config: DocumentProcessorConfig,
     ) -> list[BaseDocumentChunk]:
+        await logger.info(f"Generating chunks using method: {config.splitter.name}")
         doc_chunks = []
         for file in tqdm(self.files, desc="Generating chunks"):
-            await logger.info(f"Splitting method: {str(config.splitter.name)}")
             try:
                 chunks = []
                 if config.splitter.name == "by_title":
@@ -189,6 +192,7 @@ class EmbeddingService:
                             document_id=document_id,
                             file_id=str(file.id),
                             namespace=str(self.namespace),
+                            purpose=self.purpose,
                             page_content=f"{chunk.get('title', '')}\n{chunk.get('page_content', '')}"
                             if config.splitter.prefix_titles
                             else chunk.get("page_content", ""),

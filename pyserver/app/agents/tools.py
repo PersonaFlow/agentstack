@@ -17,6 +17,7 @@ from qdrant_client import QdrantClient
 from app.core.configuration import get_settings
 from app.core.retriever import qdrant_vstore
 from qdrant_client.http import models as qdrant_models
+from app.rag.custom_retriever import Retriever
 
 # from langchain_robocorp import ActionServerToolkit
 
@@ -37,24 +38,31 @@ RETRIEVAL_DESCRIPTION = """Can be used to look up information that was uploaded 
 If the user asks a vague question, they are likely meaning to look up info from this retriever, and you should call it!"""
 
 
-def get_retriever(assistant_id: str, thread_id: str):
+def get_retriever(assistant_id: str = None, thread_id: str = None):
     if assistant_id is None or thread_id is None:
         return
+    namespace = assistant_id if assistant_id is not None else thread_id
+    metadata: dict = {}
+    metadata["namespace"] = namespace
+    retriever = Retriever(
+        metadata=metadata,
+    )
+    return retriever
 
-    return qdrant_vstore.as_retriever(
-            search_kwargs=dict(
-                k=4,
-                score_threshold=0.7,
-                filter=qdrant_models.Filter(
-                    must=[
-                        qdrant_models.FieldCondition(
-                            key="metadata.namespace",
-                            match=qdrant_models.MatchAny(any=[assistant_id, thread_id])
-                        )
-                    ],
-                )
-            )
-        )
+    # return qdrant_vstore.as_retriever(
+    #         search_kwargs=dict(
+    #             k=5,
+    #             score_threshold=0.75,
+    #             filter=qdrant_models.Filter(
+    #                 must=[
+    #                     qdrant_models.FieldCondition(
+    #                         key="namespace",
+    #                         match=qdrant_models.MatchAny(any=[assistant_id, thread_id])
+    #                     )
+    #                 ],
+    #             )
+    #         )
+    #     )
 
 
 @lru_cache(maxsize=5)
