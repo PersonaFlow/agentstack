@@ -42,7 +42,7 @@ async def ingest(
     document_processor_config = payload.document_processor
     encoder = document_processor_config.encoder.get_encoder()
     collection_name = payload.index_name
-    namespace = payload.namespace if payload.namespace else str(uuid.uuid4())
+    namespace = payload.namespace if payload.namespace else settings.VECTOR_DB_DEFAULT_NAMESPACE
     files_to_ingest = []
 
     for file_id in payload.files:

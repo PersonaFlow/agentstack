@@ -39,7 +39,7 @@ class EncoderConfig(BaseModel):
         default=settings.VECTOR_DB_ENCODER_NAME,
         description="Embedding provider"
     )
-    model_name: str = Field(
+    encoder_model: str = Field(
         default=settings.VECTOR_DB_ENCODER_MODEL,
         description="Model name for the encoder",
     )
@@ -81,10 +81,10 @@ class EncoderConfig(BaseModel):
         encoder_config = self.get_encoder_config(self.provider)
         if not encoder_config:
             raise ValueError(f"Encoder '{self.provider}' not found.")
-        model_name = self.model_name or encoder_config["default_model_name"]
+        encoder_model = self.encoder_model or encoder_config["default_model_name"]
         dimensions = self.dimensions or encoder_config["default_dimensions"]
         encoder_class = encoder_config["class"]
-        return encoder_class(name=model_name, dimensions=dimensions)
+        return encoder_class(name=encoder_model, dimensions=dimensions)
 
 
 class UnstructuredConfig(BaseModel):
@@ -136,10 +136,10 @@ class IngestRequestPayload(BaseModel):
 # Query Schemas
 class QueryRequestPayload(BaseModel):
     input: str = Field(..., description="Input text to query")
+    namespace: Optional[str] = Field(None, description="Context of the query: This is the assistant_id, thread_id, file_id, or random uuid that is used for filtering the results.")
     index_name: Optional[str] = Field(default=settings.VECTOR_DB_COLLECTION_NAME, description="Name of the vector database follection to query from. If not provided, the `VECTOR_DB_COLLECTION_NAME` env var is used.")
     vector_database: Optional[VectorDatabase] = Field(default=VectorDatabase(), description="Vector database to query from. If not provided, this comes from the env config.")
     encoder: Optional[EncoderConfig] = Field(default=EncoderConfig(), description="Embeddings provider configuration. If not provided, this comes from the env config.")
-    namespace: Optional[str] = Field(None, description="Context of the query: This is the assistant_id, thread_id, file_id, or random uuid that is used for filtering the results.")
     enable_rerank: Optional[bool] = Field(default=settings.ENABLE_RERANK_BY_DEFAULT, description="Enable reranking of the results. *NOTE: `COHERE_API_KEY` env var is required to use this feature.*")
     interpreter_mode: Optional[bool] = Field(False, description="Enable code interpreter mode.")
     exclude_fields: list[str] = Field(None, description="List of fields to exclude from the results.")

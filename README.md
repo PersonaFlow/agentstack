@@ -145,7 +145,7 @@ There are a number of configuration options available for the ingestion process,
     "summarize": true,
     "encoder": {
       "dimensions": 1536,
-      "model_name": "text-embedding-3-small",
+      "encoder_model": "text-embedding-3-small",
       "provider": "openai"
     },
     "unstructured": {
@@ -204,7 +204,7 @@ Document retrieval can be done directly by calling the `/api/v1/rag/query` endpo
   "index_name": "LLMLingua",
   "encoder": {
     "provider": "cohere",
-    "model_name": "embed-multilingual-light-v3.0",
+    "encoder_model": "embed-multilingual-light-v3.0",
     "dimensions": 384
   },
   "thread_id": "1924572b-042c-4725-b378-7e8c6664dc81",

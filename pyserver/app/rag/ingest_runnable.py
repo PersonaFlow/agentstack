@@ -126,7 +126,6 @@ class IngestRunnable(RunnableSerializable[BinaryIO, list[str]]):
             )
         return self.assistant_id if self.assistant_id is not None else self.thread_id
 
-    # TODO: this needs to come from app.vectordbs.get_vector_service
     @property
     def vectorstore(self) -> VectorStore:
         qdrant_client = QdrantClient(settings.VECTOR_DB_HOST, port = settings.VECTOR_DB_PORT)

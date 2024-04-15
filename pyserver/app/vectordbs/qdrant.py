@@ -8,9 +8,9 @@ import structlog
 from app.schema.rag import DeleteDocumentsResponse, BaseDocumentChunk
 from app.vectordbs.base import BaseVectorDatabase
 from app.core.configuration import get_settings
+from qdrant_client.http import models as qdrant_models
 
 
-MAX_QUERY_TOP_K = 5
 settings = get_settings()
 
 logger = structlog.get_logger()
@@ -23,6 +23,7 @@ class QdrantService(BaseVectorDatabase):
         dimension: int = settings.VECTOR_DB_ENCODER_DIMENSIONS,
         encoder: Optional[BaseEncoder] = None,
         enable_rerank: bool = False,
+        namespace: Optional[str] = settings.VECTOR_DB_DEFAULT_NAMESPACE,
     ):
         super().__init__(
             index_name=index_name,
@@ -30,6 +31,7 @@ class QdrantService(BaseVectorDatabase):
             credentials=credentials,
             encoder=encoder,
             enable_rerank=enable_rerank,
+            namespace=namespace,
         )
 
         self.client = QdrantClient(
@@ -55,6 +57,11 @@ class QdrantService(BaseVectorDatabase):
     async def upsert(self, chunks: List[BaseDocumentChunk]) -> None:
         points = []
         for chunk in tqdm(chunks, desc="Upserting to Qdrant"):
+            metadata = {
+                "file_id": chunk.file_id,
+                "namespace": chunk.namespace,
+                "source": chunk.source,
+            }
             points.append(
                 rest.PointStruct(
                     id=chunk.id,
@@ -66,6 +73,7 @@ class QdrantService(BaseVectorDatabase):
                         "namespace": chunk.namespace,
                         "file_id": chunk.file_id,
                         "chunk_index": chunk.chunk_index,
+                        "metadata": metadata,
                         **(chunk.metadata if chunk.metadata else {}),
                     },
                 )
@@ -74,13 +82,26 @@ class QdrantService(BaseVectorDatabase):
         self.client.upsert(collection_name=self.index_name, wait=True, points=points)
 
 
-    async def query(self, input: str, top_k: int = MAX_QUERY_TOP_K) -> List:
+    async def query(self, input: str, top_k: int = settings.MAX_QUERY_TOP_K, namespace: Optional[str] = None) -> List:
         vectors = await self._generate_vectors(input=input)
+        if not namespace:
+            namespace = self.namespace
+
         search_result = self.client.search(
             collection_name=self.index_name,
             query_vector=("page_content", vectors[0]),
             limit=top_k,
             with_payload=True,
+            query_filter=qdrant_models.Filter(
+                must=[
+                    qdrant_models.FieldCondition(
+                        key="namespace",
+                        match=qdrant_models.MatchValue(
+                            value=namespace,
+                        ),
+                    )
+                ]
+            ),
         )
         # return [
         #     BaseDocumentChunk.from_metadata({**result.payload, "chunk_id": result.id})
@@ -99,10 +120,11 @@ class QdrantService(BaseVectorDatabase):
                 title=result.payload.get("title"),
                 token_count=result.payload.get("token_count"),
                 page_number=result.payload.get("page_number"),
-                metadata={
-                    k: v for k, v in result.payload.items()
-                    if k not in ["document_id", "page_content", "file_id", "namespace", "source", "source_type", "chunk_index", "title", "token_count", "page_number"]
-                },
+                metadata=result.payload.get("metadata", {}),
+                # metadata={
+                #     k: v for k, v in result.payload.items()
+                #     if k not in ["document_id", "page_content", "source_type", "chunk_index", "title", "token_count", "page_number"]
+                # },
             )
             for result in search_result
         ]

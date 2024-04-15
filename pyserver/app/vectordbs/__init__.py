@@ -12,11 +12,12 @@ settings = get_settings()
 def get_vector_service(
     *,
     index_name: str,
-    credentials: VectorDatabase = VectorDatabase(),
-    encoder_provider: EncoderProvider = EncoderProvider(settings.VECTOR_DB_ENCODER_NAME),
-    encoder: BaseEncoder = None,
-    dimensions: int = settings.VECTOR_DB_ENCODER_DIMENSIONS,
-    enable_rerank: bool = settings.ENABLE_RERANK_BY_DEFAULT,
+    namespace: Optional[str] = settings.VECTOR_DB_DEFAULT_NAMESPACE,
+    credentials: Optional[VectorDatabase] = VectorDatabase(),
+    encoder_provider: Optional[EncoderProvider] = EncoderProvider(settings.VECTOR_DB_ENCODER_NAME),
+    encoder: Optional[BaseEncoder] = None,
+    dimensions: Optional[int] = settings.VECTOR_DB_ENCODER_DIMENSIONS,
+    enable_rerank: Optional[bool] = settings.ENABLE_RERANK_BY_DEFAULT,
 ) -> BaseVectorDatabase:
     services = {
         "qdrant": QdrantService,
@@ -43,4 +44,5 @@ def get_vector_service(
         credentials=dict(credentials.config),
         encoder=encoder,
         enable_rerank=enable_rerank,
+        namespace=namespace,
     )

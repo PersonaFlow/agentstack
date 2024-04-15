@@ -13,13 +13,19 @@ settings = get_settings()
 
 class BaseVectorDatabase(ABC):
     def __init__(
-        self, index_name: str, dimension: int, credentials: dict, encoder: BaseEncoder, enable_rerank: bool,
+        self, index_name: str,
+        dimension: int,
+        credentials: dict,
+        encoder: BaseEncoder,
+        enable_rerank: bool,
+        namespace: str,
     ):
         self.index_name = index_name
         self.dimension = dimension
         self.credentials = credentials
         self.encoder = encoder
         self.enable_rerank = enable_rerank
+        self.namespace = namespace
 
     @abstractmethod
     async def upsert(self, chunks: list[BaseDocumentChunk]):

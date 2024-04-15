@@ -1671,7 +1671,7 @@ components:
             - "$ref": "#/components/schemas/EncoderConfig"
           default:
             provider: cohere
-            model_name: embed-multilingual-light-v3.0
+            encoder_model: embed-multilingual-light-v3.0
             dimensions: 384
         unstructured:
           allOf:
@@ -1703,8 +1703,8 @@ components:
           allOf:
             - "$ref": "#/components/schemas/EncoderProvider"
           description: Embedding provider
-          default: openai
-        model_name:
+          default: cohere
+        encoder_model:
           type: string
           title: Model Name
           description: Model name for the encoder
@@ -1825,7 +1825,7 @@ components:
             summarize: false
             encoder:
               dimensions: 384
-              model_name: embed-multilingual-light-v3.0
+              encoder_model: embed-multilingual-light-v3.0
               provider: cohere
             unstructured:
               hi_res_model_name: detectron2_onnx
@@ -1947,9 +1947,9 @@ components:
           allOf:
             - "$ref": "#/components/schemas/EncoderConfig"
           default:
-            provider: openai
-            model_name: text-embedding-3-small
-            dimensions: 1536
+            provider: cohere
+            encoder_model: embed-multilingual-light-v3.0
+            dimensions: 384
         thread_id:
           anyOf:
             - type: string

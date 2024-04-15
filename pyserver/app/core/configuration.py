@@ -120,7 +120,8 @@ class Settings(BaseSettings):
     VECTOR_DB_ENCODER_DIMENSIONS: int = os.getenv("VECTOR_DB_ENCODER_DIMENSIONS", 1536)
     VECTOR_DB_ENCODER_MODEL: str = os.getenv("VECTOR_DB_ENCODER_MODEL", "text-embedding-3-small")
     VECTOR_DB_ENCODER_NAME: str = os.getenv("VECTOR_DB_ENCODER_NAME", "openai")
-
+    VECTOR_DB_DEFAULT_NAMESPACE: str = os.getenv("VECTOR_DB_DEFAULT_NAMESPACE", "default")
+    
     @property
     def VECTOR_DB_CONFIG(self):
         return {
@@ -142,6 +143,8 @@ class Settings(BaseSettings):
     CREATE_SUMMARY_COLLECTION: bool = True if os.getenv("CREATE_SUMMARY_COLLECTION", "false") == "true" else False
 
     ENABLE_RERANK_BY_DEFAULT: bool = True if os.getenv("ENABLE_RERANK_BY_DEFAULT", "false") == "true" else False
+
+    MAX_QUERY_TOP_K: int = int(os.getenv("MAX_QUERY_TOP_K", 5))
 
 def get_settings() -> Settings:
     return Settings()

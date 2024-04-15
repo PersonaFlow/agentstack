@@ -69,6 +69,7 @@ async def query(payload: QueryRequestPayload) -> list[BaseDocumentChunk]:
         index_name=payload.index_name,
         credentials=payload.vector_database,
         encoder=encoder,
+        namespace=payload.namespace,
     )
 
     return await get_documents(vector_service=vector_service, payload=payload)
