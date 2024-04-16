@@ -1,14 +1,15 @@
-import uuid
 import asyncio
 import aiohttp
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 from fastapi.exceptions import HTTPException
 from app.api.annotations import ApiKey
 from app.schema.rag import (
   IngestRequestPayload,
   QueryRequestPayload,
   QueryResponsePayload,
+  ContextType,
 )
+from app.repositories.assistant import get_assistant_repository, AssistantRepository
 from app.rag.ingest_runnable import ingest_runnable
 from app.rag.embedding_service import EmbeddingService
 from app.rag.summarizer import SUMMARY_SUFFIX
@@ -18,6 +19,7 @@ from app.repositories.file import FileRepository, get_file_repository
 from app.schema.file import FileSchema
 import structlog
 from app.rag.custom_retriever import Retriever
+from app.rag.ingest import get_ingest_tasks_from_config
 
 logger = structlog.get_logger()
 settings = get_settings()
@@ -36,64 +38,44 @@ DEFAULT_TAG = "RAG"
 async def ingest(
     api_key: ApiKey,
     payload: IngestRequestPayload,
-    file_repository: FileRepository = Depends(get_file_repository)
+    file_repository: FileRepository = Depends(get_file_repository),
+    assistant_repository: AssistantRepository = Depends(get_assistant_repository),
 ) -> dict:
-    vector_db_creds = payload.vector_database
-    document_processor_config = payload.document_processor
-    encoder = document_processor_config.encoder.get_encoder()
-    collection_name = payload.index_name
-    namespace = payload.namespace if payload.namespace else settings.VECTOR_DB_DEFAULT_NAMESPACE
     files_to_ingest = []
+    try:
+        for file_id in payload.files:
+            file_model = await file_repository.retrieve_file(file_id)
+            file = FileSchema.model_validate(file_model)
+            files_to_ingest.append(file)
 
-    for file_id in payload.files:
-        file_model = await file_repository.retrieve_file(file_id)
-        file = FileSchema.model_validate(file_model)
-        files_to_ingest.append(file)
+        tasks = await get_ingest_tasks_from_config(files_to_ingest, payload)
 
-    embedding_service = EmbeddingService(
-        encoder=encoder,
-        index_name=collection_name,
-        vector_credentials=vector_db_creds,
-        dimensions=document_processor_config.encoder.dimensions,
-        files=files_to_ingest,
-        namespace=namespace
-    )
+        await asyncio.gather(*tasks)
 
-    chunks = await embedding_service.generate_chunks(config=document_processor_config)
+        # TODO: if payload.purpose == ContextType.assistants, update the assistant
+            # if payload.purpose == ContextType.assistants:
+        #     tasks.append(
+        #         assistant_repository.add_files_to_assistant(
+        #             payload.namespace,
+        #             files_to_ingest
+        #         )
+        #     )
 
-    summary_documents = None
-    if document_processor_config.summarize:
-        summary_documents = await embedding_service.generate_summary_documents(documents=chunks)
+        if payload.webhook_url:
+            await notify_webhook(payload.webhook_url, payload.index_name, payload.namespace, payload.files)
 
-    tasks = [
-        embedding_service.embed_and_upsert(
-            chunks=chunks, encoder=encoder, index_name=collection_name
-        ),
-    ]
-
-    if summary_documents and all(item is not None for item in summary_documents):
-        tasks.append(
-            embedding_service.embed_and_upsert(
-                chunks=summary_documents,
-                encoder=encoder,
-                index_name=f"{collection_name}_{SUMMARY_SUFFIX}",
-            )
-        )
-
-    await asyncio.gather(*tasks)
-
-    # Optionally notify via webhook if specified
-    if payload.webhook_url:
-        await notify_webhook(payload.webhook_url, collection_name)
-
-    return {"success": True}
+        # TODO: return stats from ingestion
+        return {"success": True}
+    except Exception as e:
+        await logger.exception(f"Error ingesting files: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="An error occurred while ingesting the files.")
 
 
-async def notify_webhook(webhook_url: str, collection_name: str):
+async def notify_webhook(webhook_url: str, collection_name: str, namespace: str, file_ids: list[str]):
     async with aiohttp.ClientSession() as session:
         await session.post(
             url=webhook_url,
-            json={"index_name": collection_name, "status": "completed"},
+            json={"index_name": collection_name, "status": "completed", "namespace": namespace, "file_ids": file_ids},
         )
 
 
@@ -109,13 +91,21 @@ async def query(
         api_key: ApiKey,
         payload: QueryRequestPayload
     ):
-    chunks = await query_documents(payload=payload)
-    response_payload = QueryResponsePayload(success=True, data=chunks)
-    response_data = response_payload.model_dump(
-        exclude=set(payload.exclude_fields) if payload.exclude_fields else None
-    )
-    return response_data
+    try:
+        chunks = await query_documents(payload=payload)
+        response_payload = QueryResponsePayload(success=True, data=chunks)
+        response_data = response_payload.model_dump(
+            exclude=set(payload.exclude_fields) if payload.exclude_fields else None
+        )
+        return response_data
+    except HTTPException as e:
+        await logger.exception(f"Error querying vector database: {str(e)}", exc_info=True)
+        raise e
+    except Exception as e:
+        await logger.exception(f"Error querying vector database: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
 
+# Used for testing the custom langchain retriever
 @router.post("/query-lc-retriever")
 async def query_lc_retriever(
     api_key: ApiKey,

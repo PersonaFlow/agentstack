@@ -89,7 +89,7 @@ class AssistantRepository(BaseRepository):
             return assistant
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
-            await logger.exception(f"Failed to update assistant due to a database error.", exc_info=True, assistant_id=assistant_id, assistant_data=data)
+            await logger.exception(f"Failed to update assistant due to a database error. {e}", exc_info=True, assistant_id=assistant_id, assistant_data=data)
             raise HTTPException(status_code=400, detail="Failed to update assistant.")
 
     async def delete_assistant(self, assistant_id: uuid.UUID) -> Assistant:

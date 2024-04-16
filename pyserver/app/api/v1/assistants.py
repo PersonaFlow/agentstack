@@ -1,6 +1,7 @@
 
 from fastapi import APIRouter, status, HTTPException, Depends
 import uuid
+import asyncio
 from datetime import datetime
 from io import BytesIO
 import structlog
@@ -19,6 +20,8 @@ from app.core.configuration import get_settings
 from app.vectordbs import get_vector_service
 from app.schema.file import FileSchema
 from typing import Optional
+from app.rag.ingest import get_ingest_tasks_from_config
+from app.schema.rag import IngestRequestPayload
 
 router = APIRouter()
 DEFAULT_TAG = "Assistants"
@@ -114,18 +117,31 @@ async def create_assistant_file(
             logger.exception(f"Assistant not found: {assistant_id}")
             raise HTTPException(status_code=404, detail="Assistant not found")
 
-        # TODO: Add a check to make sure the file_id is not already in the list of Assistant file_ids once testing is finished
+        # Commenting this out for testing purposes
+        # if data.file_id in [f.file_id for f in assistant.file_ids]:
+        #     logger.exception(f"File with id: {data.file_id} already added to assistant {assistant_id}")
+        #     raise HTTPException(status_code=400, detail="File already added to assistant")
 
-        file_content = await file_repository.retrieve_file_content(data.file_id)
+        # Old method - we'll bring this back for the "recursive" implementation
+        # file_content = await file_repository.retrieve_file_content(data.file_id)
+        # file_content_io = BytesIO(file_content)
+        # config = {"configurable": {"assistant_id": str(assistant_id), "file_id": str(data.file_id)}}
+        # ids = ingest_runnable.batch([file_content_io], config)
+        # if not ids:
+        #     await logger.exception(f"Error ingesting file: {data.file_id}")
+        #     raise HTTPException(status_code=500, detail="An error occurred while ingesting the file.")
 
-        file_content_io = BytesIO(file_content)
+        file_model = await file_repository.retrieve_file(data.file_id)
+        files_to_ingest = [FileSchema.model_validate(file_model)]
 
-        # Trigger the ingestion process
-        config = {"configurable": {"assistant_id": str(assistant_id), "file_id": str(data.file_id)}}
-        ids = ingest_runnable.batch([file_content_io], config)
-        if not ids:
-            await logger.exception(f"Error ingesting file: {data.file_id}")
-            raise HTTPException(status_code=500, detail="An error occurred while ingesting the file.")
+        config = IngestRequestPayload(
+            files=[data.file_id],
+            namespace=str(assistant_id),
+        )
+
+        tasks = await get_ingest_tasks_from_config(files_to_ingest, config)
+
+        await asyncio.gather(*tasks)
 
         assistant = await assistant_repository.add_file_to_assistant(assistant_id, data.file_id)
 
@@ -133,6 +149,7 @@ async def create_assistant_file(
         return response_data
 
     except HTTPException as e:
+        await logger.exception(f"Error creating assistant file: {str(e)}")
         raise e
     except Exception as e:
         await logger.exception(f"Error adding file to assistant: {str(e)}")
