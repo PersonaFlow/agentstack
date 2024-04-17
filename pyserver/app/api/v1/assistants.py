@@ -122,7 +122,7 @@ async def create_assistant_file(
         #     logger.exception(f"File with id: {data.file_id} already added to assistant {assistant_id}")
         #     raise HTTPException(status_code=400, detail="File already added to assistant")
 
-        # Old method - we'll bring this back for the "recursive" implementation
+        # Old method - we'll bring back some version of this for the "recursive" chunking strategy
         # file_content = await file_repository.retrieve_file_content(data.file_id)
         # file_content_io = BytesIO(file_content)
         # config = {"configurable": {"assistant_id": str(assistant_id), "file_id": str(data.file_id)}}

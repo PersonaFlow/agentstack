@@ -36,14 +36,14 @@ class AssistantRepository(BaseRepository):
             await self.postgresql_session.rollback()
             # check for unique constraint violation specifically
             if 'unique constraint "assistants_name_unique"' in str(e.orig):
-                await logger.exception(f"Unique constraint violation while creating assistant: An assistant with the same name already exists.", exc_info=True, assistant_data=data)
+                await logger.exception(f"Unique constraint violation while creating assistant: An assistant with the same name already exists.", exc_info=True)
                 raise UniqueConstraintError("An assistant with the same name already exists.") from e
             else:
-                await logger.exception(f"Failed to create assistant due to a database error.", exc_info=True, assistant_data=data)
+                await logger.exception(f"Failed to create assistant due to a database error.", exc_info=True)
                 raise
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
-            await logger.exception(f"Failed to create assistant due to a database error.", exc_info=True, assistant_data=data)
+            await logger.exception(f"Failed to create assistant due to a database error.", exc_info=True)
             raise HTTPException(status_code=400, detail=f"Failed to create assistant.") from e
 
     @staticmethod
@@ -76,7 +76,7 @@ class AssistantRepository(BaseRepository):
             record = await self.retrieve_one(query=query, object_id=assistant_id)
             return record
         except SQLAlchemyError as e:
-            await logger.exception(f"Failed to retrieve assistant due to a database error.", exc_info=True, assistant_id=assistant_id)
+            await logger.exception(f"Failed to retrieve assistant due to a database error.", exc_info=True)
             raise HTTPException(status_code=500, detail="Failed to retrieve assistant.")
 
     async def update_assistant(self, assistant_id: uuid.UUID, data: dict) -> Assistant:
@@ -89,7 +89,7 @@ class AssistantRepository(BaseRepository):
             return assistant
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
-            await logger.exception(f"Failed to update assistant due to a database error. {e}", exc_info=True, assistant_id=assistant_id, assistant_data=data)
+            await logger.exception(f"Failed to update assistant due to a database error. {e}", exc_info=True)
             raise HTTPException(status_code=400, detail="Failed to update assistant.")
 
     async def delete_assistant(self, assistant_id: uuid.UUID) -> Assistant:
@@ -100,7 +100,7 @@ class AssistantRepository(BaseRepository):
             return assistant
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
-            await logger.exception(f"Failed to delete assistant due to a database error: ", exc_info=True, assistant_id=assistant_id)
+            await logger.exception(f"Failed to delete assistant due to a database error: ", exc_info=True)
             raise HTTPException(status_code=400, detail="Failed to delete assistant.")
 
     async def add_file_to_assistant(self, assistant_id: uuid.UUID, file_id: str) -> Assistant:
@@ -116,7 +116,7 @@ class AssistantRepository(BaseRepository):
                 raise HTTPException(status_code=404, detail="Assistant not found")
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
-            await logger.exception(f"Failed to add file to assistant due to a database error.", exc_info=True, assistant_id=assistant_id, file_id=file_id)
+            await logger.exception(f"Failed to add file to assistant due to a database error.", exc_info=True)
             raise HTTPException(status_code=500, detail="Failed to add file to assistant.")
 
     async def remove_file_reference_from_assistant(self, assistant_id: uuid.UUID, file_id: str) -> Assistant:
@@ -135,7 +135,7 @@ class AssistantRepository(BaseRepository):
                 raise HTTPException(status_code=404, detail="Assistant not found")
         except SQLAlchemyError as e:
                 await self.postgresql_session.rollback()
-                await logger.exception(f"Failed to remove file from assistant due to a database error.", exc_info=True, assistant_id=assistant_id, file_id=file_id)
+                await logger.exception(f"Failed to remove file from assistant due to a database error.", exc_info=True)
                 raise HTTPException(status_code=500, detail="Failed to remove file from assistant.")
 
     async def remove_all_file_references(self, file_id: uuid.UUID) -> list[dict[str, Any]]:
@@ -157,5 +157,5 @@ class AssistantRepository(BaseRepository):
             return updated_assistants
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
-            await logger.exception(f"Failed to remove file references from assistants due to a database error.", exc_info=True, file_id=file_id)
+            await logger.exception(f"Failed to remove file references from assistants due to a database error.", exc_info=True)
             raise HTTPException(status_code=500, detail="Failed to remove file references from assistants.")

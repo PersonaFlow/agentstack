@@ -49,21 +49,6 @@ def get_retriever(assistant_id: str = None, thread_id: str = None):
     )
     return retriever
 
-    # return qdrant_vstore.as_retriever(
-    #         search_kwargs=dict(
-    #             k=5,
-    #             score_threshold=0.75,
-    #             filter=qdrant_models.Filter(
-    #                 must=[
-    #                     qdrant_models.FieldCondition(
-    #                         key="namespace",
-    #                         match=qdrant_models.MatchAny(any=[assistant_id, thread_id])
-    #                     )
-    #                 ],
-    #             )
-    #         )
-    #     )
-
 
 @lru_cache(maxsize=5)
 def get_retrieval_tool(assistant_id: str, thread_id: str, description: str):
