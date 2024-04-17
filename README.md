@@ -11,31 +11,29 @@
   </a>
 </p>
 
-
 **The PersonaFlow platform aims to provide highly personalized user experiences fueled by Generative AI. With a focus on scalability and efficiency, PersonaFlow offers a suite of tools and APIs to create complex agents and high-performing retrieval augmented generation (RAG) systems driven by _personas_ and with a focus on:**
 
 - Context optimization
   - Intelligent partitioning of ingested data
-  - Personalized decision-making based on multiple data vectors 
+  - Personalized decision-making based on multiple data vectors
   - Dynamically adjusting retrieval and generation parameters based on user information
 - Enterprise feasibility: scalability, cost efficiency, and privacy
 - Agent development, testing, and evaluation via the PersonaFlow administration tool
 - Easy integration of generative AI features into applications via the PersonaFlow client SDKs
 
-This repo is the orchestration server for the PersonaFlow platform. It is a REST API that allows you to create and manage agentic assistants, run the agents against various LLMs, create and save user-specific chat threads, and more. 
+This repo is the orchestration server for the PersonaFlow platform. It is a REST API that allows you to create and manage agentic assistants, run the agents against various LLMs, create and save user-specific chat threads, and more.
 
 Much of the API and business language is modeled after the OpenAI Assistants API and uses LangChain as the primary orchestration framework. The assistants implementation began from an early iteration of OpenGPTs, which was then refactored and expanded with additional infrastructure, agent options, file management, an improved and highly configurable RAG system, and a suite of agent-based features. It will be further expanded with personalization features, additional RAG optimization techniques, and more.
 
  <p align="center" style="color:green"><b><i>Note: This project is in the very early stages of development and testing. Breaking changes should therefore be expected until the first stable release.</i></b></p>
 
-
->Web site and documentation are in the works, but in the meantime you can find the API documentation [on SwaggerHub](https://app.swaggerhub.com/apis-docs/DanOrlando/personaflow/0.1.0).
+> Web site and documentation are in the works, but in the meantime you can find the API documentation [on SwaggerHub](https://app.swaggerhub.com/apis-docs/DanOrlando/personaflow/0.1.0).
 
 # Roadmap
 
-- [X] Assistants API
-- [X] File management
-- [X] Advanced RAG with adaptive chunking and summarization
+- [x] Assistants API
+- [x] File management
+- [x] Advanced RAG with adaptive chunking and summarization
 - [ ] Advanced RAG assistants integration
 - [ ] More agent types (self-reflection, etc.)
 - [ ] Persona generation
@@ -44,8 +42,6 @@ Much of the API and business language is modeled after the OpenAI Assistants API
 - [ ] TypeScript SDK
 - [ ] Python SDK
 - [ ] Admin tool
-
-
 
 # Technology Stack
 
@@ -157,7 +153,7 @@ There are a number of configuration options available for the ingestion process,
       "max_tokens": 1000,
       "min_tokens": 30,
       "name": "semantic",
-      "split_summary": true,
+      "prefix_summary": true,
       "prefix_titles": true,
       "rolling_window_size": 1
     }

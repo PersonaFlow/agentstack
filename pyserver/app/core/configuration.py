@@ -121,7 +121,7 @@ class Settings(BaseSettings):
     VECTOR_DB_ENCODER_MODEL: str = os.getenv("VECTOR_DB_ENCODER_MODEL", "text-embedding-3-small")
     VECTOR_DB_ENCODER_NAME: str = os.getenv("VECTOR_DB_ENCODER_NAME", "openai")
     VECTOR_DB_DEFAULT_NAMESPACE: str = os.getenv("VECTOR_DB_DEFAULT_NAMESPACE", "default")
-    
+
     @property
     def VECTOR_DB_CONFIG(self):
         return {
@@ -138,7 +138,7 @@ class Settings(BaseSettings):
     DEFAULT_SEMANTIC_CHUNK_MAX_TOKENS: int = int(os.getenv("DEFAULT_SEMANTIC_CHUNK_MAX_TOKENS", 500))
     SEMANTIC_ROLLING_WINDOW_SIZE: int = int(os.getenv("SEMANTIC_ROLLING_WINDOW_SIZE", 1))
     PREFIX_TITLES: bool = False if os.getenv("PREFIX_TITLES", "true") == "false" else True
-    SPLIT_SUMMARY: bool = False if os.getenv("SPLIT_SUMMARY", "true") == "false" else True
+    PREFIX_SUMMARY: bool = False if os.getenv("PREFIX_SUMMARY", "true") == "false" else True
 
     CREATE_SUMMARY_COLLECTION: bool = True if os.getenv("CREATE_SUMMARY_COLLECTION", "false") == "true" else False
 

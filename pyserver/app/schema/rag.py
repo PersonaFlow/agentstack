@@ -120,8 +120,8 @@ class SplitterConfig(BaseModel):
     prefix_titles: bool = Field(
         default=settings.PREFIX_TITLES, description="Add to prefix titles in chunk, only `semantic` method"
     )
-    split_summary: bool = Field(
-        default=settings.SPLIT_SUMMARY, description="Add to split sub-document summary"
+    prefix_summary: bool = Field(
+        default=settings.PREFIX_SUMMARY, description="Add to split sub-document summary"
 )
 
 class DocumentProcessorConfig(BaseModel):
