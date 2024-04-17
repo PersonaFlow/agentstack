@@ -46,7 +46,7 @@ async def create_user(
 
 @router.get("", tags=[DEFAULT_TAG], response_model=list[User],
             operation_id="retrieve_all_users",
-            summary="List all users (admin)",
+            summary="List all users ",
             description="""
                 GET endpoint at `/users` for listing all users. <br>
                 *This is meant for admin operation.* <br>
@@ -63,7 +63,7 @@ async def retrieve_users(
 
 @router.get("/{user_id}", tags=[DEFAULT_TAG], response_model=User,
             operation_id="retrieve_user",
-            summary="Retrieve a specific user (admin)",
+            summary="Retrieve a specific user ",
             description="GET endpoint at `/users/{user_id}` for fetching details of a specific user using its user_id.")
 async def retrieve_user(
     api_key: ApiKey,
@@ -78,7 +78,7 @@ async def retrieve_user(
 
 @router.patch("/{user_id}", tags=[DEFAULT_TAG], response_model=User,
               operation_id="update_user",
-              summary="Update a specific user (admin)",
+              summary="Update a specific user ",
               description="PATCH endpoint at `/{user_id}` for updating the details of a specific user.")
 async def update_user(
     api_key: ApiKey,
@@ -93,7 +93,7 @@ async def update_user(
 
 @router.delete("/{user_id}", tags=[DEFAULT_TAG], status_code=status.HTTP_204_NO_CONTENT,
                operation_id="delete_user",
-               summary="Delete a specific user (admin)",
+               summary="Delete a specific user ",
                description=("""
                    DELETE endpoint at `/users/{user_id}` for removing a specific user using its `user_id`. <br>
                     *This is considered an admin operation.* <br>
@@ -113,7 +113,7 @@ async def delete_user(
 
 @router.get("/{user_id}/threads", tags=[DEFAULT_TAG], response_model=List[Thread],
             operation_id="retrieve_user_threads",
-            summary="Retrieve threads by user (admin)",
+            summary="Retrieve threads by user ",
             description="""
                 GET endpoint at `/users/{user_id}/threads` for fetching all threads associated with a specific user using its id. <br>
                 *This is meant for admin operation.* <br>
