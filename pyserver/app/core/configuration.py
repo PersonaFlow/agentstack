@@ -135,7 +135,7 @@ class Settings(BaseSettings):
 
     DEFAULT_CHUNKING_STRATEGY: str = os.getenv("DEFAULT_CHUNKING_STRATEGY", "semantic")
     DEFAULT_SEMANTIC_CHUNK_MIN_TOKENS: int = int(os.getenv("DEFAULT_SEMANTIC_CHUNK_MIN_TOKENS", 30))
-    DEFAULT_SEMANTIC_CHUNK_MAX_TOKENS: int = int(os.getenv("DEFAULT_SEMANTIC_CHUNK_MAX_TOKENS", 500))
+    DEFAULT_SEMANTIC_CHUNK_MAX_TOKENS: int = int(os.getenv("DEFAULT_SEMANTIC_CHUNK_MAX_TOKENS", 800))
     SEMANTIC_ROLLING_WINDOW_SIZE: int = int(os.getenv("SEMANTIC_ROLLING_WINDOW_SIZE", 1))
     PREFIX_TITLES: bool = False if os.getenv("PREFIX_TITLES", "true") == "false" else True
     PREFIX_SUMMARY: bool = False if os.getenv("PREFIX_SUMMARY", "true") == "false" else True
