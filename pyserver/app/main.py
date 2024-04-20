@@ -6,10 +6,10 @@ from azure.monitor.opentelemetry import configure_azure_monitor
 from fastapi.openapi.utils import get_openapi
 
 # If we have the `ENVIRONMENT`variable already, we are running in Docker or Kubernetes
-# and do not need to load the.env file
+# and do not need to load the .env file
 environment = os.getenv("ENVIRONMENT")
 if not environment:
-    env_path = '../.env.local'
+    env_path = '../../.env.local'
     load_dotenv(env_path)
 
 from app.app_factory import create_app

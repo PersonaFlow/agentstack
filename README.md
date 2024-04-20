@@ -216,6 +216,10 @@ Document retrieval can be done directly by calling the `/api/v1/rag/query` endpo
 - `thread_id`: This is an optional parameter and can be used to tie the query to an existing conversation id for logging purposes.
 - `enable_rerank`: Whether or not to rerank the query results. Currently requires a cohere api key if true (local reranking is not yet implemented).
 
+# Troubleshooting 
+Q. When I try to run `docker-compose up` I get the error: "configs.qdrant_config Additional property content is not allowed"
+A. Proving the inline content in the configs top-level element requires Docker Compose v2.23.1 or above. This functionality is supported starting Docker Engine v25.0.0 and Docker Desktop v4.26.0 onwards.
+
 # Contributing
 
 Contributions are welcome! If you have a feature request, bug report, or a pull request, please feel free to open an issue or submit a PR.
