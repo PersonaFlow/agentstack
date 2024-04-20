@@ -11,6 +11,6 @@ qdrant_vstore = Qdrant(
         client = qdrant_client,
         collection_name = settings.VECTOR_DB_COLLECTION_NAME,
         embeddings = OpenAIEmbeddings(),
-        vector_name = "default"
+        vector_name = "page_content"
     )
 

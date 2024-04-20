@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "llimeade-pyserver"
+name = "personaflow-pyserver"
 version = "0.1.0"
 description = ""
 authors = ["Dan Orlando <dan.orlando@limeade.com>", "Clay McCullough <clay.mccullough@limeade.com"]

@@ -13,13 +13,19 @@ settings = get_settings()
 
 class BaseVectorDatabase(ABC):
     def __init__(
-        self, index_name: str, dimension: int, credentials: dict, encoder: BaseEncoder, enable_rerank: bool,
+        self, index_name: str,
+        dimension: int,
+        credentials: dict,
+        encoder: BaseEncoder,
+        enable_rerank: bool,
+        namespace: str,
     ):
         self.index_name = index_name
         self.dimension = dimension
         self.credentials = credentials
         self.encoder = encoder
         self.enable_rerank = enable_rerank
+        self.namespace = namespace
 
     @abstractmethod
     async def upsert(self, chunks: list[BaseDocumentChunk]):
@@ -56,10 +62,10 @@ class BaseVectorDatabase(ABC):
         deduplicated_documents = [
             doc
             for doc in documents
-            if doc.content not in seen and not seen.add(doc.content)
+            if doc.page_content not in seen and not seen.add(doc.page_content)
         ]
         docs_text = list(
-            doc.content
+            doc.page_content
             for doc in tqdm(
                 deduplicated_documents,
                 desc=f"Reranking {len(deduplicated_documents)} documents",

@@ -30,18 +30,21 @@ class FileRepository(BaseRepository):
         try:
             file = await self.create(model=File, values=data)
             await self.postgresql_session.commit()
-
-            # Create the file_data directory if it doesn't exist
+            # Create the file data directory if it doesn't exist
             os.makedirs(settings.FILE_DATA_DIRECTORY, exist_ok=True)
             file_extension = guess_file_extension(data.get("mime_type"))
 
             # Save the file content to the local file system using the generated UUID
-            file_name = f"{file.id}.{file_extension}"
-            file_path = os.path.join(settings.FILE_DATA_DIRECTORY, file_name)
+            local_file_name = f"{file.id}.{file_extension}"
+            file_path = os.path.join(settings.FILE_DATA_DIRECTORY, local_file_name)
+
             with open(file_path, 'wb') as f:
                 f.write(file_content)
 
-            return file
+            # update the file record with the "source" field set to file_path
+            update_file = await self.update(model=File, values={"source": file_path}, object_id=file.id)
+            await self.postgresql_session.commit()
+            return update_file
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
             await logger.exception(f"Failed to create file due to a database error.", exc_info=True, file_data=data)
@@ -56,10 +59,12 @@ class FileRepository(BaseRepository):
                       File.purpose,
                       File.kwargs,
                       File.mime_type,
+                      File.source,
                       File.bytes,
                       File.created_at,
                       File.updated_at
                     )
+
 
     async def retrieve_files(self, user_id: str, purpose: Optional[str] = None) -> list[File]:
         """Fetches all files for a user, optionally filtered by purpose."""
@@ -73,6 +78,7 @@ class FileRepository(BaseRepository):
             await logger.exception(f"Failed to retrieve files due to a database error.", exc_info=True, user_id=user_id, purpose=purpose)
             raise HTTPException(status_code=500, detail="Failed to retrieve files.")
 
+
     async def retrieve_file(self, file_id: uuid.UUID) -> File:
         """Fetches a single file by ID."""
         try:
@@ -82,6 +88,7 @@ class FileRepository(BaseRepository):
         except SQLAlchemyError as e:
             await logger.exception(f"Failed to retrieve file due to a database error.", exc_info=True, file_id=file_id)
             raise HTTPException(status_code=500, detail="Failed to retrieve file.")
+
 
     async def delete_file(self, file_id: uuid.UUID) -> File:
         """Removes a file from the database and deletes the file content from the local file system."""
@@ -96,39 +103,34 @@ class FileRepository(BaseRepository):
             return file
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
-            await logger.exception(f"Failed to delete file due to a database error: ", exc_info=True, file_id=file_id)
+            await logger.exception(f"Failed to delete file due to a database error: ", exc_info=True)
             raise HTTPException(status_code=400, detail="Failed to delete file.")
         except FileNotFoundError as e:
             await logger.exception(f"Failed to delete file content from local file system: ", exc_info=True, file_id=file_id)
             raise HTTPException(status_code=400, detail="Failed to delete file content.")
+
 
     async def retrieve_file_content(self, file_id: str) -> Any:
         """Fetches the content of a file by ID from the local file system."""
         try:
             file = await self.retrieve_file(file_id)
             if not file:
-                logger.exception(f"File not found.", file_id=file_id)
+                await logger.exception(f"File: {file_id} not found.")
                 raise HTTPException(status_code=404, detail="File not found.")
-
-            file_path = os.path.join(settings.FILE_DATA_DIRECTORY, f"{file.id}")
-
-            if not os.path.exists(file_path):
-                # If the file doesn't exist, try to find it with a guessed extension
-                for ext in mimetypes.guess_all_extensions(file.mime_type):
-                    file_path_with_ext = f"{file_path}{ext}"
-                    if os.path.exists(file_path_with_ext):
-                        file_path = file_path_with_ext
-                        break
-                else:
-                    raise HTTPException(status_code=404, detail="File content not found.")
-
-            await logger.info(f"Reading file content from local file system.", file_id=file_id, file_path=file_path)
+            file_path = file.source
+            await logger.info(f"Reading content for file {file_id} from local file system. File path: {file_path}")
             with open(file_path, 'rb') as f:
                 file_content = f.read()
             return file_content
+
         except FileNotFoundError as e:
             await logger.exception(f"Failed to retrieve file content from local file system.", exc_info=True, file_id=file_id)
             raise HTTPException(status_code=404, detail="File content not found.")
+        except SQLAlchemyError as e:
+            await self.postgresql_session.rollback()
+            await logger.exception(f"Failed to delete file due to a database error: ", exc_info=True)
+            raise HTTPException(status_code=400, detail="Failed to delete file.")
+
 
     async def retrieve_file_content_as_response(self, file_id: str) -> Response:
         """Retrieves the file content as a downloadable response."""
@@ -140,6 +142,7 @@ class FileRepository(BaseRepository):
         }
 
         return Response(content=file_content, media_type=file.mime_type, headers=headers)
+
 
     async def retrieve_files_by_ids(
         self,
