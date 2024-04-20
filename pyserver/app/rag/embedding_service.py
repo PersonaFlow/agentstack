@@ -124,7 +124,7 @@ class EmbeddingService:
             unstructured_response = self.unstructured_client.general.partition(req)
             if unstructured_response.elements is not None:
                 return unstructured_response.elements
-        except SDKError as e:
+        except Exception as e:
             await logger.exception(f"Error partitioning file: {e}")
             raise
 

@@ -38,8 +38,8 @@ RETRIEVAL_DESCRIPTION = """Can be used to look up information that was uploaded 
 If the user asks a vague question, they are likely meaning to look up info from this retriever, and you should call it!"""
 
 
-def get_retriever(assistant_id: str = None, thread_id: str = None):
-    if assistant_id is None or thread_id is None:
+def get_retriever(assistant_id: str, thread_id: str):
+    if not assistant_id or not thread_id:
         return
     namespace = assistant_id if assistant_id is not None else thread_id
     metadata: dict = {}
