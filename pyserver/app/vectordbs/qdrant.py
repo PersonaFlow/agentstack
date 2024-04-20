@@ -8,9 +8,9 @@ import structlog
 from app.schema.rag import DeleteDocumentsResponse, BaseDocumentChunk
 from app.vectordbs.base import BaseVectorDatabase
 from app.core.configuration import get_settings
+from qdrant_client.http import models as qdrant_models
 
 
-MAX_QUERY_TOP_K = 5
 settings = get_settings()
 
 logger = structlog.get_logger()
@@ -18,11 +18,12 @@ logger = structlog.get_logger()
 class QdrantService(BaseVectorDatabase):
     def __init__(
         self,
-        credentials: dict = settings.VECTOR_DB_CREDENTIALS,
+        credentials: dict = settings.VECTOR_DB_CONFIG,
         index_name: str = settings.VECTOR_DB_COLLECTION_NAME,
         dimension: int = settings.VECTOR_DB_ENCODER_DIMENSIONS,
         encoder: Optional[BaseEncoder] = None,
         enable_rerank: bool = False,
+        namespace: Optional[str] = settings.VECTOR_DB_DEFAULT_NAMESPACE,
     ):
         super().__init__(
             index_name=index_name,
@@ -30,6 +31,7 @@ class QdrantService(BaseVectorDatabase):
             credentials=credentials,
             encoder=encoder,
             enable_rerank=enable_rerank,
+            namespace=namespace,
         )
 
         self.client = QdrantClient(
@@ -43,7 +45,7 @@ class QdrantService(BaseVectorDatabase):
             self.client.create_collection(
                 collection_name=self.index_name,
                 vectors_config={
-                    "content": rest.VectorParams(
+                    "page_content": rest.VectorParams(
                         size=dimension, distance=rest.Distance.COSINE
                     )
                 },
@@ -55,40 +57,74 @@ class QdrantService(BaseVectorDatabase):
     async def upsert(self, chunks: List[BaseDocumentChunk]) -> None:
         points = []
         for chunk in tqdm(chunks, desc="Upserting to Qdrant"):
+            metadata = {
+                "file_id": chunk.file_id,
+                "namespace": chunk.namespace,
+                "source": chunk.source,
+            }
             points.append(
                 rest.PointStruct(
                     id=chunk.id,
-                    vector={"content": chunk.dense_embedding},
+                    vector={"page_content": chunk.dense_embedding},
                     payload={
                         "document_id": chunk.document_id,
-                        "content": chunk.content,
-                        "doc_url": chunk.doc_url,
+                        "page_content": chunk.page_content,
+                        "source": chunk.source,
+                        "namespace": chunk.namespace,
+                        "file_id": chunk.file_id,
+                        "chunk_index": chunk.chunk_index,
+                        "metadata": metadata,
                         **(chunk.metadata if chunk.metadata else {}),
                     },
                 )
             )
 
         self.client.upsert(collection_name=self.index_name, wait=True, points=points)
-    
 
-    async def query(self, input: str, top_k: int = MAX_QUERY_TOP_K) -> List:
+
+    async def query(self, input: str, top_k: int = settings.MAX_QUERY_TOP_K, namespace: Optional[str] = None) -> List:
         vectors = await self._generate_vectors(input=input)
+        if not namespace:
+            namespace = self.namespace
+
         search_result = self.client.search(
             collection_name=self.index_name,
-            query_vector=("content", vectors[0]),
+            query_vector=("page_content", vectors[0]),
             limit=top_k,
             with_payload=True,
+            query_filter=qdrant_models.Filter(
+                must=[
+                    qdrant_models.FieldCondition(
+                        key="namespace",
+                        match=qdrant_models.MatchValue(
+                            value=namespace,
+                        ),
+                    )
+                ]
+            ),
         )
+        # return [
+        #     BaseDocumentChunk.from_metadata({**result.payload, "chunk_id": result.id})
+        #     for result in search_result
+        # ]
         return [
             BaseDocumentChunk(
                 id=result.id,
+                document_id=result.payload.get("document_id", ""),
+                page_content=result.payload.get("page_content", ""),
+                file_id=result.payload.get("file_id"),
+                namespace=result.payload.get("namespace"),
+                source=result.payload.get("source"),
                 source_type=result.payload.get("filetype"),
-                source=result.payload.get("doc_url"),
-                document_id=result.payload.get("document_id"),
-                content=result.payload.get("content"),
-                doc_url=result.payload.get("doc_url"),
+                chunk_index=result.payload.get("chunk_index"),
+                title=result.payload.get("title"),
+                token_count=result.payload.get("token_count"),
                 page_number=result.payload.get("page_number"),
-                metadata={**result.payload},
+                metadata=result.payload.get("metadata", {}),
+                # metadata={
+                #     k: v for k, v in result.payload.items()
+                #     if k not in ["document_id", "page_content", "source_type", "chunk_index", "title", "token_count", "page_number"]
+                # },
             )
             for result in search_result
         ]

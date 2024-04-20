@@ -14,8 +14,6 @@ from pydantic_settings import BaseSettings
 from pydantic import ValidationError
 import structlog
 from typing import Optional
-from app.schema.rag import VectorDatabase, VectorDatabaseType, EncoderConfig, EncoderProvider
-from semantic_router.encoders import BaseEncoder
 
 logger = structlog.get_logger()
 
@@ -38,12 +36,11 @@ class LogLevelEnum(enum.Enum):
 # and do not need to load the.env file
 environment = os.getenv("ENVIRONMENT")
 if not environment:
-    env_path = '../.env.local'
+    env_path = '../../../.env.local'
     load_dotenv(env_path)
 
 class Settings(BaseSettings):
     class Config:
-        env_file = ".env"
         case_sensitive = True
 
     TITLE: str = "PersonaFlow"
@@ -59,15 +56,15 @@ class Settings(BaseSettings):
 
     # Key to be sent as x-api-key header to authenticate requests
     # WARNING: Auth disabled if not provided
-    LLIMEADE_API_KEY: Optional[str] = os.getenv("LLIMEADE_API_KEY", None)
+    PERSONAFLOW_API_KEY: Optional[str] = os.getenv("PERSONAFLOW_API_KEY", None)
 
     # Required if you intend to use reranking functionality to query documents
     COHERE_API_KEY: Optional[str] = os.getenv("COHERE_API_KEY", None)
 
     # Used for processing of unstructured documents to be ingested into vector db
     # "semantic" splitting method will not work without these
-    UNSTRUCTURED_API_KEY: str = os.getenv("UNSTRUCTURED_API_KEY")
-    UNSTRUCTURED_BASE_URL: str = os.getenv("UNSTRUCTURED_BASE_URL")
+    UNSTRUCTURED_API_KEY: str = os.getenv("UNSTRUCTURED_API_KEY", "")
+    UNSTRUCTURED_BASE_URL: str = os.getenv("UNSTRUCTURED_BASE_URL", "http://localhost:8000")
 
     # If using openai
     OPENAI_API_KEY: Optional[str] = os.getenv("OPENAI_API_KEY", None)
@@ -84,12 +81,18 @@ class Settings(BaseSettings):
     # Number of iterations assistant is allowed to run to accomplish task or improve results or response (Required)
     LANGGRAPH_RECURSION_LIMIT: int = os.getenv("LANGGRAPH_RECURSION_LIMIT", 5)
 
+    EXCLUDE_REQUEST_LOG_ENDPOINTS: list[str] = ["/docs"]
+
+    # Defaults to 25mb
+    MAX_FILE_UPLOAD_SIZE: int = int(os.getenv("MAX_FILE_UPLOAD_SIZE", 25000000))
+
+
     # Postgres Database environment variables
     INTERNAL_DATABASE_USER: str = os.getenv("INTERNAL_DATABASE_USER", "internal")
     INTERNAL_DATABASE_PASSWORD: str = os.getenv("INTERNAL_DATABASE_PASSWORD", "internal")
     INTERNAL_DATABASE_HOST: str = os.getenv("INTERNAL_DATABASE_HOST", "localhost")
     INTERNAL_DATABASE_PORT: int = os.getenv("INTERNAL_DATABASE_PORT", 5432)
-    INTERNAL_DATABASE_DATABASE: str = os.getenv("INTERNAL_DATABASE_DATABASE", "llimeade")
+    INTERNAL_DATABASE_DATABASE: str = os.getenv("INTERNAL_DATABASE_DATABASE", "internal")
     INTERNAL_DATABASE_SCHEMA: str = os.getenv("INTERNAL_DATABASE_SCHEMA", "pyserver")
 
     @property
@@ -105,8 +108,10 @@ class Settings(BaseSettings):
     AZURE_OPENAI_API_KEY: Optional[str] = os.getenv("AZURE_OPENAI_API_KEY", None)
     AZURE_OPENAI_API_VERSION: Optional[str] = os.getenv("AZURE_OPENAI_API_VERSION", None)
 
+    # **** All variables below can be overriden by the APIs ****
+
     # Vector DB environment variables
-    VECTOR_DB_API_KEY: str = os.getenv("VECTOR_DB_API_KEY")
+    VECTOR_DB_API_KEY: str = os.getenv("VECTOR_DB_API_KEY", "")
     VECTOR_DB_NAME: str = os.getenv("VECTOR_DB_NAME", "qdrant")
     VECTOR_DB_HOST: str = os.getenv("VECTOR_DB_HOST", "localhost")
     VECTOR_DB_PORT: int = os.getenv("VECTOR_DB_PORT", 6333)
@@ -114,6 +119,7 @@ class Settings(BaseSettings):
     VECTOR_DB_ENCODER_DIMENSIONS: int = os.getenv("VECTOR_DB_ENCODER_DIMENSIONS", 1536)
     VECTOR_DB_ENCODER_MODEL: str = os.getenv("VECTOR_DB_ENCODER_MODEL", "text-embedding-3-small")
     VECTOR_DB_ENCODER_NAME: str = os.getenv("VECTOR_DB_ENCODER_NAME", "openai")
+    VECTOR_DB_DEFAULT_NAMESPACE: str = os.getenv("VECTOR_DB_DEFAULT_NAMESPACE", "default")
 
     @property
     def VECTOR_DB_CONFIG(self):
@@ -122,24 +128,22 @@ class Settings(BaseSettings):
             "api_key": self.VECTOR_DB_API_KEY,
         }
 
-    @property
-    def VECTOR_DB_CREDENTIALS(self):
-        return VectorDatabase(
-            type=VectorDatabaseType(self.VECTOR_DB_NAME),
-            config=self.VECTOR_DB_CONFIG
-        )
-    def get_default_encoder(self) -> BaseEncoder:
-        return EncoderConfig(
-            provider=EncoderProvider(self.VECTOR_DB_ENCODER_NAME),
-            model_name=self.VECTOR_DB_ENCODER_MODEL,
-            dimensions=self.VECTOR_DB_ENCODER_DIMENSIONS,
-        ).get_encoder()
+    DEFAULT_PARTITION_STRATEGY: str = os.getenv("DEFAULT_PARTITION_STRATEGY", "auto")
+    DEFAULT_HI_RES_MODEL_NAME: str = os.getenv("DEFAULT_HI_RES_MODEL_NAME", "detectron2_onnx")
+    PROCESS_UNSTRUCTURED_TABLES: bool = True if os.getenv("PROCESS_UNSTRUCTURED_TABLES", "false") == "true" else False
 
-    EXCLUDE_REQUEST_LOG_ENDPOINTS: list[str] = ["/docs"]
+    DEFAULT_CHUNKING_STRATEGY: str = os.getenv("DEFAULT_CHUNKING_STRATEGY", "semantic")
+    DEFAULT_SEMANTIC_CHUNK_MIN_TOKENS: int = int(os.getenv("DEFAULT_SEMANTIC_CHUNK_MIN_TOKENS", 30))
+    DEFAULT_SEMANTIC_CHUNK_MAX_TOKENS: int = int(os.getenv("DEFAULT_SEMANTIC_CHUNK_MAX_TOKENS", 800))
+    SEMANTIC_ROLLING_WINDOW_SIZE: int = int(os.getenv("SEMANTIC_ROLLING_WINDOW_SIZE", 1))
+    PREFIX_TITLES: bool = False if os.getenv("PREFIX_TITLES", "true") == "false" else True
+    PREFIX_SUMMARY: bool = False if os.getenv("PREFIX_SUMMARY", "true") == "false" else True
 
-    # Defaults to 25mb
-    MAX_FILE_UPLOAD_SIZE: int = int(os.getenv("MAX_FILE_UPLOAD_SIZE", 25000000))
+    CREATE_SUMMARY_COLLECTION: bool = True if os.getenv("CREATE_SUMMARY_COLLECTION", "false") == "true" else False
 
+    ENABLE_RERANK_BY_DEFAULT: bool = True if os.getenv("ENABLE_RERANK_BY_DEFAULT", "false") == "true" else False
+
+    MAX_QUERY_TOP_K: int = int(os.getenv("MAX_QUERY_TOP_K", 5))
 
 def get_settings() -> Settings:
     return Settings()

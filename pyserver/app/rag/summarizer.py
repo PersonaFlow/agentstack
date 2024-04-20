@@ -16,7 +16,7 @@ def _generate_content(*, document: BaseDocumentChunk) -> str:
 
 Text:
 ------------------------------------------
-{document.content}
+{document.page_content}
 ------------------------------------------
 
 Your summary:"""

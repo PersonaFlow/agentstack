@@ -18,15 +18,15 @@ from unstructured_client.models.errors import SDKError
 from app.schema.rag import (
     BaseDocument,
     BaseDocumentChunk,
-    IngestFile,
     DocumentProcessorConfig,
 )
 from app.rag.util import get_tiktoken_length
 from app.rag.splitter import UnstructuredSemanticSplitter
 from app.rag.summarizer import completion
 from app.vectordbs import get_vector_service
-
+from app.schema.file import FileSchema
 from app.core.configuration import get_settings
+from app.models.file import File
 
 # TODO: Add similarity score to the BaseDocumentChunk
 # TODO: Add relevance score to the BaseDocumentChunk
@@ -59,13 +59,17 @@ class EmbeddingService:
         encoder: BaseEncoder,
         vector_credentials: dict,
         dimensions: Optional[int],
-        files: Optional[list[IngestFile]] = None,
+        files: Optional[list[File]] = None,
+        namespace: Optional[str] = None,
+        purpose: Optional[str] = None,
     ):
         self.encoder = encoder
         self.files = files
         self.index_name = index_name
         self.vector_credentials = vector_credentials
         self.dimensions = dimensions
+        self.namespace = namespace
+        self.purpose = purpose
         self.unstructured_client = UnstructuredClient(
             api_key_auth=settings.UNSTRUCTURED_API_KEY,
             server_url=settings.UNSTRUCTURED_BASE_URL,
@@ -73,7 +77,7 @@ class EmbeddingService:
 
     async def _partition_file(
         self,
-        file: IngestFile,
+        file: FileSchema,
         strategy="auto",
         returned_elements_type: Literal["chunked", "original"] = "chunked",
     ) -> list[Any]:
@@ -89,60 +93,54 @@ class EmbeddingService:
         Returns:
             list[Any]: A list of partitioned file elements.
         """
-        # Check if the file content is directly provided or needs to be downloaded
-        if file.content:
-            file_content = file.content
-        else:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(file.url) as response:
-                    if response.status != 200:
-                        await logger.error(f"Failed to download file from {file.url}")
-                        return []
-                    file_content = await response.read()
 
-        # At this point, file_content contains the actual file content,
-        # either from a direct upload or downloaded from a URL
+        # file_content = await self.file_repository.retrieve_file_content(str(file.id))
+        # if file_content is None:
+        #     logger.exception(f"File content not found for file {file.id}", exc_info=True)
+        #     raise FileNotFoundError
 
-        with NamedTemporaryFile(suffix=file.suffix, delete=True) as temp_file:
-            temp_file.write(file_content)
-            temp_file.flush()
-            temp_file.seek(0)
-            file_name = temp_file.name
+        try:
+            file_path = file.source
+            await logger.info(f"Reading content from local file system. File path: {file_path}")
+            with open(file_path, 'rb') as f:
+                file_content = f.read()
+        except FileNotFoundError as e:
+            await logger.exception(f"Failed to retrieve file content from local file system.", exc_info=True)
+            raise
 
-            files = shared.Files(
-                content=file_content,
-                file_name=file_name,
-            )
-            req = shared.PartitionParameters(
-                files=files,
-                include_page_breaks=True,
-                strategy=strategy,
-                max_characters=2500 if returned_elements_type == "chunked" else None,
-                new_after_n_chars=1000 if returned_elements_type == "chunked" else None,
-                chunking_strategy="by_title" if returned_elements_type == "chunked" else None,
-            )
-            try:
-                unstructured_response = self.unstructured_client.general.partition(req)
-                if unstructured_response.elements is not None:
-                    return unstructured_response.elements
-                else:
-                    await logger.error(f"Error partitioning file: {unstructured_response}")
-                    return []
-            except SDKError as e:
-                await logger.error(f"Error partitioning file: {e}")
-                return []
+        files = shared.Files(
+            content=file_content,
+            file_name=file.source.split("/")[-1],
+        )
+        req = shared.PartitionParameters(
+            files=files,
+            include_page_breaks=True,
+            strategy=strategy,
+            max_characters=2500 if returned_elements_type == "chunked" else None,
+            new_after_n_chars=1000 if returned_elements_type == "chunked" else None,
+            chunking_strategy="by_title" if returned_elements_type == "chunked" else None,
+        )
+        try:
+            unstructured_response = self.unstructured_client.general.partition(req)
+            if unstructured_response.elements is not None:
+                return unstructured_response.elements
+        except Exception as e:
+            await logger.exception(f"Error partitioning file: {e}")
+            raise
 
     def _create_base_document(
-        self, document_id: str, file: IngestFile, document_content: str
+        self, document_id: str, file: FileSchema, document_content: str
     ) -> BaseDocument:
         return BaseDocument(
             id=document_id,
-            content=document_content,
-            doc_url=file.url,
+            page_content=document_content,
             metadata={
-                "source": file.url,
+                "source": file.source,
                 "source_type": "document",
-                "document_type": file.suffix,
+                "document_type": file.mime_type,
+                "file_id": str(file.id),
+                "namespace": self.namespace,
+                "purpose": self.purpose,
             },
         )
 
@@ -150,9 +148,9 @@ class EmbeddingService:
         self,
         config: DocumentProcessorConfig,
     ) -> list[BaseDocumentChunk]:
+        await logger.info(f"Generating chunks using method: {config.splitter.name}")
         doc_chunks = []
         for file in tqdm(self.files, desc="Generating chunks"):
-            await logger.info(f"Splitting method: {str(config.splitter.name)}")
             try:
                 chunks = []
                 if config.splitter.name == "by_title":
@@ -161,7 +159,7 @@ class EmbeddingService:
                     )
                     for element in chunked_elements:
                         chunk_data = {
-                            "content": element.get("text"),
+                            "page_content": element.get("text"),
                             "metadata": sanitize_metadata(
                                 element.get("metadata")
                             ),
@@ -185,22 +183,24 @@ class EmbeddingService:
                     continue
 
                 document_id = f"doc_{uuid.uuid4()}"
-                document_content = "".join(chunk.get("content", "") for chunk in chunks)
+                document_content = "".join(chunk.get("page_content", "") for chunk in chunks)
 
                 doc_chunks.extend(
                     [
                         BaseDocumentChunk(
                             id=str(uuid.uuid4()),
-                            doc_url=file.url,
                             document_id=document_id,
-                            content=f"{chunk.get('title', '')}\n{chunk.get('content', '')}"
-                            if config.splitter.prefix_title
-                            else chunk.get("content", ""),
-                            source=file.url,
-                            source_type=file.suffix,
+                            file_id=str(file.id),
+                            namespace=str(self.namespace),
+                            purpose=self.purpose,
+                            page_content=f"{chunk.get('title', '')}\n{chunk.get('page_content', '')}"
+                            if config.splitter.prefix_titles
+                            else chunk.get("page_content", ""),
+                            source=file.source,
+                            source_type=file.mime_type,
                             chunk_index=chunk.get("chunk_index", None),
                             title=chunk.get("title", None),
-                            token_count=get_tiktoken_length(chunk.get("content", "")),
+                            token_count=get_tiktoken_length(chunk.get("page_content", "")),
                             metadata=sanitize_metadata(chunk.get("metadata", {})),
                         )
                         for chunk in chunks
@@ -229,9 +229,9 @@ class EmbeddingService:
         ) -> list[BaseDocumentChunk]:
             try:
                 chunk_texts = [
-                    chunk.content
+                    chunk.page_content
                     for chunk in chunks_batch
-                    if chunk and chunk.content
+                    if chunk and chunk.page_content
                 ]
                 if not chunk_texts:
                     await logger.warning(f"No content to embed in batch {chunks_batch}")
@@ -298,13 +298,13 @@ class EmbeddingService:
             if page_number not in pages:
                 pages[page_number] = copy.deepcopy(document)
             else:
-                pages[page_number].content += document.content
+                pages[page_number].page_content += document.page_content
             pbar.update()
         pbar.close()
 
         async def safe_completion(document: BaseDocumentChunk) -> Optional[BaseDocumentChunk]:
             try:
-                document.content = await completion(document=document)
+                document.page_content = await completion(document=document)
                 return document
             except Exception as e:
                 await logger.error(f"Error summarizing document {document.id}: {e}")

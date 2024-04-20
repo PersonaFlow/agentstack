@@ -17,6 +17,7 @@ from qdrant_client import QdrantClient
 from app.core.configuration import get_settings
 from app.core.retriever import qdrant_vstore
 from qdrant_client.http import models as qdrant_models
+from app.rag.custom_retriever import Retriever
 
 # from langchain_robocorp import ActionServerToolkit
 
@@ -38,23 +39,15 @@ If the user asks a vague question, they are likely meaning to look up info from 
 
 
 def get_retriever(assistant_id: str, thread_id: str):
-    if assistant_id is None or thread_id is None:
+    if not assistant_id or not thread_id:
         return
-
-    return qdrant_vstore.as_retriever(
-            search_kwargs=dict(
-                k=4,
-                score_threshold=0.7,
-                filter=qdrant_models.Filter(
-                    must=[
-                        qdrant_models.FieldCondition(
-                            key="metadata.namespace",
-                            match=qdrant_models.MatchAny(any=[assistant_id, thread_id])
-                        )
-                    ],
-                )
-            )
-        )
+    namespace = assistant_id if assistant_id is not None else thread_id
+    metadata: dict = {}
+    metadata["namespace"] = namespace
+    retriever = Retriever(
+        metadata=metadata,
+    )
+    return retriever
 
 
 @lru_cache(maxsize=5)

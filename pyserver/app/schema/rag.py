@@ -5,17 +5,34 @@ from fastapi import UploadFile
 from pydantic import BaseModel, Field, validator
 from semantic_router.encoders import BaseEncoder, CohereEncoder, OpenAIEncoder, HuggingFaceEncoder, AzureOpenAIEncoder
 # from app.rag.ollama_encoder import OllamaEncoder
+from app.core.configuration import get_settings
+
+settings = get_settings()
 
 class VectorDatabaseType(Enum):
     qdrant = "qdrant"
 
 
 class VectorDatabase(BaseModel):
-    type: VectorDatabaseType
-    config: dict
+    type: VectorDatabaseType = Field(
+        default=settings.VECTOR_DB_NAME,
+        description="Vector database type. Must be one of VectorDatabaseType enum."
+    )
+    config: dict = Field(
+        default=settings.VECTOR_DB_CONFIG,
+        description="Vector database configuration object."
+    )
 
 
 # Ingest Schemas
+
+class ContextType(str, Enum):
+    """Context where files or generated embeddings are used."""
+    assistants = "assistants"
+    threads = "threads"
+    rag = "rag"
+    personas = "personas"
+
 class EncoderProvider(str, Enum):
     cohere = "cohere"
     openai = "openai"
@@ -24,17 +41,18 @@ class EncoderProvider(str, Enum):
     mistral = "mistral"
     # ollama = "ollama"
 
+
 class EncoderConfig(BaseModel):
     provider: EncoderProvider = Field(
-        default=EncoderProvider.openai,
+        default=settings.VECTOR_DB_ENCODER_NAME,
         description="Embedding provider"
     )
-    model_name: str = Field(
-        default="text-embedding-3-small",
+    encoder_model: str = Field(
+        default=settings.VECTOR_DB_ENCODER_MODEL,
         description="Model name for the encoder",
     )
     dimensions: int = Field(
-        default=1536,
+        default=settings.VECTOR_DB_ENCODER_DIMENSIONS,
         description="Dimension of the encoder output")
 
     @classmethod
@@ -71,143 +89,88 @@ class EncoderConfig(BaseModel):
         encoder_config = self.get_encoder_config(self.provider)
         if not encoder_config:
             raise ValueError(f"Encoder '{self.provider}' not found.")
-        model_name = self.model_name or encoder_config["default_model_name"]
+        encoder_model = self.encoder_model or encoder_config["default_model_name"]
         dimensions = self.dimensions or encoder_config["default_dimensions"]
         encoder_class = encoder_config["class"]
-        return encoder_class(name=model_name, dimensions=dimensions)
+        return encoder_class(name=encoder_model, dimensions=dimensions)
+
 
 class UnstructuredConfig(BaseModel):
-    partition_strategy: Literal["auto", "hi_res"] = Field(default="auto")
+    partition_strategy: Literal["auto", "hi_res"] = Field(default=settings.DEFAULT_PARTITION_STRATEGY)
     hi_res_model_name: Literal["detectron2_onnx", "chipper"] = Field(
-        default="detectron2_onnx", description="Only for `hi_res` strategy"
+        default=settings.DEFAULT_HI_RES_MODEL_NAME, description="Only for `hi_res` strategy"
     )
     process_tables: bool = Field(
-        default=False, description="Only for `hi_res` strategy"
+        default=settings.PROCESS_UNSTRUCTURED_TABLES, description="Only for `hi_res` strategy"
     )
-
 
 class SplitterConfig(BaseModel):
     name: Literal["semantic", "by_title"] = Field(
-        default="semantic", description="Splitter name, `semantic` or `by_title`"
+        default=settings.DEFAULT_CHUNKING_STRATEGY, description="Splitter method"
     )
-    min_tokens: int = Field(default=30, description="Only for `semantic` method")
+    min_tokens: int = Field(default=settings.DEFAULT_SEMANTIC_CHUNK_MIN_TOKENS, description="Only for `semantic` method")
     max_tokens: int = Field(
-        default=400, description="Only for `semantic` and `recursive` methods"
+        default=settings.DEFAULT_SEMANTIC_CHUNK_MAX_TOKENS, description="Only for `semantic` and `recursive` methods"
     )
     rolling_window_size: int = Field(
-        default=1,
+        default=settings.SEMANTIC_ROLLING_WINDOW_SIZE,
         description="Only for `semantic` method, cumulative window size "
         "for comparing similarity between elements",
     )
-    prefix_title: bool = Field(
-        default=True, description="Add to split titles, headers, only `semantic` method"
+    prefix_titles: bool = Field(
+        default=settings.PREFIX_TITLES, description="Add to prefix titles in chunk, only `semantic` method"
     )
     prefix_summary: bool = Field(
-        default=True, description="Add to split sub-document summary"
-    )
-
+        default=settings.PREFIX_SUMMARY, description="Add to split sub-document summary"
+)
 
 class DocumentProcessorConfig(BaseModel):
-    summarize: bool = Field(default=False, description="Create a separate index of document summaries")
-    encoder: EncoderConfig = EncoderConfig()
-    unstructured: UnstructuredConfig = UnstructuredConfig()
-    splitter: SplitterConfig = SplitterConfig()
-
-
-
-# Files
-class FileType(Enum):
-    pdf = "pdf"
-    docx = "docx"
-    txt = "txt"
-    pptx = "pptx"
-    md = "markdown"
-    csv = "csv"
-    xlsx = "xlsx"
-    html = "html"
-    json = "json"
-
-class IngestFile(BaseModel):
-    url: Optional[str] = None
-    name: Optional[str] = None
-    content: Optional[bytes] = None  # Add this attribute to store file content
-
-    @classmethod
-    def from_url(cls, url: str):
-        return cls(url=url, name=url.split("/")[-1])
-
-    @classmethod
-    def from_upload_file(cls, upload_file: UploadFile):
-        return cls(
-            url=f"file://{upload_file.filename}",
-            name=upload_file.filename,
-            content=upload_file.file.read(),
-        )
-
-    @property
-    def type(self) -> FileType | None:
-        filename = self.name or self.url
-        if filename:
-            extension = filename.split(".")[-1].lower()
-            try:
-                return FileType(extension)
-            except KeyError:
-                raise ValueError(f"Unsupported file type for filename: {filename}")
-        return None
-
-    @property
-    def suffix(self) -> str:
-        file_type = self.type
-        if file_type is not None:
-            # return file_type.suffix()
-            return f".{file_type.value}"
-        else:
-            raise ValueError("File type is undefined, cannot determine suffix.")
+    summarize: bool = Field(default=settings.CREATE_SUMMARY_COLLECTION, description="Create a separate collection of document summaries")
+    encoder: EncoderConfig = Field(default=EncoderConfig(), description="Embeddings provider coniguration. If not provided, this comes from the env config.")
+    unstructured: UnstructuredConfig = Field(default=UnstructuredConfig(), description="UnstructuredIO configuration. If not provided, this comes from the env config.")
+    splitter: SplitterConfig = Field(default=SplitterConfig(), description="Document partition manager configuration. If not provided, this comes from the env config.")
 
 class IngestRequestPayload(BaseModel):
-    index_name: str
-    vector_database: Optional[VectorDatabase] = None
-    document_processor: DocumentProcessorConfig = DocumentProcessorConfig()
-    files: Optional[list[IngestFile]] = None
-    webhook_url: Optional[str] = None
+    files: list[uuid.UUID] = Field(..., description="An array of file ids to ingest")
+    purpose: Optional[ContextType] = Field(default=ContextType.assistants, description="Context of where the embeddings will be used.")
+    index_name: Optional[str] = Field(default=settings.VECTOR_DB_COLLECTION_NAME, description="Name of the vector database follection to ingest the files into. If not provided, the `VECTOR_DB_COLLECTION_NAME` env var is used.")
+    namespace: Optional[str] = Field(None, description="Context of the embeddings: This is the assistant_id, thread_id, file_id, or random uuid that is used for filtering the results.")
+    vector_database: Optional[VectorDatabase] = Field(default=VectorDatabase(), description="Vector database to store the embeddings. If not provided, this comes from the env config.")
+    document_processor: Optional[DocumentProcessorConfig] = Field(default=DocumentProcessorConfig(), description="Document processor configuration. If not provided, this comes from the env config.")
+    webhook_url: Optional[str] = Field(None, description="Webhook url to send the notification to when the ingestion is completed.")
 
 # Query Schemas
 class QueryRequestPayload(BaseModel):
-    input: str
-    index_name: str
-    vector_database: Optional[VectorDatabase] = None
-    encoder: EncoderConfig = EncoderConfig()
-    thread_id: Optional[str] = None
-    enable_rerank: Optional[bool] = False
-    interpreter_mode: Optional[bool] = False
-    exclude_fields: list[str] = None
-
-
-class QueryResponseData(BaseModel):
-    content: str
-    doc_url: str
-    page_number: Optional[int]
-    metadata: Optional[dict] = None
+    input: str = Field(..., description="Input text to query")
+    namespace: Optional[str] = Field(None, description="Context of the query: This is the assistant_id, thread_id, file_id, or random uuid that is used for filtering the results.")
+    context: Optional[ContextType] = Field(default=ContextType.assistants, description="Context of where the embeddings will be used.")
+    index_name: Optional[str] = Field(default=settings.VECTOR_DB_COLLECTION_NAME, description="Name of the vector database follection to query from. If not provided, the `VECTOR_DB_COLLECTION_NAME` env var is used.")
+    vector_database: Optional[VectorDatabase] = Field(default=VectorDatabase(), description="Vector database to query from. If not provided, this comes from the env config.")
+    encoder: Optional[EncoderConfig] = Field(default=EncoderConfig(), description="Embeddings provider configuration. If not provided, this comes from the env config.")
+    enable_rerank: Optional[bool] = Field(default=settings.ENABLE_RERANK_BY_DEFAULT, description="Enable reranking of the results. *NOTE: `COHERE_API_KEY` env var is required to use this feature.*")
+    interpreter_mode: Optional[bool] = Field(False, description="Enable code interpreter mode.")
+    exclude_fields: Optional[list[str]] = Field(None, description="List of fields to exclude from the results.")
 
 
 # Documents
 
 class BaseDocument(BaseModel):
     id: str
-    content: str
-    doc_url: str
+    page_content: str
     metadata: dict | None = None
 
 
 class BaseDocumentChunk(BaseModel):
     id: str
     document_id: str
-    content: str
-    doc_url: str | None = None
+    page_content: str
+    file_id: str | None = None
+    namespace: str | None = None
     source: str | None = None
     source_type: str | None = None
     chunk_index: int | None = None
     title: str | None = None
+    purpose: ContextType | None = None
     token_count: int | None = None
     page_number: int | None = None
     metadata: dict | None = None
@@ -219,10 +182,12 @@ class BaseDocumentChunk(BaseModel):
             "chunk_id",
             "chunk_index",
             "document_id",
-            "doc_url",
-            "content",
+            "file_id",
+            "namespace",
+            "page_content",
             "source",
             "source_type",
+            "purpose",
             "title",
             "token_count",
             "page_number",
@@ -278,11 +243,13 @@ class BaseDocumentChunk(BaseModel):
             "chunk_id": self.id,
             "chunk_index": self.chunk_index or "",
             "document_id": self.document_id,
-            "doc_url": self.doc_url,
-            "content": self.content,
+            "file_id": self.file_id,
+            "namespace": self.namespace,
+            "page_content": self.page_content,
             "source": self.source,
             "source_type": self.source_type,
             "title": self.title or "",
+            "purpose": self.purpose,
             "token_count": self.token_count,
             **(self.metadata or {}),
         }
@@ -301,7 +268,7 @@ class QueryResponsePayload(BaseModel):
     def model_dump(self, exclude: set = None):
         return {
             "success": self.success,
-            "data": [chunk.dict(exclude=exclude) for chunk in self.data],
+            "data": [chunk.model_dump(exclude=exclude) for chunk in self.data],
         }
 
 
@@ -311,10 +278,10 @@ class DeleteFile(BaseModel):
 
 
 class DeleteRequestPayload(BaseModel):
-    index_name: str
-    files: list[DeleteFile]
-    vector_database: VectorDatabase
-    encoder: EncoderConfig = EncoderConfig()
+    files: list[DeleteFile] = Field(..., description="Array of files to delete")
+    index_name: Optional[str] = Field(settings.VECTOR_DB_COLLECTION_NAME, description="Name of the vector database follection to do the deletion. If not provided, the `VECTOR_DB_COLLECTION_NAME` env var is used.")
+    vector_database: Optional[VectorDatabase] = Field(VectorDatabase(), description="Vector database to use for the deletion.")
+    encoder: Optional[EncoderConfig] = Field(EncoderConfig(), description="Encoder configuration to use for the deletion.")
 
 class DeleteDocumentsResponse(BaseModel):
     num_deleted_chunks: int

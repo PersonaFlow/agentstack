@@ -11,31 +11,32 @@ settings = get_settings()
 
 def get_vector_service(
     *,
-    index_name: str = settings.VECTOR_DB_COLLECTION_NAME,
-    credentials: VectorDatabase = settings.VECTOR_DB_CREDENTIALS,
-    encoder: BaseEncoder = settings.get_default_encoder(),
-    encoder_provider: EncoderProvider = EncoderProvider(settings.VECTOR_DB_ENCODER_NAME),
+    index_name: str,
+    namespace: Optional[str] = settings.VECTOR_DB_DEFAULT_NAMESPACE,
+    credentials: Optional[VectorDatabase] = VectorDatabase(),
+    encoder_provider: Optional[EncoderProvider] = EncoderProvider(settings.VECTOR_DB_ENCODER_NAME),
+    encoder: Optional[BaseEncoder] = None,
     dimensions: Optional[int] = settings.VECTOR_DB_ENCODER_DIMENSIONS,
-    enable_rerank: bool = False,
+    enable_rerank: Optional[bool] = settings.ENABLE_RERANK_BY_DEFAULT,
 ) -> BaseVectorDatabase:
     services = {
         "qdrant": QdrantService,
         # Add other providers here
     }
 
-    service = services.get(credentials.type.value)
+    service = services.get(credentials.type)
     if service is None:
-        raise ValueError(f"Unsupported provider: {credentials.type.value}")
+        raise ValueError(f"Unsupported provider: {credentials.type}")
 
     encoder_config = EncoderConfig.get_encoder_config(encoder_provider)
     if encoder_config is None:
         raise ValueError(f"Unsupported encoder provider: {encoder_provider}")
 
-    encoder_class = encoder_config["class"]
-    if not issubclass(encoder_class, BaseEncoder):
-        raise ValueError(f"Encoder class {encoder_class} is not a subclass of BaseEncoder")
-
-    encoder: BaseEncoder = encoder_class()
+    if encoder is None:
+        encoder_class = encoder_config["class"]
+        if not issubclass(encoder_class, BaseEncoder):
+            raise ValueError(f"Encoder class {encoder_class} is not a subclass of BaseEncoder")
+        encoder: BaseEncoder = encoder_class()
 
     return service(
         index_name=index_name,
@@ -43,4 +44,5 @@ def get_vector_service(
         credentials=dict(credentials.config),
         encoder=encoder,
         enable_rerank=enable_rerank,
+        namespace=namespace,
     )

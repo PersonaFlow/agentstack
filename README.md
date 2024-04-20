@@ -11,31 +11,29 @@
   </a>
 </p>
 
-
 **The PersonaFlow platform aims to provide highly personalized user experiences fueled by Generative AI. With a focus on scalability and efficiency, PersonaFlow offers a suite of tools and APIs to create complex agents and high-performing retrieval augmented generation (RAG) systems driven by _personas_ and with a focus on:**
 
 - Context optimization
   - Intelligent partitioning of ingested data
-  - Personalized decision-making based on multiple data vectors 
+  - Personalized decision-making based on multiple data vectors
   - Dynamically adjusting retrieval and generation parameters based on user information
 - Enterprise feasibility: scalability, cost efficiency, and privacy
 - Agent development, testing, and evaluation via the PersonaFlow administration tool
 - Easy integration of generative AI features into applications via the PersonaFlow client SDKs
 
-This repo is the orchestration server for the PersonaFlow platform. It is a REST API that allows you to create and manage agentic assistants, run the agents against various LLMs, create and save user-specific chat threads, and more. 
+This repo is the orchestration server for the PersonaFlow platform. It is a REST API that allows you to create and manage agentic assistants, run the agents against various LLMs, create and save user-specific chat threads, and more.
 
 Much of the API and business language is modeled after the OpenAI Assistants API and uses LangChain as the primary orchestration framework. The assistants implementation began from an early iteration of OpenGPTs, which was then refactored and expanded with additional infrastructure, agent options, file management, an improved and highly configurable RAG system, and a suite of agent-based features. It will be further expanded with personalization features, additional RAG optimization techniques, and more.
 
  <p align="center" style="color:green"><b><i>Note: This project is in the very early stages of development and testing. Breaking changes should therefore be expected until the first stable release.</i></b></p>
 
-
->Web site and documentation are in the works, but in the meantime you can find the API documentation [on SwaggerHub](https://app.swaggerhub.com/apis-docs/DanOrlando/personaflow/0.1.0).
+> Web site and documentation are in the works, but in the meantime you can find the API documentation [on SwaggerHub](https://app.swaggerhub.com/apis-docs/DanOrlando/personaflow/0.1.0).
 
 # Roadmap
 
-- [X] Assistants API
-- [X] File management
-- [X] Advanced RAG with adaptive chunking and summarization
+- [x] Assistants API
+- [x] File management
+- [x] Advanced RAG with adaptive chunking and summarization
 - [ ] Advanced RAG assistants integration
 - [ ] More agent types (self-reflection, etc.)
 - [ ] Persona generation
@@ -44,8 +42,6 @@ Much of the API and business language is modeled after the OpenAI Assistants API
 - [ ] TypeScript SDK
 - [ ] Python SDK
 - [ ] Admin tool
-
-
 
 # Technology Stack
 
@@ -145,7 +141,7 @@ There are a number of configuration options available for the ingestion process,
     "summarize": true,
     "encoder": {
       "dimensions": 1536,
-      "model_name": "text-embedding-3-small",
+      "encoder_model": "text-embedding-3-small",
       "provider": "openai"
     },
     "unstructured": {
@@ -158,7 +154,7 @@ There are a number of configuration options available for the ingestion process,
       "min_tokens": 30,
       "name": "semantic",
       "prefix_summary": true,
-      "prefix_title": true,
+      "prefix_titles": true,
       "rolling_window_size": 1
     }
   },
@@ -185,7 +181,7 @@ There are a number of configuration options available for the ingestion process,
 
 - `vector_database`: This block is optional but is useful when collections are held across different vector databases. If omitted, these details will be obtained from environment variables.
 - `summarize`: If true, a separate vector store will be created containing summaries of the documents. If the query involves providing a summary, the corresponding summary collection will be queried instead of the main collection.
-- `webhook_url`: This is an optional webhook that will be called when the ingestion has completed. 
+- `webhook_url`: This is an optional webhook that will be called when the ingestion has completed.
 
 ## Querying
 
@@ -204,7 +200,7 @@ Document retrieval can be done directly by calling the `/api/v1/rag/query` endpo
   "index_name": "LLMLingua",
   "encoder": {
     "provider": "cohere",
-    "model_name": "embed-multilingual-light-v3.0",
+    "encoder_model": "embed-multilingual-light-v3.0",
     "dimensions": 384
   },
   "thread_id": "1924572b-042c-4725-b378-7e8c6664dc81",
@@ -219,6 +215,10 @@ Document retrieval can be done directly by calling the `/api/v1/rag/query` endpo
 - `vector_database`: This block is optional but is useful when collections are held across different vector databases. If omitted, these details will be obtained from environment variables.
 - `thread_id`: This is an optional parameter and can be used to tie the query to an existing conversation id for logging purposes.
 - `enable_rerank`: Whether or not to rerank the query results. Currently requires a cohere api key if true (local reranking is not yet implemented).
+
+# Troubleshooting 
+Q. When I try to run `docker-compose up` I get the error: "configs.qdrant_config Additional property content is not allowed"
+A. Proving the inline content in the configs top-level element requires Docker Compose v2.23.1 or above. This functionality is supported starting Docker Engine v25.0.0 and Docker Desktop v4.26.0 onwards.
 
 # Contributing
 
