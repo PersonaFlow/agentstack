@@ -1,29 +1,28 @@
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, AsyncEngine
+import pickle
+from typing import Optional, Any, AsyncIterator
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
+
 from sqlalchemy.future import select
-import pickle
-from typing import Optional
-from langchain.schema.runnable.utils import ConfigurableFieldSpec
 from langchain_core.runnables import RunnableConfig
-from langgraph.checkpoint.base import BaseCheckpointSaver, Checkpoint
-from langgraph.checkpoint import CheckpointAt
+from langgraph.checkpoint.base import BaseCheckpointSaver, Checkpoint, CheckpointAt, CheckpointTuple, SerializerProtocol
 from app.models.checkpoint import PostgresCheckpoint
 from pydantic import Field
-from typing import Any
+from langchain.schema.runnable.utils import ConfigurableFieldSpec
 from app.core.configuration import get_settings
-
-
 Base = declarative_base()
 
 class PgCheckpointSaver(BaseCheckpointSaver):
-    engine: AsyncEngine = Field(...)
+    engine: Any = Field(...)
     async_session_factory: Any = Field(...)
+    serde: SerializerProtocol = Field(default_factory=pickle)
 
-    def __init__(self, engine: AsyncEngine, async_session_factory: Any, at: CheckpointAt = CheckpointAt.END_OF_STEP):
-        super().__init__(at=at)
+    def __init__(self, engine: Any, async_session_factory: Any, at: CheckpointAt = CheckpointAt.END_OF_STEP, serde: Optional[SerializerProtocol] = None):
         self.engine = engine
         self.async_session_factory = async_session_factory
+        self.serde = serde or self.serde
+        super().__init__(at=at, serde=self.serde)
 
     class Config:
         arbitrary_types_allowed = True
@@ -36,7 +35,7 @@ class PgCheckpointSaver(BaseCheckpointSaver):
                 annotation=str,
                 name="User ID",
                 description=None,
-                default=None,
+                default="",
                 is_shared=True,
             ),
             ConfigurableFieldSpec(
@@ -52,7 +51,8 @@ class PgCheckpointSaver(BaseCheckpointSaver):
     @classmethod
     async def from_conn_string(cls, db_url: str):
         async_engine = create_async_engine(db_url, echo=True)
-        return cls(async_engine)
+        async_session_factory = sessionmaker(async_engine, expire_on_commit=False, class_=AsyncSession)
+        return cls(async_engine, async_session_factory)
 
     async def setup(self) -> None:
         async with self.engine.begin() as conn:
@@ -69,16 +69,54 @@ class PgCheckpointSaver(BaseCheckpointSaver):
         async with self.async_session_factory() as session:
             result = await session.execute(
                 select(PostgresCheckpoint).filter_by(
+                    user_id=config["configurable"]["user_id"],
                     thread_id=config["configurable"]["thread_id"]
-                )
+                ))
+
+            record = result.scalars().first()
+            if record:
+                return self.serde.loads(record.checkpoint)
+
+    async def aget_tuple(self, config: RunnableConfig) -> Optional[CheckpointTuple]:
+        await self.setup()
+        async with self.async_session_factory() as session:
+            result = await session.execute(
+                select(PostgresCheckpoint).filter_by(
+                    user_id=config["configurable"]["user_id"],
+                    thread_id=config["configurable"]["thread_id"]
+                ).order_by(PostgresCheckpoint.updated_at.desc())
             )
             record = result.scalars().first()
             if record:
-                return pickle.loads(record.checkpoint)
+                return CheckpointTuple(
+                    config=config,
+                    checkpoint=self.serde.loads(record.checkpoint)
+                )
 
-    async def aput(self, config: RunnableConfig, checkpoint: Checkpoint) -> None:
+    async def alist(self, config: RunnableConfig) -> AsyncIterator[CheckpointTuple]:
         await self.setup()
         async with self.async_session_factory() as session:
+            result = await session.execute(
+                select(PostgresCheckpoint).filter_by(
+                    user_id=config["configurable"]["user_id"],
+                    thread_id=config["configurable"]["thread_id"]
+                ).order_by(PostgresCheckpoint.updated_at.desc())
+            )
+            records = result.scalars().all()
+            for record in records:
+                yield CheckpointTuple(
+                    config=config,
+                    checkpoint=self.serde.loads(record.checkpoint)
+                )
+
+    async def aput(self, config: RunnableConfig, checkpoint: Checkpoint) -> None:
+        # TODO: At some point in the pipeline this gets called with None config
+        # Maybe langgraph bug, but need to make sure all expected checkpoints are being saved
+        if not config:
+            return
+        await self.setup()
+        async with self.async_session_factory() as session:
+            serialized_checkpoint = self.serde.dumps(checkpoint)
             result = await session.execute(
                 select(PostgresCheckpoint).filter_by(
                     user_id=config["configurable"]["user_id"],
@@ -86,7 +124,6 @@ class PgCheckpointSaver(BaseCheckpointSaver):
                 )
             )
             record = result.scalars().first()
-            serialized_checkpoint = pickle.dumps(checkpoint)
             if record:
                 record.checkpoint = serialized_checkpoint
             else:
@@ -98,9 +135,8 @@ class PgCheckpointSaver(BaseCheckpointSaver):
                 session.add(new_record)
             await session.commit()
 
-
-def get_pg_checkpoint_saver(at: CheckpointAt = CheckpointAt.END_OF_STEP) -> PgCheckpointSaver:
+def get_pg_checkpoint_saver(serde: SerializerProtocol = pickle, at: CheckpointAt = CheckpointAt.END_OF_STEP) -> PgCheckpointSaver:
     settings = get_settings()
     engine = create_async_engine(settings.INTERNAL_DATABASE_URI)
     async_session_factory = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
-    return PgCheckpointSaver(engine, async_session_factory, at)
+    return PgCheckpointSaver(engine=engine, async_session_factory=async_session_factory, serde=serde, at=at)

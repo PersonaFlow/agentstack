@@ -32,15 +32,6 @@ class AssistantRepository(BaseRepository):
             assistant = await self.create(model=Assistant, values=data)
             await self.postgresql_session.commit()
             return assistant
-        except IntegrityError as e:
-            await self.postgresql_session.rollback()
-            # check for unique constraint violation specifically
-            if 'unique constraint "assistants_name_unique"' in str(e.orig):
-                await logger.exception(f"Unique constraint violation while creating assistant: An assistant with the same name already exists.", exc_info=True)
-                raise UniqueConstraintError("An assistant with the same name already exists.") from e
-            else:
-                await logger.exception(f"Failed to create assistant due to a database error.", exc_info=True)
-                raise
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
             await logger.exception(f"Failed to create assistant due to a database error.", exc_info=True)

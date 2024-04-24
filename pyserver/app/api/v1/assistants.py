@@ -40,8 +40,6 @@ async def create_assistant(
     try:
         assistant = await assistant_repository.create_assistant(data=data.model_dump())
         return assistant
-    except UniqueConstraintError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.message)
     except Exception as e:
         await logger.exception(f"Error creating assistant: {str(e)}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="An error occurred while creating the assistant.")
@@ -207,8 +205,6 @@ async def retrieve_assistant_files(
             after=after
         )
         return files
-    except HTTPException as e:
-        raise e
     except Exception as e:
         await logger.exception(f"Error retrieving files for assistant: {str(e)}")
         raise HTTPException(status_code=500, detail="An error occurred while retrieving the files for the assistant.")
