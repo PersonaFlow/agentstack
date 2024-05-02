@@ -95,25 +95,28 @@ def get_retrieval_executor(
                     )
                 ]
             }
-        else:
-            search_query = await get_search_query.ainvoke(messages)
-            return {
-                "messages": [
-                    AIMessage(
-                        id=search_query.id,
-                        content="",
-                        tool_calls=[
-                            {
-                                "id": uuid4().hex,
-                                "name": "retrieval",
-                                "args": {"query": search_query.content},
-                            }
-                        ],
-                    )
-                ]
-            }
+
+        search_query = await get_search_query.ainvoke(messages)
+        return {
+            "messages": [
+                AIMessage(
+                    id=search_query.id,
+                    content="",
+                    tool_calls=[
+                        {
+                            "id": uuid4().hex,
+                            "name": "retrieval",
+                            "args": {"query": search_query.content},
+                        }
+                    ],
+                )
+            ]
+        }
 
     async def retrieve(state: AgentState):
+        if not messages:
+            return {"messages": [], "msg_count": 0}
+        
         messages = state["messages"]
         params = messages[-1].tool_calls[0]
         query = params["args"]["query"]

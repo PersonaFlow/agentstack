@@ -40,40 +40,35 @@ def get_tools_agent_executor(
 
         return [SystemMessage(content=system_message)] + msgs
 
-    if tools:
-        llm_with_tools = llm.bind_tools(tools)
-    else:
-        llm_with_tools = llm
+    llm_with_tools = llm.bind_tools(tools) if tools else llm
+    
     agent = _get_messages | llm_with_tools
     tool_executor = ToolExecutor(tools)
 
-    # Define the function that determines whether to continue or not
     def should_continue(messages):
         last_message = messages[-1]
         # If there is no function call, then we finish
         if not last_message.tool_calls:
             return "end"
-        # Otherwise if there is, we continue
-        else:
-            return "continue"
+        # Otherwise we continue
+        return "continue"
 
-    # Define the function to execute tools
     async def call_tool(messages):
         actions: list[ToolInvocation] = []
         # Based on the continue condition
         # we know the last message involves a function call
         last_message = cast(AIMessage, messages[-1])
         for tool_call in last_message.tool_calls:
-            # We construct a ToolInvocation from the function_call
+            # construct a ToolInvocation from the function_call
             actions.append(
                 ToolInvocation(
                     tool=tool_call["name"],
                     tool_input=tool_call["args"],
                 )
             )
-        # We call the tool_executor and get back a response
+        # call the tool_executor and get back a response
         responses = await tool_executor.abatch(actions)
-        # We use the response to create a ToolMessage
+        # use the response to create a ToolMessage
         tool_messages = [
             LiberalToolMessage(
                 tool_call_id=tool_call["id"],
@@ -86,27 +81,14 @@ def get_tools_agent_executor(
 
     workflow = MessageGraph()
 
-    # Define the two nodes we will cycle between
     workflow.add_node("agent", agent)
     workflow.add_node("action", call_tool)
 
-    # Set the entrypoint as `agent`
-    # This means that this node is the first one called
     workflow.set_entry_point("agent")
 
-    # We now add a conditional edge
     workflow.add_conditional_edges(
-        # First, we define the start node. We use `agent`.
-        # This means these are the edges taken after the `agent` node is called.
         "agent",
-        # Next, we pass in the function that will determine which node is called next.
         should_continue,
-        # Finally we pass in a mapping.
-        # The keys are strings, and the values are other nodes.
-        # END is a special node marking that the graph should finish.
-        # What will happen is we will call `should_continue`, and then the output of that
-        # will be matched against the keys in this mapping.
-        # Based on which one it matches, that node will then be called.
         {
             # If `tools`, then we call the tool node.
             "continue": "action",
@@ -115,13 +97,10 @@ def get_tools_agent_executor(
         },
     )
 
-    # We now add a normal edge from `tools` to `agent`.
-    # This means that after `tools` is called, `agent` node is called next.
+    # add a normal edge from `tools` to `agent`.
+    # after `tools` is called, `agent` node is called next.
     workflow.add_edge("action", "agent")
 
-    # Finally, we compile it!
-    # This compiles it into a LangChain Runnable,
-    # meaning you can use it as you would any other runnable
     return workflow.compile(
         checkpointer=checkpoint,
         interrupt_before=["action"] if interrupt_before_action else None,
