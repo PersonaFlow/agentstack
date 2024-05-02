@@ -101,7 +101,7 @@ async def query(
         raise HTTPException(status_code=500, detail=str(e))
 
 # Temp -> Used for testing the custom langchain retriever
-@router.post("/query-lc-retriever")
+@router.post("/query-lc-retriever", tags=[DEFAULT_TAG])
 async def query_lc_retriever(
     api_key: ApiKey,
     payload: QueryRequestPayload

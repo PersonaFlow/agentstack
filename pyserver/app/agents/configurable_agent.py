@@ -1,118 +1,173 @@
+import pickle
 from enum import Enum
-from typing import Any, Mapping, Optional, Sequence
+from typing import Any, Dict, Mapping, Optional, Sequence, Union
+
 from langchain_core.messages import AnyMessage
 from langchain_core.runnables import (
     ConfigurableField,
     RunnableBinding,
 )
-from langgraph.checkpoint import BaseCheckpointSaver
+from langgraph.graph.message import Messages
+from langgraph.pregel import Pregel
+
+from app.agents.tools_agent import get_tools_agent_executor
+from app.agents.xml_agent import get_xml_agent_executor
+from app.agents.chatbot import get_chatbot_executor
 from app.core.pg_checkpoint_saver import get_pg_checkpoint_saver
-from app.agents import get_openai_agent_executor, get_chatbot_executor
-from app.llms import get_openai_llm
+from app.core.configuration import get_settings
+from app.llms import (
+    get_anthropic_llm,
+    get_google_llm,
+    get_mixtral_fireworks,
+    get_ollama_llm,
+    get_openai_llm,
+)
 from app.agents.retrieval import get_retrieval_executor
 from app.agents.tools import (
     RETRIEVAL_DESCRIPTION,
     TOOLS,
+    ActionServer,
+    Arxiv,
     AvailableTools,
+    Connery,
+    DallE,
+    DDGSearch,
+    PubMed,
+    Retrieval,
+    Tavily,
+    TavilyAnswer,
+    Wikipedia,
+    YouSearch,
+    SecFilings,
+    PressReleases,
     get_retrieval_tool,
     get_retriever,
 )
-from app.core.configuration import Settings
+
+Tool = Union[
+    ActionServer,
+    Connery,
+    DDGSearch,
+    Arxiv,
+    YouSearch,
+    PubMed,
+    Wikipedia,
+    Tavily,
+    TavilyAnswer,
+    Retrieval,
+    DallE,
+    SecFilings,
+    PressReleases,
+]
+
 
 class AgentType(str, Enum):
     GPT_35_TURBO = "GPT 3.5 Turbo"
-    GPT_4 = "GPT 4"
+    GPT_4 = "GPT 4 Turbo"
     AZURE_OPENAI = "GPT 4 (Azure OpenAI)"
     CLAUDE2 = "Claude 2"
     BEDROCK_CLAUDE2 = "Claude 2 (Amazon Bedrock)"
     GEMINI = "GEMINI"
+    OLLAMA = "Ollama"
 
 
 DEFAULT_SYSTEM_MESSAGE = "You are a helpful assistant."
+
+CHECKPOINTER = get_pg_checkpoint_saver()
 
 
 def get_agent_executor(
     tools: list,
     agent: AgentType,
     system_message: str,
-    interrupt_before_action: bool = False,
-    checkpointer: Optional[BaseCheckpointSaver] = None,
+    interrupt_before_action: bool,
 ):
-    if not checkpointer:
-        checkpointer = get_pg_checkpoint_saver()
     if agent == AgentType.GPT_35_TURBO:
         llm = get_openai_llm()
-        return get_openai_agent_executor(tools, llm, system_message, interrupt_before_action, checkpointer)
+        return get_tools_agent_executor(
+            tools, llm, system_message, interrupt_before_action, CHECKPOINTER
+        )
     elif agent == AgentType.GPT_4:
         llm = get_openai_llm(gpt_4=True)
-        return get_openai_agent_executor(tools, llm, system_message, interrupt_before_action, checkpointer)
+        return get_tools_agent_executor(
+            tools, llm, system_message, interrupt_before_action, CHECKPOINTER
+        )
     elif agent == AgentType.AZURE_OPENAI:
         llm = get_openai_llm(azure=True)
-        return get_openai_agent_executor(tools, llm, system_message, interrupt_before_action, checkpointer)
-    # elif agent == AgentType.CLAUDE2:
-    #     llm = get_anthropic_llm()
-    #     return get_xml_agent_executor(
-    #         tools, llm, system_message, interrupt_before_action, CHECKPOINTER
-    #     )
-    # elif agent == AgentType.BEDROCK_CLAUDE2:
-    #     llm = get_anthropic_llm(bedrock=True)
-    #     return get_xml_agent_executor(
-    #         tools, llm, system_message, interrupt_before_action, CHECKPOINTER
-    #     )
-    # elif agent == AgentType.GEMINI:
-    #     llm = get_google_llm()
-    #     return get_google_agent_executor(
-    #         tools, llm, system_message, interrupt_before_action, CHECKPOINTER
-    #     )
+        return get_tools_agent_executor(
+            tools, llm, system_message, interrupt_before_action, CHECKPOINTER
+        )
+    elif agent == AgentType.CLAUDE2:
+        llm = get_anthropic_llm()
+        return get_tools_agent_executor(
+            tools, llm, system_message, interrupt_before_action, CHECKPOINTER
+        )
+    elif agent == AgentType.BEDROCK_CLAUDE2:
+        llm = get_anthropic_llm(bedrock=True)
+        return get_xml_agent_executor(
+            tools, llm, system_message, interrupt_before_action, CHECKPOINTER
+        )
+    elif agent == AgentType.GEMINI:
+        llm = get_google_llm()
+        return get_tools_agent_executor(
+            tools, llm, system_message, interrupt_before_action, CHECKPOINTER
+        )
+    elif agent == AgentType.OLLAMA:
+        llm = get_ollama_llm()
+        return get_tools_agent_executor(
+            tools, llm, system_message, interrupt_before_action, CHECKPOINTER
+        )
+
     else:
         raise ValueError("Unexpected agent type")
 
+
 class ConfigurableAgent(RunnableBinding):
-    tools: Sequence[str]
+    tools: Sequence[Tool]
     agent: AgentType
     system_message: str = DEFAULT_SYSTEM_MESSAGE
     retrieval_description: str = RETRIEVAL_DESCRIPTION
-    assistant_id: Optional[str] = None
     interrupt_before_action: bool = False
+    assistant_id: Optional[str] = None
     thread_id: Optional[str] = None
     user_id: Optional[str] = None
 
     def __init__(
         self,
         *,
-        tools: Sequence[str],
+        tools: Sequence[Tool],
         agent: AgentType = AgentType.GPT_35_TURBO,
         system_message: str = DEFAULT_SYSTEM_MESSAGE,
         assistant_id: Optional[str] = None,
         thread_id: Optional[str] = None,
-        checkpointer: Optional[BaseCheckpointSaver] = None,
         retrieval_description: str = RETRIEVAL_DESCRIPTION,
         interrupt_before_action: bool = False,
         kwargs: Optional[Mapping[str, Any]] = None,
         config: Optional[Mapping[str, Any]] = None,
         **others: Any,
     ) -> None:
-        settings = Settings()
-        if not checkpointer:
-            checkpointer = get_pg_checkpoint_saver()
-
+        settings = get_settings()
         others.pop("bound", None)
         _tools = []
         for _tool in tools:
-            if _tool == AvailableTools.RETRIEVAL:
+            if _tool["type"] == AvailableTools.RETRIEVAL:
                 if assistant_id is None or thread_id is None:
                     raise ValueError(
-                        "assistant_id must be provided if Retrieval tool is used"
+                        "Both assistant_id and thread_id must be provided if Retrieval tool is used"
                     )
-                _tools.append(get_retrieval_tool(assistant_id, thread_id, retrieval_description))
+                _tools.append(
+                    get_retrieval_tool(assistant_id, thread_id, retrieval_description)
+                )
             else:
-                _returned_tools = TOOLS[_tool]()
+                tool_config = _tool.get("config", {})
+                _returned_tools = TOOLS[_tool["type"]](**tool_config)
                 if isinstance(_returned_tools, list):
                     _tools.extend(_returned_tools)
                 else:
                     _tools.append(_returned_tools)
-            # ***no checkpointer?
-        _agent = get_agent_executor(_tools, agent, system_message, interrupt_before_action, checkpointer)
+        _agent = get_agent_executor(
+            _tools, agent, system_message, interrupt_before_action
+        )
         agent_executor = _agent.with_config({"recursion_limit": settings.LANGGRAPH_RECURSION_LIMIT})
         super().__init__(
             tools=tools,
@@ -127,17 +182,18 @@ class ConfigurableAgent(RunnableBinding):
 
 class LLMType(str, Enum):
     GPT_35_TURBO = "GPT 3.5 Turbo"
-    GPT_4 = "GPT 4"
+    GPT_4 = "GPT 4 Turbo"
     AZURE_OPENAI = "GPT 4 (Azure OpenAI)"
     CLAUDE2 = "Claude 2"
     BEDROCK_CLAUDE2 = "Claude 2 (Amazon Bedrock)"
     GEMINI = "GEMINI"
     MIXTRAL = "Mixtral"
+    OLLAMA = "Ollama"
+
 
 def get_chatbot(
     llm_type: LLMType,
     system_message: str,
-    checkpointer: Optional[BaseCheckpointSaver] = None,
 ):
     if llm_type == LLMType.GPT_35_TURBO:
         llm = get_openai_llm()
@@ -145,23 +201,26 @@ def get_chatbot(
         llm = get_openai_llm(gpt_4=True)
     elif llm_type == LLMType.AZURE_OPENAI:
         llm = get_openai_llm(azure=True)
-    # elif llm_type == LLMType.CLAUDE2:
-    #     llm = get_anthropic_llm()
-    # elif llm_type == LLMType.BEDROCK_CLAUDE2:
-    #     llm = get_anthropic_llm(bedrock=True)
-    # elif llm_type == LLMType.GEMINI:
-    #     llm = get_google_llm()
-    # elif llm_type == LLMType.MIXTRAL:
-    #     llm = get_mixtral_fireworks()
+    elif llm_type == LLMType.CLAUDE2:
+        llm = get_anthropic_llm()
+    elif llm_type == LLMType.BEDROCK_CLAUDE2:
+        llm = get_anthropic_llm(bedrock=True)
+    elif llm_type == LLMType.GEMINI:
+        llm = get_google_llm()
+    elif llm_type == LLMType.MIXTRAL:
+        llm = get_mixtral_fireworks()
+    elif llm_type == LLMType.OLLAMA:
+        llm = get_ollama_llm()
     else:
         raise ValueError("Unexpected llm type")
-    return get_chatbot_executor(llm, system_message, checkpointer)
+    return get_chatbot_executor(llm, system_message, CHECKPOINTER)
 
 
 class ConfigurableChatBot(RunnableBinding):
     llm: LLMType
     system_message: str = DEFAULT_SYSTEM_MESSAGE
     user_id: Optional[str] = None
+
     def __init__(
         self,
         *,
@@ -169,16 +228,11 @@ class ConfigurableChatBot(RunnableBinding):
         system_message: str = DEFAULT_SYSTEM_MESSAGE,
         kwargs: Optional[Mapping[str, Any]] = None,
         config: Optional[Mapping[str, Any]] = None,
-        checkpointer: Optional[BaseCheckpointSaver] = None,
         **others: Any,
     ) -> None:
         others.pop("bound", None)
-        chatbot = get_chatbot(
-                llm,
-                system_message,
-                checkpointer if checkpointer else get_pg_checkpoint_saver()
-            )
 
+        chatbot = get_chatbot(llm, system_message)
         super().__init__(
             llm=llm,
             system_message=system_message,
@@ -186,6 +240,20 @@ class ConfigurableChatBot(RunnableBinding):
             kwargs=kwargs or {},
             config=config or {},
         )
+
+
+chatbot = (
+    ConfigurableChatBot(llm=LLMType.GPT_35_TURBO, checkpoint=CHECKPOINTER)
+    .configurable_fields(
+        llm=ConfigurableField(id="llm_type", name="LLM Type"),
+        system_message=ConfigurableField(id="system_message", name="Instructions"),
+    )
+    .with_types(
+        input_type=Messages,
+        output_type=Sequence[AnyMessage],
+    )
+)
+
 
 class ConfigurableRetrieval(RunnableBinding):
     llm_type: LLMType
@@ -203,7 +271,6 @@ class ConfigurableRetrieval(RunnableBinding):
         thread_id: Optional[str] = None,
         kwargs: Optional[Mapping[str, Any]] = None,
         config: Optional[Mapping[str, Any]] = None,
-        checkpointer: Optional[BaseCheckpointSaver] = None,
         **others: Any,
     ) -> None:
         others.pop("bound", None)
@@ -214,22 +281,19 @@ class ConfigurableRetrieval(RunnableBinding):
             llm = get_openai_llm(gpt_4=True)
         elif llm_type == LLMType.AZURE_OPENAI:
             llm = get_openai_llm(azure=True)
-        # elif llm_type == LLMType.CLAUDE2:
-        #     llm = get_anthropic_llm()
-        # elif llm_type == LLMType.BEDROCK_CLAUDE2:
-        #     llm = get_anthropic_llm(bedrock=True)
-        # elif llm_type == LLMType.GEMINI:
-        #     llm = get_google_llm()
-        # elif llm_type == LLMType.MIXTRAL:
-        #     llm = get_mixtral_fireworks()
+        elif llm_type == LLMType.CLAUDE2:
+            llm = get_anthropic_llm()
+        elif llm_type == LLMType.BEDROCK_CLAUDE2:
+            llm = get_anthropic_llm(bedrock=True)
+        elif llm_type == LLMType.GEMINI:
+            llm = get_google_llm()
+        elif llm_type == LLMType.MIXTRAL:
+            llm = get_mixtral_fireworks()
+        elif llm_type == LLMType.OLLAMA:
+            llm = get_ollama_llm()
         else:
             raise ValueError("Unexpected llm type")
-        chatbot = get_retrieval_executor(
-                llm,
-                system_message,
-                retriever,
-                checkpointer if checkpointer else get_pg_checkpoint_saver()
-            )
+        chatbot = get_retrieval_executor(llm, retriever, system_message, CHECKPOINTER)
         super().__init__(
             llm_type=llm_type,
             system_message=system_message,
@@ -238,17 +302,9 @@ class ConfigurableRetrieval(RunnableBinding):
             config=config or {},
         )
 
-chatbot = (
-    ConfigurableChatBot(llm=LLMType.GPT_35_TURBO)
-    .configurable_fields(
-        llm=ConfigurableField(id="llm_type", name="LLM Type"),
-        system_message=ConfigurableField(id="system_message", name="Instructions"),
-    )
-    .with_types(input_type=Sequence[AnyMessage], output_type=Sequence[AnyMessage])
-)
 
 chat_retrieval = (
-    ConfigurableRetrieval(llm_type=LLMType.GPT_35_TURBO)
+    ConfigurableRetrieval(llm_type=LLMType.GPT_35_TURBO, checkpoint=CHECKPOINTER)
     .configurable_fields(
         llm_type=ConfigurableField(id="llm_type", name="LLM Type"),
         system_message=ConfigurableField(id="system_message", name="Instructions"),
@@ -257,11 +313,14 @@ chat_retrieval = (
         ),
         thread_id=ConfigurableField(id="thread_id", name="Thread ID", is_shared=True),
     )
-    .with_types(input_type=Sequence[AnyMessage], output_type=Sequence[AnyMessage])
+    .with_types(
+        input_type=Dict[str, Any],
+        output_type=Dict[str, Any],
+    )
 )
 
 
-agent = (
+agent: Pregel = (
     ConfigurableAgent(
         agent=AgentType.GPT_35_TURBO,
         tools=[],
@@ -294,7 +353,10 @@ agent = (
         chatbot=chatbot,
         chat_retrieval=chat_retrieval,
     )
-    .with_types(input_type=Sequence[AnyMessage], output_type=Sequence[AnyMessage])
+    .with_types(
+        input_type=Messages,
+        output_type=Sequence[AnyMessage],
+    )
 )
 
 if __name__ == "__main__":
@@ -305,7 +367,7 @@ if __name__ == "__main__":
     async def run():
         async for m in agent.astream_events(
             HumanMessage(content="whats your name"),
-            config={"configurable": {"thread_id": "test1"}},
+            config={"configurable": {"user_id": "2", "thread_id": "test1"}},
             version="v1",
         ):
             print(m)
