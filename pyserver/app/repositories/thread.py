@@ -1,27 +1,3 @@
-"""
-repositories/thread.py
-----------
-
-This module provides a repository class, `ThreadRepository`, specifically tailored for operations related to the Thread model. It extends the base repository, leveraging its generic methods while also adding more domain-specific methods related to threads.
-
-Classes:
--------
-- `ThreadRepository`: A repository class tailored for the Thread model.
-    - `create_thread`: Creates a new thread in the database.
-    - `_get_retrieve_query`: A private method to construct the default query for thread retrieval.
-    - `retrieve_threads`: Fetches all threads.
-    - `retrieve_thread`: Fetches a single thread by ID.
-    - `retrieve_by_thread_id`: Retrieves a thread based on its thread_id.
-    - `update_thread`: Updates an existing thread.
-    - `delete_thread`: Removes a thread from the database.
-
-Key Functionalities:
--------------------
-- **Async Operations**: All methods are asynchronous for efficient, non-blocking operations.
-- **Domain-Specific Methods**: Methods like `retrieve_by_thread_id` are tailored specifically for thread-related operations.
-- **Exception handling and logging**: All methods are wrapped in try-except blocks to handle exceptions and log errors, ensuring reliability and ease of debugging.
-
-"""
 from sqlalchemy import select
 from app.core import logger
 from app.models.thread import Thread
@@ -33,9 +9,9 @@ from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.datastore import get_postgresql_session_provider
 from typing import Optional, Any
+from langchain_core.messages import message_chunk_to_message
 
 from app.agents import AgentType, get_agent_executor
-from app.utils import map_chunk_to_msg
 
 from langgraph.channels.base import ChannelsManager
 from langgraph.checkpoint.base import empty_checkpoint
@@ -148,7 +124,7 @@ class ThreadRepository(BaseRepository):
         with ChannelsManager(app.channels, checkpoint) as channels:
             return {
                 "messages": [
-                    map_chunk_to_msg(chunk = msg, serialize = True) for msg in channels[MESSAGES_CHANNEL_NAME].get()
+                    message_chunk_to_message(msg) for msg in channels[MESSAGES_CHANNEL_NAME].get()
                 ],
                 "resumeable": bool(_prepare_next_tasks(checkpoint, app.nodes, channels)),
             }

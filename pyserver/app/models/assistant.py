@@ -11,7 +11,6 @@ class Assistant(Base):
     __tablename__ = 'assistants'
     __table_args__ = {"schema": settings.INTERNAL_DATABASE_SCHEMA}
 
-
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         primary_key=True,
@@ -27,8 +26,6 @@ class Assistant(Base):
     name: Mapped[str] = mapped_column(
         String(),
         nullable=False,
-        unique=True, # Undecided on whether or not this should be unique. Idea was to be able to query for the name instead of id.
-        index=True,
         comment="The name of the assistant."
     )
     config: Mapped[JSONB] = mapped_column(

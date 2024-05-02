@@ -79,7 +79,7 @@ class Settings(BaseSettings):
     LANGSMITH_PROJECT_NAME: str = os.getenv("LANGSMITH_PROJECT_NAME", "project")
 
     # Number of iterations assistant is allowed to run to accomplish task or improve results or response (Required)
-    LANGGRAPH_RECURSION_LIMIT: int = os.getenv("LANGGRAPH_RECURSION_LIMIT", 5)
+    LANGGRAPH_RECURSION_LIMIT: int = os.getenv("LANGGRAPH_RECURSION_LIMIT", 25)
 
     EXCLUDE_REQUEST_LOG_ENDPOINTS: list[str] = ["/docs"]
 
@@ -102,13 +102,30 @@ class Settings(BaseSettings):
             f"@{self.INTERNAL_DATABASE_HOST}:{self.INTERNAL_DATABASE_PORT}/{self.INTERNAL_DATABASE_DATABASE}"
         )
 
-    #  Azure OpenAI deployment details (Optional)
+    #  LLM Configurations
+    OPENAI_PROXY_URL: Optional[str] = os.getenv("OPENAI_PROXY_URL", None)
+    GPT_4_MODEL_NAME: Optional[str] = os.getenv("GPT_4_MODEL_NAME", "gpt-4-1106-preview")
+    GPT_35_MODEL_NAME: Optional[str] = os.getenv("GPT_35_MODEL_NAME", "gpt-3.5-turbo-1106")
+
     AZURE_OPENAI_DEPLOYMENT_NAME: Optional[str] = os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME", None)
     AZURE_OPENAI_API_BASE: Optional[str] = os.getenv("AZURE_OPENAI_API_BASE", None)
     AZURE_OPENAI_API_KEY: Optional[str] = os.getenv("AZURE_OPENAI_API_KEY", None)
     AZURE_OPENAI_API_VERSION: Optional[str] = os.getenv("AZURE_OPENAI_API_VERSION", None)
 
-    # **** All variables below can be overriden by the APIs ****
+    ANTHROPIC_MODEL_NAME: Optional[str] = os.getenv("ANTHROPIC_MODEL_NAME", "claude-3-haiku-20240307")
+
+    AWS_BEDROCK_REGION: Optional[str] = os.getenv("AWS_BEDROCK_REGION", "us-west-2")
+    AWS_ACCESS_KEY_ID: Optional[str] = os.getenv("AWS_ACCESS_KEY_ID", None)
+    AWS_SECRET_ACCESS_KEY: Optional[str] = os.getenv("AWS_SECRET_ACCESS_KEY", None)
+    AWS_BEDROCK_CHAT_MODEL_ID: Optional[str] = os.getenv("AWS_BEDROCK_CHAT_MODEL_ID", "anthropic.claude-v2")
+
+    GOOGLE_VERTEX_MODEL: Optional[str] = os.getenv("GOOGLE_VERTEX_MODEL", "gemini-pro")
+
+    MIXTRAL_FIREWORKS_MODEL_NAME: Optional[str] = os.getenv("MIXTRAL_FIREWORKS_MODEL_NAME", "accounts/fireworks/models/mixtral-8x7b-instruct")
+
+    OLLAMA_MODEL: Optional[str] = os.getenv("OLLAMA_MODEL", "llama3")
+    OLLAMA_BASE_URL: Optional[str] = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+    # **** All variables below can be overriden by API parameters ****
 
     # Vector DB environment variables
     VECTOR_DB_API_KEY: str = os.getenv("VECTOR_DB_API_KEY", "")

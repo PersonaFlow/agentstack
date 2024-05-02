@@ -12,9 +12,13 @@ class BotType(str, Enum):
 
 
 class AgentType(str, Enum):
-    gpt_3_5_turbo = "GPT 3.5 Turbo"
-    gpt_4 = "GPT 4"
-    gpt_4_azure_openai = "GPT 4 (Azure OpenAI)"
+    GPT_35_TURBO = "GPT 3.5 Turbo"
+    GPT_4 = "GPT 4 Turbo"
+    AZURE_OPENAI = "GPT 4 (Azure OpenAI)"
+    CLAUDE2 = "Claude 2"
+    BEDROCK_CLAUDE2 = "Claude 2 (Amazon Bedrock)"
+    GEMINI = "GEMINI"
+    OLLAMA = "Ollama"
 
 
 class Tools(str, Enum):
@@ -28,17 +32,18 @@ class Tools(str, Enum):
 
 
 class LLMType(str, Enum):
-    gpt_3_5_turbo = "GPT 3.5 Turbo"
-    gpt_4 = "GPT 4"
-    gpt_4_azure_openai = "GPT 4 (Azure OpenAI)"
-    # CLAUDE2 = "Claude 2"
-    # BEDROCK_CLAUDE2 = "Claude 2 (Amazon Bedrock)"
-    # GEMINI = "GEMINI"
-    # MIXTRAL = "Mixtral"
+    GPT_35_TURBO = "GPT 3.5 Turbo"
+    GPT_4 = "GPT 4"
+    AZURE_OPENAI = "GPT 4 (Azure OpenAI)"
+    CLAUDE2 = "Claude 2"
+    BEDROCK_CLAUDE2 = "Claude 2 (Amazon Bedrock)"
+    GEMINI = "GEMINI"
+    MIXTRAL = "Mixtral"
+    OLLAMA = "Ollama"
 
 class Configurable(BaseModel):
     type: BotType = Field(default="agent", title="Bot Type", description="The type of bot.")
-    agent_type: Optional[AgentType] = Field(default="GPT 3.5 Turbo", title="Agent Type", description="The type of agent, applicable if the bot type is 'agent'.")
+    agent_type: AgentType = Field(default="GPT 3.5 Turbo", title="Agent Type", description="The type of agent, applicable if the bot type is 'agent'.")
     interrupt_before_action: Optional[bool] = Field(default=False, title="Tool Confirmation", description="If set to True, you'll be prompted to continue before each tool is executed. If False, tools will be executed automatically by the agent.")
     retrieval_description: Optional[str] = Field(default="Can be used to look up information that was uploaded for this assistant.", title="Retrieval Description", description="Tool description providing instructions to the LLM for it's use.")
     system_message: Optional[str] = Field(default="You are a helpful assistant.", title="Instructions", description="Instructions for the assistant.")

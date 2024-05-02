@@ -103,6 +103,14 @@ def init_structlogger(settings: Settings):
         cache_logger_on_first_use=True,
     )
 
+    # Use this configuration instead when refactoring the logs to remove async requirement
+    # structlog.configure(
+    #     processors=shared_processors
+    #     + [structlog.stdlib.ProcessorFormatter.wrap_for_formatter],
+    #     logger_factory=structlog.stdlib.LoggerFactory(),
+    #     cache_logger_on_first_use=True,
+    # )
+
     log_renderer: structlog.types.Processor
 
     if settings.ENVIRONMENT != EnvironmentEnum.LOCAL:

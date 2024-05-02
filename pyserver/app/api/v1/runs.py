@@ -1,10 +1,10 @@
-import json
 from typing import Optional
 from pydantic import BaseModel
 from operator import itemgetter
 import structlog
+from langchain.pydantic_v1 import ValidationError
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Request, Depends
+from fastapi import APIRouter, BackgroundTasks, Depends
 from fastapi.exceptions import RequestValidationError
 
 from langchain_core.runnables import RunnableConfig
@@ -18,7 +18,7 @@ from app.repositories import get_assistant_repository, AssistantRepository, Thre
 from app.api.annotations import ApiKey
 from app.schema import TitleRequest, Thread, FeedbackCreateRequest
 from app.agents import agent
-from app.utils import astream_messages, to_sse
+from app.utils.stream import astream_state, to_sse
 from app.repositories import ThreadRepository
 from sse_starlette import EventSourceResponse
 from app.core.configuration import get_settings
@@ -33,63 +33,66 @@ if settings.ENABLE_LANGSMITH_TRACING:
 DEFAULT_TAG = "Runs"
 logger = structlog.get_logger()
 router = APIRouter()
+
+
 class CreateRunPayload(BaseModel):
     """Payload for creating a run."""
-    assistant_id: str
     user_id: str
+    assistant_id: Optional[str] = None
     thread_id: Optional[str] = None
     input: list[dict]
-
+    config: Optional[RunnableConfig] = None
 
 async def _run_input_and_config(
-        request: Request,
+        payload: CreateRunPayload,
         assistant_repository: AssistantRepository,
         thread_repository: ThreadRepository,
 ):
-    try:
-        body = await request.json()
-    except json.JSONDecodeError:
-        logger.exception("Invalid JSON body", exc_info=True, request_body=body)
-        raise RequestValidationError(errors=["Invalid JSON body"])
 
-    assistant_id = body["assistant_id"]
+    if payload.thread_id and not payload.assistant_id:
+        thread: Thread = thread_repository.retrieve_thread(payload.thread_id)
+        payload.assistant_id = thread.assistant_id
 
-    assistant = await assistant_repository.retrieve_assistant(assistant_id=assistant_id)
-
-    if not assistant:
-        await logger.exception("Invalid Assistant ID Provided", exc_info=False, request_body=body)
-        raise ValueError(f"Invalid Assistant ID Provided")
-
-    thread_id = body.get("thread_id")
-    if not thread_id:
+    if not payload.thread_id:
         thread = await thread_repository.create_thread(
             data={
-                "assistant_id": assistant_id,
-                "user_id": body["user_id"],
+                "assistant_id": payload.assistant_id,
+                "user_id": payload.user_id,
             }
         )
-        thread_id = str(thread.id)
+        payload.thread_id = str(thread.id)
+
+    assistant = await assistant_repository.retrieve_assistant(assistant_id=payload.assistant_id)
+
+    if not assistant:
+        await logger.exception("Invalid Assistant ID Provided", exc_info=False)
+        raise ValueError(f"Invalid Assistant ID Provided")
 
     config: RunnableConfig = {
         **assistant.config,
         "configurable": {
             **assistant.config["configurable"],
-            "user_id": body["user_id"],
-            "thread_id": thread_id,
-            "assistant_id": assistant_id,
+            **((payload.config or {}).get("configurable") or {}),
+            "user_id": payload.user_id,
+            "thread_id": payload.thread_id,
+            "assistant_id": payload.assistant_id,
             "callbacks": [tracer] if settings.ENABLE_LANGSMITH_TRACING else [],
         },
     }
 
-    input_ = body["input"]
+    try:
+        if payload.input is not None:
+            agent.get_input_schema(config).validate(payload.input)
+    except ValidationError as e:
+        raise RequestValidationError(e.errors(), body=payload)
 
-    return input_, config
+    return payload.input, config
 
 @router.post("/stream", tags=[DEFAULT_TAG], response_class=EventSourceResponse,
              operation_id="stream_run",
              summary="Stream an LLM run.",
              description="""
-                Endpoint to stream an LLM response. If the thread_id is not provided, a new thread will be created. <br>
+                Endpoint to stream an LLM response. If the thread_id is not provided, a new thread will be created as long as the assistant_id is included. <br>
                 Note that the input should be a list of messages in the format: <br>
                 content: string <br>
                 role: string <br>
@@ -99,7 +102,6 @@ async def _run_input_and_config(
 async def stream_run(
     api_key: ApiKey,
     payload: CreateRunPayload,
-    request: Request,
     assistant_repository: AssistantRepository = Depends(get_assistant_repository),
     thread_repository: ThreadRepository = Depends(get_thread_repository),
 ):
@@ -107,9 +109,9 @@ async def stream_run(
         global trace_url
         trace_url = None
 
-    input_, config = await _run_input_and_config(request, assistant_repository, thread_repository)
+    input_, config = await _run_input_and_config(payload, assistant_repository, thread_repository)
 
-    return EventSourceResponse(to_sse(astream_messages(agent, input_, config)))
+    return EventSourceResponse(to_sse(astream_state(agent, input_, config)))
 
 
 @router.post("", tags=[DEFAULT_TAG], response_model=dict,
@@ -119,10 +121,11 @@ async def stream_run(
 async def create_run(
     api_key: ApiKey,
     payload: CreateRunPayload,
-    request: Request,
     background_tasks: BackgroundTasks,
+    assistant_repository: AssistantRepository = Depends(get_assistant_repository),
+    thread_repository: ThreadRepository = Depends(get_thread_repository),
 ):
-    input_, config = await _run_input_and_config(request)
+    input_, config = await _run_input_and_config(payload, assistant_repository, thread_repository)
     background_tasks.add_task(agent.ainvoke, input_, config)
     return {"status": "ok"}
 
