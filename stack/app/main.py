@@ -33,7 +33,7 @@ AI_CONN_STR = os.getenv(AI_CONN_STR_ENV_NAME)
 # if AI_CONN_STR and AI_CONN_STR != "":
 #     configure_azure_monitor(
 #         connection_string=os.getenv(AI_CONN_STR_ENV_NAME),
-#         logger_name="personastack",
+#         logger_name="personaflow",
 #         logging_level=os.getenv("INFO"),
 #     )
 

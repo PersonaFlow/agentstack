@@ -33,7 +33,7 @@ from stack.app.models.base import Base
 target_metadata = Base.metadata
 
 # Dynamically importing all models.
-from app import models
+from stack.app import models
 
 for _, module_name, is_package in pkgutil.iter_modules(models.__path__):
     if not is_package:

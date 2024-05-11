@@ -25,9 +25,6 @@ Ensure that you have the following software and libraries installed:
 
 All other required modules can be installed using:
 
-```bash
-poetry install
-```
 
 ## Initialization
 
