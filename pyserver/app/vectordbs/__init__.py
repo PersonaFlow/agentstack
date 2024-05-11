@@ -1,20 +1,23 @@
 from typing import Optional
 from dotenv import load_dotenv
 from semantic_router.encoders import BaseEncoder
-from app.schema.rag import VectorDatabase, EncoderConfig, EncoderProvider
-from app.vectordbs.base import BaseVectorDatabase
-from app.vectordbs.qdrant import QdrantService
+from pyserver.app.schema.rag import VectorDatabase, EncoderConfig, EncoderProvider
+from pyserver.app.vectordbs.base import BaseVectorDatabase
+from pyserver.app.vectordbs.qdrant import QdrantService
 from app.core.configuration import get_settings
 
 load_dotenv()
 settings = get_settings()
+
 
 def get_vector_service(
     *,
     index_name: str,
     namespace: Optional[str] = settings.VECTOR_DB_DEFAULT_NAMESPACE,
     credentials: Optional[VectorDatabase] = VectorDatabase(),
-    encoder_provider: Optional[EncoderProvider] = EncoderProvider(settings.VECTOR_DB_ENCODER_NAME),
+    encoder_provider: Optional[EncoderProvider] = EncoderProvider(
+        settings.VECTOR_DB_ENCODER_NAME
+    ),
     encoder: Optional[BaseEncoder] = None,
     dimensions: Optional[int] = settings.VECTOR_DB_ENCODER_DIMENSIONS,
     enable_rerank: Optional[bool] = settings.ENABLE_RERANK_BY_DEFAULT,
@@ -35,7 +38,9 @@ def get_vector_service(
     if encoder is None:
         encoder_class = encoder_config["class"]
         if not issubclass(encoder_class, BaseEncoder):
-            raise ValueError(f"Encoder class {encoder_class} is not a subclass of BaseEncoder")
+            raise ValueError(
+                f"Encoder class {encoder_class} is not a subclass of BaseEncoder"
+            )
         encoder: BaseEncoder = encoder_class()
 
     return service(

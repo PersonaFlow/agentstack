@@ -1,15 +1,18 @@
 from typing import List, Optional
-from app.schema import Thread, GroupedThreads
+from pyserver.app.schema import Thread, GroupedThreads
 from datetime import datetime, timedelta, timezone
 
-def group_threads(threads: List[Thread], client_tz_offset: Optional[int] = 0) -> GroupedThreads:
+
+def group_threads(
+    threads: List[Thread], client_tz_offset: Optional[int] = 0
+) -> GroupedThreads:
     grouped = {
         "Today": [],
         "Yesterday": [],
         "Past 7 Days": [],
         "Past 30 Days": [],
         "This Year": [],
-        "Previous Years": []
+        "Previous Years": [],
     }
     offset_hours = client_tz_offset / 60
     now = datetime.now(timezone.utc) - timedelta(hours=offset_hours)
@@ -36,9 +39,10 @@ def group_threads(threads: List[Thread], client_tz_offset: Optional[int] = 0) ->
         else:
             grouped["Previous Years"].append(thread)
 
-      # Sorting each category by most recent first
+    # Sorting each category by most recent first
     for category in grouped:
-        grouped[category] = sorted(grouped[category], key=lambda x: x.updated_at, reverse=True)
-
+        grouped[category] = sorted(
+            grouped[category], key=lambda x: x.updated_at, reverse=True
+        )
 
     return grouped

@@ -4,6 +4,7 @@ import os
 # from azure.monitor.opentelemetry import configure_azure_monitor
 from dotenv import load_dotenv
 from fastapi.openapi.utils import get_openapi
+
 # from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 # If we have the `ENVIRONMENT`variable already, we are running in Docker or Kubernetes

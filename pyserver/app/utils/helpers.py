@@ -6,9 +6,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_first_non_null(*args):
-    """
-    Returns the first non-null argument
-    """
+    """Returns the first non-null argument."""
     for arg in args:
         if arg is not None:
             return arg
@@ -16,16 +14,13 @@ def get_first_non_null(*args):
 
 
 def remove_key_if_present(dictionary, key):
-    """
-    Removes a key from a dictionary if it exists
-    """
+    """Removes a key from a dictionary if it exists."""
     if key in dictionary:
         del dictionary[key]
 
 
 def compare_dicts(dict1, dict2):
-    """
-    Returns a dictionary of the changed fields between two dictionaries
+    """Returns a dictionary of the changed fields between two dictionaries.
 
     dict1: The first dictionary to compare
     dict2: The second dictionary to compare
@@ -49,8 +44,7 @@ def compare_dicts(dict1, dict2):
 
 
 def rename_and_remove_key(dictionary, old_key, new_key):
-    """
-    Renames a key in a dictionary and removes the old key if it exists
+    """Renames a key in a dictionary and removes the old key if it exists.
 
     dictionary: The dictionary to rename the key in
     old_key: The old key to rename
@@ -62,8 +56,7 @@ def rename_and_remove_key(dictionary, old_key, new_key):
 
 
 def rename_and_remove_keys(dictionary, key_map):
-    """
-    Renames a key in a dictionary and removes the old key if it exists
+    """Renames a key in a dictionary and removes the old key if it exists.
 
     dictionary: The dictionary to rename the key in
     key_map: A dictionary of old keys to new keys

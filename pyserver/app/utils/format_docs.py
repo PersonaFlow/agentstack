@@ -1,6 +1,7 @@
 from typing import Sequence
 from langchain.schema import Document
 
+
 def format_docs(docs: Sequence[Document]) -> str:
     formatted_docs = []
     for i, doc in enumerate(docs):

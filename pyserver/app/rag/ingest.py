@@ -1,8 +1,6 @@
-
 from app.schema.rag import IngestRequestPayload
 from app.rag.embedding_service import EmbeddingService
 from app.rag.summarizer import SUMMARY_SUFFIX
-from app.rag.query import query_documents
 from app.core.configuration import get_settings
 from app.schema.file import FileSchema
 import structlog
@@ -20,7 +18,9 @@ async def get_ingest_tasks_from_config(
     document_processor_config = config.document_processor
     encoder = document_processor_config.encoder.get_encoder()
     collection_name = config.index_name
-    namespace = config.namespace if config.namespace else settings.VECTOR_DB_DEFAULT_NAMESPACE
+    namespace = (
+        config.namespace if config.namespace else settings.VECTOR_DB_DEFAULT_NAMESPACE
+    )
 
     embedding_service = EmbeddingService(
         encoder=encoder,
@@ -28,14 +28,16 @@ async def get_ingest_tasks_from_config(
         vector_credentials=vector_db_creds,
         dimensions=document_processor_config.encoder.dimensions,
         files=files_to_ingest,
-        namespace=namespace
+        namespace=namespace,
     )
 
     chunks = await embedding_service.generate_chunks(config=document_processor_config)
 
     summary_documents = None
     if document_processor_config.summarize:
-        summary_documents = await embedding_service.generate_summary_documents(documents=chunks)
+        summary_documents = await embedding_service.generate_summary_documents(
+            documents=chunks
+        )
 
     tasks = [
         embedding_service.embed_and_upsert(

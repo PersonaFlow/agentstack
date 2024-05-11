@@ -3,11 +3,11 @@ from semantic_router.layer import RouteLayer
 from semantic_router.route import Route
 from semantic_router.encoders import BaseEncoder
 
-from app.schema.rag import BaseDocumentChunk, QueryRequestPayload
+from pyserver.app.schema.rag import BaseDocumentChunk, QueryRequestPayload
 from .summarizer import SUMMARY_SUFFIX
-from app.vectordbs import BaseVectorDatabase, get_vector_service
+from pyserver.app.vectordbs import BaseVectorDatabase, get_vector_service
 
-from app.core.configuration import get_settings
+from pyserver.app.core.configuration import get_settings
 
 STRUCTURED_DATA = [
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -17,6 +17,7 @@ STRUCTURED_DATA = [
 
 logger = structlog.get_logger()
 settings = get_settings()
+
 
 def create_route_layer(encoder: BaseEncoder) -> RouteLayer:
     routes = [
@@ -32,6 +33,7 @@ def create_route_layer(encoder: BaseEncoder) -> RouteLayer:
         )
     ]
     return RouteLayer(encoder=encoder, routes=routes)
+
 
 async def get_documents(
     *, vector_service: BaseVectorDatabase, payload: QueryRequestPayload
@@ -57,7 +59,9 @@ async def query_documents(payload: QueryRequestPayload) -> list[BaseDocumentChun
     decision = rl(payload.input).name
 
     vector_service: BaseVectorDatabase = get_vector_service(
-        index_name=f"{payload.index_name}_{SUMMARY_SUFFIX}" if decision == "summarize" else payload.index_name,
+        index_name=f"{payload.index_name}_{SUMMARY_SUFFIX}"
+        if decision == "summarize"
+        else payload.index_name,
         credentials=payload.vector_database,
         encoder=encoder,
         namespace=payload.namespace,

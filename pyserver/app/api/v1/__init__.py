@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Response
-# from app.api.v1 import feedback
+
+# from pyserver.app.api.v1 import feedback
 # from app.api.v1 import chat
 from app.api.v1 import runs
 from app.api.v1 import users
@@ -21,6 +22,6 @@ api_router.include_router(rag.router, prefix="/rag")
 api_router.include_router(files.router, prefix="/files")
 
 
-@api_router.get('/health_check', tags=['Health Check'])
+@api_router.get("/health_check", tags=["Health Check"])
 def health_check():
-    return Response(content='OK', status_code=200)
+    return Response(content="OK", status_code=200)

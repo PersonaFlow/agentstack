@@ -52,7 +52,9 @@ class SystemLoggerMiddleware(BaseHTTPMiddleware):
         try:
             response = await call_next(request)
         except Exception:
-            await structlog.stdlib.get_logger("api.error").exception("Uncaught exception")
+            await structlog.stdlib.get_logger("api.error").exception(
+                "Uncaught exception"
+            )
             raise
 
         finally:

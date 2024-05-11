@@ -3,17 +3,19 @@ from abc import ABC, abstractmethod
 from semantic_router.encoders import BaseEncoder
 from tqdm import tqdm
 
-from app.schema.rag import DeleteDocumentsResponse, BaseDocumentChunk
+from pyserver.app.schema.rag import DeleteDocumentsResponse, BaseDocumentChunk
 import structlog
-from app.core.configuration import get_settings
+from pyserver.app.core.configuration import get_settings
 
 logger = structlog.get_logger()
 
 settings = get_settings()
 
+
 class BaseVectorDatabase(ABC):
     def __init__(
-        self, index_name: str,
+        self,
+        index_name: str,
         dimension: int,
         credentials: dict,
         encoder: BaseEncoder,
@@ -36,7 +38,9 @@ class BaseVectorDatabase(ABC):
         pass
 
     @abstractmethod
-    async def delete(self, file_id: str, assistant_id: str = None) -> DeleteDocumentsResponse:
+    async def delete(
+        self, file_id: str, assistant_id: str = None
+    ) -> DeleteDocumentsResponse:
         pass
 
     async def _generate_vectors(self, input: str) -> list[list[float]]:
@@ -45,7 +49,6 @@ class BaseVectorDatabase(ABC):
     async def rerank(
         self, query: str, documents: list[BaseDocumentChunk], top_n: int = 5
     ) -> list[BaseDocumentChunk]:
-
         if not self.enable_rerank:
             return documents
 

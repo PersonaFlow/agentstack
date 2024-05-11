@@ -1,8 +1,6 @@
 import asyncio
-import aiohttp
 import copy
 import uuid
-from tempfile import NamedTemporaryFile
 from typing import Any, Literal, Optional
 
 import numpy as np
@@ -13,19 +11,18 @@ from semantic_router.encoders import (
 from tqdm import tqdm
 from unstructured_client import UnstructuredClient
 from unstructured_client.models import shared
-from unstructured_client.models.errors import SDKError
 
-from app.schema.rag import (
+from pyserver.app.schema.rag import (
     BaseDocument,
     BaseDocumentChunk,
     DocumentProcessorConfig,
 )
-from app.rag.util import get_tiktoken_length
-from app.rag.splitter import UnstructuredSemanticSplitter
-from app.rag.summarizer import completion
-from app.vectordbs import get_vector_service
-from app.schema.file import FileSchema
-from app.core.configuration import get_settings
+from pyserver.app.rag.util import get_tiktoken_length
+from pyserver.app.rag.splitter import UnstructuredSemanticSplitter
+from pyserver.app.rag.summarizer import completion
+from pyserver.app.vectordbs import get_vector_service
+from pyserver.app.schema.file import FileSchema
+from pyserver.app.core.configuration import get_settings
 from app.models.file import File
 
 # TODO: Add similarity score to the BaseDocumentChunk
@@ -35,6 +32,7 @@ from app.models.file import File
 logger = structlog.get_logger()
 settings = get_settings()
 
+
 def sanitize_metadata(metadata: dict) -> dict:
     def sanitize_value(value):
         if isinstance(value, (str, int, float, bool)):
@@ -43,8 +41,7 @@ def sanitize_metadata(metadata: dict) -> dict:
             # Ensure all elements in the list are of type str, int, float, or bool
             # Convert non-compliant elements to str
             return [
-                v if isinstance(v, (str, int, float, bool)) else str(v)
-                for v in value
+                v if isinstance(v, (str, int, float, bool)) else str(v) for v in value
             ]
         elif isinstance(value, dict):
             return {k: sanitize_value(v) for k, v in value.items()}
@@ -52,6 +49,8 @@ def sanitize_metadata(metadata: dict) -> dict:
             return str(value)
 
     return {key: sanitize_value(value) for key, value in metadata.items()}
+
+
 class EmbeddingService:
     def __init__(
         self,
@@ -81,9 +80,9 @@ class EmbeddingService:
         strategy="auto",
         returned_elements_type: Literal["chunked", "original"] = "chunked",
     ) -> list[Any]:
-        """
-        Process an IngestFile object to partition it based on the specified strategy.
-        This method handles both files uploaded directly (with content) and files to be downloaded via URL.
+        """Process an IngestFile object to partition it based on the specified
+        strategy. This method handles both files uploaded directly (with
+        content) and files to be downloaded via URL.
 
         Args:
             file (IngestFile): The file to be processed.
@@ -101,11 +100,16 @@ class EmbeddingService:
 
         try:
             file_path = file.source
-            await logger.info(f"Reading content from local file system. File path: {file_path}")
-            with open(file_path, 'rb') as f:
+            await logger.info(
+                f"Reading content from local file system. File path: {file_path}"
+            )
+            with open(file_path, "rb") as f:
                 file_content = f.read()
         except FileNotFoundError as e:
-            await logger.exception(f"Failed to retrieve file content from local file system.", exc_info=True)
+            await logger.exception(
+                f"Failed to retrieve file content from local file system.",
+                exc_info=True,
+            )
             raise
 
         files = shared.Files(
@@ -118,7 +122,9 @@ class EmbeddingService:
             strategy=strategy,
             max_characters=2500 if returned_elements_type == "chunked" else None,
             new_after_n_chars=1000 if returned_elements_type == "chunked" else None,
-            chunking_strategy="by_title" if returned_elements_type == "chunked" else None,
+            chunking_strategy="by_title"
+            if returned_elements_type == "chunked"
+            else None,
         )
         try:
             unstructured_response = self.unstructured_client.general.partition(req)
@@ -160,9 +166,7 @@ class EmbeddingService:
                     for element in chunked_elements:
                         chunk_data = {
                             "page_content": element.get("text"),
-                            "metadata": sanitize_metadata(
-                                element.get("metadata")
-                            ),
+                            "metadata": sanitize_metadata(element.get("metadata")),
                         }
                         chunks.append(chunk_data)
                 if config.splitter.name == "semantic":
@@ -183,7 +187,9 @@ class EmbeddingService:
                     continue
 
                 document_id = f"doc_{uuid.uuid4()}"
-                document_content = "".join(chunk.get("page_content", "") for chunk in chunks)
+                document_content = "".join(
+                    chunk.get("page_content", "") for chunk in chunks
+                )
 
                 doc_chunks.extend(
                     [
@@ -200,7 +206,9 @@ class EmbeddingService:
                             source_type=file.mime_type,
                             chunk_index=chunk.get("chunk_index", None),
                             title=chunk.get("title", None),
-                            token_count=get_tiktoken_length(chunk.get("page_content", "")),
+                            token_count=get_tiktoken_length(
+                                chunk.get("page_content", "")
+                            ),
                             metadata=sanitize_metadata(chunk.get("metadata", {})),
                         )
                         for chunk in chunks
@@ -302,7 +310,9 @@ class EmbeddingService:
             pbar.update()
         pbar.close()
 
-        async def safe_completion(document: BaseDocumentChunk) -> Optional[BaseDocumentChunk]:
+        async def safe_completion(
+            document: BaseDocumentChunk,
+        ) -> Optional[BaseDocumentChunk]:
             try:
                 document.page_content = await completion(document=document)
                 return document

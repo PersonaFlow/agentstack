@@ -41,7 +41,7 @@ def get_tools_agent_executor(
         return [SystemMessage(content=system_message)] + msgs
 
     llm_with_tools = llm.bind_tools(tools) if tools else llm
-    
+
     agent = _get_messages | llm_with_tools
     tool_executor = ToolExecutor(tools)
 

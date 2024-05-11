@@ -6,19 +6,33 @@ from sqlalchemy.ext.declarative import declarative_base
 
 from sqlalchemy.future import select
 from langchain_core.runnables import RunnableConfig
-from langgraph.checkpoint.base import BaseCheckpointSaver, Checkpoint, CheckpointAt, CheckpointTuple, SerializerProtocol
-from app.models.checkpoint import PostgresCheckpoint
+from langgraph.checkpoint.base import (
+    BaseCheckpointSaver,
+    Checkpoint,
+    CheckpointAt,
+    CheckpointTuple,
+    SerializerProtocol,
+)
+from pyserver.app.models.checkpoint import PostgresCheckpoint
 from pydantic import Field
 from langchain.schema.runnable.utils import ConfigurableFieldSpec
-from app.core.configuration import get_settings
+from pyserver.app.core.configuration import get_settings
+
 Base = declarative_base()
+
 
 class PgCheckpointSaver(BaseCheckpointSaver):
     engine: Any = Field(...)
     async_session_factory: Any = Field(...)
     serde: SerializerProtocol = Field(default_factory=pickle)
 
-    def __init__(self, engine: Any, async_session_factory: Any, at: CheckpointAt = CheckpointAt.END_OF_STEP, serde: Optional[SerializerProtocol] = None):
+    def __init__(
+        self,
+        engine: Any,
+        async_session_factory: Any,
+        at: CheckpointAt = CheckpointAt.END_OF_STEP,
+        serde: Optional[SerializerProtocol] = None,
+    ):
         self.engine = engine
         self.async_session_factory = async_session_factory
         self.serde = serde or self.serde
@@ -51,7 +65,9 @@ class PgCheckpointSaver(BaseCheckpointSaver):
     @classmethod
     async def from_conn_string(cls, db_url: str):
         async_engine = create_async_engine(db_url, echo=True)
-        async_session_factory = sessionmaker(async_engine, expire_on_commit=False, class_=AsyncSession)
+        async_session_factory = sessionmaker(
+            async_engine, expire_on_commit=False, class_=AsyncSession
+        )
         return cls(async_engine, async_session_factory)
 
     async def setup(self) -> None:
@@ -70,8 +86,9 @@ class PgCheckpointSaver(BaseCheckpointSaver):
             result = await session.execute(
                 select(PostgresCheckpoint).filter_by(
                     user_id=config["configurable"]["user_id"],
-                    thread_id=config["configurable"]["thread_id"]
-                ))
+                    thread_id=config["configurable"]["thread_id"],
+                )
+            )
 
             record = result.scalars().first()
             if record:
@@ -81,32 +98,34 @@ class PgCheckpointSaver(BaseCheckpointSaver):
         await self.setup()
         async with self.async_session_factory() as session:
             result = await session.execute(
-                select(PostgresCheckpoint).filter_by(
+                select(PostgresCheckpoint)
+                .filter_by(
                     user_id=config["configurable"]["user_id"],
-                    thread_id=config["configurable"]["thread_id"]
-                ).order_by(PostgresCheckpoint.updated_at.desc())
+                    thread_id=config["configurable"]["thread_id"],
+                )
+                .order_by(PostgresCheckpoint.updated_at.desc())
             )
             record = result.scalars().first()
             if record:
                 return CheckpointTuple(
-                    config=config,
-                    checkpoint=self.serde.loads(record.checkpoint)
+                    config=config, checkpoint=self.serde.loads(record.checkpoint)
                 )
 
     async def alist(self, config: RunnableConfig) -> AsyncIterator[CheckpointTuple]:
         await self.setup()
         async with self.async_session_factory() as session:
             result = await session.execute(
-                select(PostgresCheckpoint).filter_by(
+                select(PostgresCheckpoint)
+                .filter_by(
                     user_id=config["configurable"]["user_id"],
-                    thread_id=config["configurable"]["thread_id"]
-                ).order_by(PostgresCheckpoint.updated_at.desc())
+                    thread_id=config["configurable"]["thread_id"],
+                )
+                .order_by(PostgresCheckpoint.updated_at.desc())
             )
             records = result.scalars().all()
             for record in records:
                 yield CheckpointTuple(
-                    config=config,
-                    checkpoint=self.serde.loads(record.checkpoint)
+                    config=config, checkpoint=self.serde.loads(record.checkpoint)
                 )
 
     async def aput(self, config: RunnableConfig, checkpoint: Checkpoint) -> None:
@@ -120,7 +139,7 @@ class PgCheckpointSaver(BaseCheckpointSaver):
             result = await session.execute(
                 select(PostgresCheckpoint).filter_by(
                     user_id=config["configurable"]["user_id"],
-                    thread_id=config["configurable"]["thread_id"]
+                    thread_id=config["configurable"]["thread_id"],
                 )
             )
             record = result.scalars().first()
@@ -130,13 +149,20 @@ class PgCheckpointSaver(BaseCheckpointSaver):
                 new_record = PostgresCheckpoint(
                     user_id=config["configurable"]["user_id"],
                     thread_id=config["configurable"]["thread_id"],
-                    checkpoint=serialized_checkpoint
+                    checkpoint=serialized_checkpoint,
                 )
                 session.add(new_record)
             await session.commit()
 
-def get_pg_checkpoint_saver(serde: SerializerProtocol = pickle, at: CheckpointAt = CheckpointAt.END_OF_STEP) -> PgCheckpointSaver:
+
+def get_pg_checkpoint_saver(
+    serde: SerializerProtocol = pickle, at: CheckpointAt = CheckpointAt.END_OF_STEP
+) -> PgCheckpointSaver:
     settings = get_settings()
     engine = create_async_engine(settings.INTERNAL_DATABASE_URI)
-    async_session_factory = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
-    return PgCheckpointSaver(engine=engine, async_session_factory=async_session_factory, serde=serde, at=at)
+    async_session_factory = sessionmaker(
+        engine, expire_on_commit=False, class_=AsyncSession
+    )
+    return PgCheckpointSaver(
+        engine=engine, async_session_factory=async_session_factory, serde=serde, at=at
+    )

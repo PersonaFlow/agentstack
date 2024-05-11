@@ -18,6 +18,7 @@ class NotFoundException(HTTPException):
             status_code=status.HTTP_404_NOT_FOUND, detail=message or "Record Not Found"
         )
 
+
 class UnauthorizedException(HTTPException):
     def __init__(self, message: str = None):
         super().__init__(

@@ -11,7 +11,7 @@ from langgraph.checkpoint import BaseCheckpointSaver
 from langgraph.graph import END
 from langgraph.graph.state import StateGraph
 
-from app.schema.message_types import LiberalToolMessage, add_messages_liberal
+from pyserver.app.schema.message_types import LiberalToolMessage, add_messages_liberal
 
 search_prompt = PromptTemplate.from_template(
     """Given the conversation below, come up with a search query to look up.
@@ -116,7 +116,7 @@ def get_retrieval_executor(
     async def retrieve(state: AgentState):
         if not messages:
             return {"messages": [], "msg_count": 0}
-        
+
         messages = state["messages"]
         params = messages[-1].tool_calls[0]
         query = params["args"]["query"]

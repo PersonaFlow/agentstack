@@ -1,13 +1,13 @@
 from datetime import datetime
-from typing import Dict, List, Optional, Union
+from typing import Dict, Optional, Union
 from uuid import UUID
 
-from pydantic import BaseModel 
+from pydantic import BaseModel
+
 
 class BaseFeedback(BaseModel):
-    """
-    Shared information between create requests of feedback and feedback objects
-    """
+    """Shared information between create requests of feedback and feedback
+    objects."""
 
     run_id: UUID
     """The associated run ID this feedback is logged for."""
@@ -26,17 +26,11 @@ class BaseFeedback(BaseModel):
 
 
 class FeedbackCreateRequest(BaseFeedback):
-    """
-    Represents a request that creates feedback for an individual run
-    """
-
-    pass
+    """Represents a request that creates feedback for an individual run."""
 
 
 class Feedback(BaseFeedback):
-    """
-    Represents feedback given on an individual run
-    """
+    """Represents feedback given on an individual run."""
 
     id: UUID
     """The unique ID of the feedback that was created."""
