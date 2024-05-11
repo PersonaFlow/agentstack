@@ -10,8 +10,8 @@ from fastapi import HTTPException, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from pyserver.app.core.datastore import get_postgresql_session_provider
 from typing import Optional, Any
-from app.core.configuration import settings
-from app.utils.file_helpers import guess_file_extension
+from pyserver.app.core.configuration import settings
+from pyserver.app.utils.file_helpers import guess_file_extension
 from fastapi import Response
 
 logger = structlog.get_logger()

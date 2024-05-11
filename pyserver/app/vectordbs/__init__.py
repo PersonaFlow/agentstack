@@ -4,7 +4,7 @@ from semantic_router.encoders import BaseEncoder
 from pyserver.app.schema.rag import VectorDatabase, EncoderConfig, EncoderProvider
 from pyserver.app.vectordbs.base import BaseVectorDatabase
 from pyserver.app.vectordbs.qdrant import QdrantService
-from app.core.configuration import get_settings
+from pyserver.app.core.configuration import get_settings
 
 load_dotenv()
 settings = get_settings()

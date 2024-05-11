@@ -5,7 +5,7 @@ from pyserver.app.core.configuration import Settings
 settings = Settings()
 if settings.ENABLE_LANGSMITH_TRACING:
     from langsmith import Client
-    from app.utils import aget_trace_url
+    from pyserver.app.utils import aget_trace_url
 
     client = Client()
 

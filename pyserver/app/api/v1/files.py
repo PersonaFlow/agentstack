@@ -13,19 +13,19 @@ from fastapi import (
 import uuid
 from pyserver.app.repositories.file import get_file_repository, FileRepository
 
-# from app.repositories.api_key import get_api_key_repository, ApiKeyRepository
-from app.schema.file import FileSchema, UploadFileSchema, DeleteFileResponse
-from app.api.annotations import ApiKey
-from app.core.configuration import settings
+# from pyserver.app.repositories.api_key import get_api_key_repository, ApiKeyRepository
+from pyserver.app.schema.file import FileSchema, UploadFileSchema, DeleteFileResponse
+from pyserver.app.api.annotations import ApiKey
+from pyserver.app.core.configuration import settings
 from typing import Optional
-from app.core.logger import logging
-from app.utils.file_helpers import (
+from pyserver.app.core.logger import logging
+from pyserver.app.utils.file_helpers import (
     guess_mime_type,
     is_mime_type_supported,
     guess_file_extension,
 )
-from app.vectordbs.qdrant import QdrantService
-from app.repositories.assistant import get_assistant_repository, AssistantRepository
+from pyserver.app.vectordbs.qdrant import QdrantService
+from pyserver.app.repositories.assistant import get_assistant_repository, AssistantRepository
 
 router = APIRouter()
 DEFAULT_TAG = "Files"

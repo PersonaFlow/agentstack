@@ -3,22 +3,22 @@ import uuid
 import asyncio
 from datetime import datetime
 import structlog
-from app.repositories.assistant import AssistantRepository, get_assistant_repository
-from app.repositories.file import FileRepository, get_file_repository
-from app.schema.assistant import (
+from pyserver.app.repositories.assistant import AssistantRepository, get_assistant_repository
+from pyserver.app.repositories.file import FileRepository, get_file_repository
+from pyserver.app.schema.assistant import (
     CreateAssistantSchema,
     Assistant,
     UpdateAssistantSchema,
     CreateAssistantFileSchema,
     CreateAssistantFileSchemaResponse,
 )
-from app.api.annotations import ApiKey
-from app.core.configuration import get_settings
-from app.vectordbs import get_vector_service
-from app.schema.file import FileSchema
+from pyserver.app.api.annotations import ApiKey
+from pyserver.app.core.configuration import get_settings
+from pyserver.app.vectordbs import get_vector_service
+from pyserver.app.schema.file import FileSchema
 from typing import Optional
-from app.rag.ingest import get_ingest_tasks_from_config
-from app.schema.rag import IngestRequestPayload
+from pyserver.app.rag.ingest import get_ingest_tasks_from_config
+from pyserver.app.schema.rag import IngestRequestPayload
 
 router = APIRouter()
 DEFAULT_TAG = "Assistants"

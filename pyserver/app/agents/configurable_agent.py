@@ -22,7 +22,7 @@ from pyserver.app.llms import (
     get_openai_llm,
 )
 from pyserver.app.agents.retrieval import get_retrieval_executor
-from app.agents.tools import (
+from pyserver.app.agents.tools import (
     RETRIEVAL_DESCRIPTION,
     TOOLS,
     ActionServer,

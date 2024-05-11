@@ -6,9 +6,9 @@ from langchain_core.callbacks import (
     AsyncCallbackManagerForRetrieverRun,
 )
 from langchain_core.documents import Document
-from app.schema.rag import QueryRequestPayload, BaseDocumentChunk
-from app.rag.query import query_documents
-from app.core.configuration import get_settings
+from pyserver.app.schema.rag import QueryRequestPayload, BaseDocumentChunk
+from pyserver.app.rag.query import query_documents
+from pyserver.app.core.configuration import get_settings
 
 settings = get_settings()
 

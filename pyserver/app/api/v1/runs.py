@@ -14,19 +14,16 @@ from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.schema import AIMessage, HumanMessage, StrOutputParser
 from langchain.schema.runnable import RunnableMap
 
-from app.repositories import (
-    get_assistant_repository,
-    AssistantRepository,
-    ThreadRepository,
-    get_thread_repository,
-)
-from app.api.annotations import ApiKey
-from app.schema import TitleRequest, Thread, FeedbackCreateRequest
-from app.agents import agent
-from app.utils.stream import astream_state, to_sse
-from app.repositories import ThreadRepository
+from pyserver.app.agents.configurable_agent import agent
+from pyserver.app.api.annotations import ApiKey
+from pyserver.app.models.thread import Thread
+from pyserver.app.repositories.assistant import AssistantRepository, get_assistant_repository
+from pyserver.app.repositories.thread import ThreadRepository, get_thread_repository
+from pyserver.app.schema.feedback import FeedbackCreateRequest
+from pyserver.app.schema.title import TitleRequest
+from pyserver.app.utils.stream import astream_state, to_sse
 from sse_starlette import EventSourceResponse
-from app.core.configuration import get_settings
+from pyserver.app.core.configuration import get_settings
 
 settings = get_settings()
 if settings.ENABLE_LANGSMITH_TRACING:

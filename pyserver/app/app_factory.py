@@ -9,10 +9,11 @@ from fastapi.exceptions import RequestValidationError, ResponseValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
-from pyserver.app.core import init_logging, init_structlogger
 from pyserver.app.api.v1 import api_router
 from pyserver.app.core.configuration import Settings
-from pyserver.app.middlewares import SystemLoggerMiddleware
+from pyserver.app.core.logger import init_logging
+from pyserver.app.core.struct_logger import init_structlogger
+from pyserver.app.middlewares.system_logger import SystemLoggerMiddleware
 
 
 def create_async_engine_with_settings(settings: Settings) -> AsyncEngine:

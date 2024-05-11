@@ -34,12 +34,12 @@ import uuid
 from sqlalchemy import select
 from pyserver.app.models.user import User
 from pyserver.app.repositories.base import BaseRepository
-from app.schema.user import CreateUserSchema, UpdateUserSchema
+from pyserver.app.schema.user import CreateUserSchema, UpdateUserSchema
 import structlog
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi import HTTPException, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.core.datastore import get_postgresql_session_provider
+from pyserver.app.core.datastore import get_postgresql_session_provider
 from typing import Optional, Any
 
 logger = structlog.get_logger()

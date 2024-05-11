@@ -1,8 +1,8 @@
-from app.schema.rag import IngestRequestPayload
-from app.rag.embedding_service import EmbeddingService
-from app.rag.summarizer import SUMMARY_SUFFIX
-from app.core.configuration import get_settings
-from app.schema.file import FileSchema
+from pyserver.app.schema.rag import IngestRequestPayload
+from pyserver.app.rag.embedding_service import EmbeddingService
+from pyserver.app.rag.summarizer import SUMMARY_SUFFIX
+from pyserver.app.core.configuration import get_settings
+from pyserver.app.schema.file import FileSchema
 import structlog
 
 

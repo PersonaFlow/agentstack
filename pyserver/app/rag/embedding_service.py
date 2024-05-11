@@ -23,7 +23,7 @@ from pyserver.app.rag.summarizer import completion
 from pyserver.app.vectordbs import get_vector_service
 from pyserver.app.schema.file import FileSchema
 from pyserver.app.core.configuration import get_settings
-from app.models.file import File
+from pyserver.app.models.file import File
 
 # TODO: Add similarity score to the BaseDocumentChunk
 # TODO: Add relevance score to the BaseDocumentChunk

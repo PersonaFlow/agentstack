@@ -1,7 +1,7 @@
 from fastapi import APIRouter, status, HTTPException, Depends
 from pyserver.app.repositories.message import MessageRepository, get_message_repository
-from app.schema.message import CreateMessageSchema, Message, UpdateMessageSchema
-from app.api.annotations import ApiKey
+from pyserver.app.schema.message import CreateMessageSchema, Message, UpdateMessageSchema
+from pyserver.app.api.annotations import ApiKey
 
 # Initialize the router for messages
 router = APIRouter()

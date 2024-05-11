@@ -10,9 +10,9 @@ from pyserver.app.repositories import (
     get_user_repository,
     get_assistant_repository,
 )
-from app.schema import CreateThreadSchema, Thread, UpdateThreadSchema, Message
-from app.api.annotations import ApiKey
-from app.core.exception import NotFoundException
+from pyserver.app.schema import CreateThreadSchema, Thread, UpdateThreadSchema, Message
+from pyserver.app.api.annotations import ApiKey
+from pyserver.app.core.exception import NotFoundException
 
 router = APIRouter()
 DEFAULT_TAG = "Threads"

@@ -6,7 +6,7 @@ import structlog
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi import HTTPException, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.core.datastore import get_postgresql_session_provider
+from pyserver.app.core.datastore import get_postgresql_session_provider
 from typing import Optional, Any
 
 

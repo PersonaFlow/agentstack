@@ -3,19 +3,19 @@ import aiohttp
 from fastapi import APIRouter, Depends, status
 from fastapi.exceptions import HTTPException
 from pyserver.app.api.annotations import ApiKey
-from app.schema.rag import (
+from pyserver.app.schema.rag import (
     IngestRequestPayload,
     QueryRequestPayload,
     QueryResponsePayload,
 )
-from app.repositories.assistant import get_assistant_repository, AssistantRepository
-from app.rag.query import query_documents
-from app.core.configuration import get_settings
-from app.repositories.file import FileRepository, get_file_repository
-from app.schema.file import FileSchema
+from pyserver.app.repositories.assistant import get_assistant_repository, AssistantRepository
+from pyserver.app.rag.query import query_documents
+from pyserver.app.core.configuration import get_settings
+from pyserver.app.repositories.file import FileRepository, get_file_repository
+from pyserver.app.schema.file import FileSchema
 import structlog
-from app.rag.custom_retriever import Retriever
-from app.rag.ingest import get_ingest_tasks_from_config
+from pyserver.app.rag.custom_retriever import Retriever
+from pyserver.app.rag.ingest import get_ingest_tasks_from_config
 
 logger = structlog.get_logger()
 settings = get_settings()
