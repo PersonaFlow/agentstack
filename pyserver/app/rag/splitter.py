@@ -4,11 +4,12 @@ import structlog
 from colorama import Fore, Style
 from semantic_router.encoders.base import BaseEncoder
 from semantic_router.splitters import RollingWindowSplitter
-from app.rag.util import get_tiktoken_length
+from pyserver.app.rag.util import get_tiktoken_length
 
-from app.rag.table_parser import TableParser
+from pyserver.app.rag.table_parser import TableParser
 
 logger = structlog.get_logger()
+
 
 class UnstructuredSemanticSplitter:
     def __init__(
@@ -163,7 +164,9 @@ class UnstructuredSemanticSplitter:
                                 metadata=section_metadata,
                             )
                         # TODO: reset after PageBreak also
-                        accumulated_element_texts = [] # Start new accumulation after table
+                        accumulated_element_texts = (
+                            []
+                        )  # Start new accumulation after table
 
                     # Add table as a separate chunk or split it if
                     table_html = element.get("metadata", {}).get("text_as_html", "")

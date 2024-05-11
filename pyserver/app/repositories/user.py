@@ -32,23 +32,26 @@ Notes:
 """
 import uuid
 from sqlalchemy import select
-from app.models.user import User
-from app.repositories.base import BaseRepository
-from app.schema.user import CreateUserSchema, UpdateUserSchema
+from pyserver.app.models.user import User
+from pyserver.app.repositories.base import BaseRepository
+from pyserver.app.schema.user import CreateUserSchema, UpdateUserSchema
 import structlog
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi import HTTPException, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.core.datastore import get_postgresql_session_provider
+from pyserver.app.core.datastore import get_postgresql_session_provider
 from typing import Optional, Any
 
 logger = structlog.get_logger()
 
-def get_user_repository(session: AsyncSession = Depends(get_postgresql_session_provider)):
+
+def get_user_repository(
+    session: AsyncSession = Depends(get_postgresql_session_provider),
+):
     return UserRepository(postgresql_session=session)
 
-class UserRepository(BaseRepository):
 
+class UserRepository(BaseRepository):
     def __init__(self, postgresql_session):
         self.postgresql_session = postgresql_session
 
@@ -61,33 +64,43 @@ class UserRepository(BaseRepository):
             return user
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
-            await logger.exception(f"Failed to create user due to a database error: {str(e)}", exc_info=True, user_data=data.json())
+            await logger.exception(
+                f"Failed to create user due to a database error: {str(e)}",
+                exc_info=True,
+                user_data=data.json(),
+            )
             raise HTTPException(status_code=400, detail="Failed to create user.") from e
 
     @staticmethod
     def _get_retrieve_query():
-        """A private method to construct the default query for user retrieval."""
-        return select(User.id,
-                       User.user_id,
-                       User.username,
-                       User.password,
-                       User.email,
-                       User.first_name,
-                       User.last_name,
-                       User.kwargs,
-                       User.created_at,
-                       User.updated_at
-                    )
+        """A private method to construct the default query for user
+        retrieval."""
+        return select(
+            User.id,
+            User.user_id,
+            User.username,
+            User.password,
+            User.email,
+            User.first_name,
+            User.last_name,
+            User.kwargs,
+            User.created_at,
+            User.updated_at,
+        )
 
-    async def retrieve_users(self, filters: Optional[dict[str, Any]] = None) -> list[User]:
+    async def retrieve_users(
+        self, filters: Optional[dict[str, Any]] = None
+    ) -> list[User]:
         """Fetches all users."""
         try:
             records = await self.retrieve_all(model=User, filters=filters)
             return records
         except SQLAlchemyError as e:
-            await logger.exception(f"Failed to retrieve users due to a database error: {str(e)}", exc_info=True)
+            await logger.exception(
+                f"Failed to retrieve users due to a database error: {str(e)}",
+                exc_info=True,
+            )
             raise HTTPException(status_code=500, detail="Failed to retrieve users.")
-
 
     async def retrieve_user(self, object_id: uuid.UUID):
         """Fetches a single user by UUID."""
@@ -96,7 +109,11 @@ class UserRepository(BaseRepository):
             record = await self.retrieve_one(query=query, object_id=object_id)
             return record
         except SQLAlchemyError as e:
-            await logger.exception(f"Failed to retrieve user due to a database error: {str(e)}", exc_info=True, object_id=object_id)
+            await logger.exception(
+                f"Failed to retrieve user due to a database error: {str(e)}",
+                exc_info=True,
+                object_id=object_id,
+            )
             raise HTTPException(status_code=500, detail="Failed to retrieve user.")
 
     async def retrieve_by_user_id(self, user_id: str):
@@ -107,8 +124,14 @@ class UserRepository(BaseRepository):
             record = result.fetchone()
             return record
         except SQLAlchemyError as e:
-            await logger.exception("Failed to retrieve user by user_id due to a database error", exc_info=True, object_id=user_id)
-            raise HTTPException(status_code=500, detail="Failed to retrieve user by user_id.")
+            await logger.exception(
+                "Failed to retrieve user by user_id due to a database error",
+                exc_info=True,
+                object_id=user_id,
+            )
+            raise HTTPException(
+                status_code=500, detail="Failed to retrieve user by user_id."
+            )
 
     async def update_user(self, object_id: uuid.UUID, data: UpdateUserSchema):
         """Updates an existing user based on its UUID."""
@@ -119,7 +142,12 @@ class UserRepository(BaseRepository):
             return user
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
-            await logger.exception("Failed to update user due to a database error", exc_info=True, object_id=object_id, user_data=data.model_dump_json())
+            await logger.exception(
+                "Failed to update user due to a database error",
+                exc_info=True,
+                object_id=object_id,
+                user_data=data.model_dump_json(),
+            )
             raise HTTPException(status_code=400, detail="Failed to update user.")
 
     async def update_by_user_id(self, user_id: str, data: UpdateUserSchema):
@@ -127,10 +155,7 @@ class UserRepository(BaseRepository):
         try:
             values = data.model_dump()
             updated_user = await self.update_by_field(
-                model=User,
-                values=values,
-                field=User.user_id,
-                field_value=str(user_id)
+                model=User, values=values, field=User.user_id, field_value=str(user_id)
             )
             await self.postgresql_session.commit()
             return updated_user
@@ -142,7 +167,9 @@ class UserRepository(BaseRepository):
                 object_id=user_id,
                 user_data=data.model_dump_json(),
             )
-            raise HTTPException(status_code=400, detail="Failed to update user by user_id.")
+            raise HTTPException(
+                status_code=400, detail="Failed to update user by user_id."
+            )
 
     async def delete_user(self, object_id: uuid.UUID):
         """Removes a user from the database."""
@@ -152,16 +179,28 @@ class UserRepository(BaseRepository):
             return user
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
-            await logger.exception("Failed to delete user due to a database error", exc_info=True, object_id=object_id)
+            await logger.exception(
+                "Failed to delete user due to a database error",
+                exc_info=True,
+                object_id=object_id,
+            )
             raise HTTPException(status_code=400, detail="Failed to delete user.")
 
     async def delete_by_user_id(self, user_id: str):
         """Removes a user from the database based on their user_id."""
         try:
-            user = await self.delete_by_field(model=User, field=User.user_id, field_value=user_id)
+            user = await self.delete_by_field(
+                model=User, field=User.user_id, field_value=user_id
+            )
             await self.postgresql_session.commit()
             return user
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
-            await logger.exception("Failed to delete user by user_id due to a database error", exc_info=True, object_id=user_id)
-            raise HTTPException(status_code=400, detail="Failed to delete user by user_id.")
+            await logger.exception(
+                "Failed to delete user by user_id due to a database error",
+                exc_info=True,
+                object_id=user_id,
+            )
+            raise HTTPException(
+                status_code=400, detail="Failed to delete user by user_id."
+            )

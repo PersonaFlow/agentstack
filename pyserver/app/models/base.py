@@ -32,7 +32,7 @@ import re
 from sqlalchemy import MetaData
 from sqlalchemy.orm import declarative_base, declared_attr
 
-from app.core.configuration import settings
+from pyserver.app.core.configuration import settings
 
 
 def camel_to_snake_case(name: str):

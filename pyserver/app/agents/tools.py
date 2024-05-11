@@ -24,7 +24,7 @@ from langchain_community.utilities.tavily_search import TavilySearchAPIWrapper
 from langchain_core.tools import Tool
 from langchain_robocorp import ActionServerToolkit
 from typing_extensions import TypedDict
-from app.rag.custom_retriever import Retriever
+from pyserver.app.rag.custom_retriever import Retriever
 
 
 class DDGInput(BaseModel):

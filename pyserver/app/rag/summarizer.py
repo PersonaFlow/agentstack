@@ -1,7 +1,7 @@
 from openai import AsyncOpenAI
 
-from app.schema.rag import BaseDocumentChunk
-from app.core.configuration import get_settings
+from pyserver.app.schema.rag import BaseDocumentChunk
+from pyserver.app.core.configuration import get_settings
 
 SUMMARY_SUFFIX = "summary"
 settings = get_settings()
@@ -20,6 +20,7 @@ Text:
 ------------------------------------------
 
 Your summary:"""
+
 
 # TODO: Make this configurable
 async def completion(*, document: BaseDocumentChunk) -> str:

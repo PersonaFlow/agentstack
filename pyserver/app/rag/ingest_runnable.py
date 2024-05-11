@@ -1,6 +1,6 @@
-"""This module provides document ingestion utilities using langchain runnables."""
+"""This module provides document ingestion utilities using langchain
+runnables."""
 from __future__ import annotations
-import uuid
 import logging
 from typing import Any, BinaryIO, Optional
 
@@ -20,9 +20,9 @@ from langchain_core.runnables import (
 from langchain_core.vectorstores import VectorStore
 from langchain_openai import OpenAIEmbeddings
 from qdrant_client import QdrantClient
-from app.utils.vector_collection import create_assistants_collection
-from app.core.configuration import get_settings
-from app.utils.file_helpers import guess_mime_type, MIMETYPE_BASED_PARSER
+from pyserver.app.utils.vector_collection import create_assistants_collection
+from pyserver.app.core.configuration import get_settings
+from pyserver.app.utils.file_helpers import guess_mime_type, MIMETYPE_BASED_PARSER
 
 
 # TODO: Make Async
@@ -31,6 +31,7 @@ settings = get_settings()
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
+
 
 def _convert_ingestion_input_to_blob(data: BinaryIO) -> Blob:
     file_data = data.read()
@@ -44,20 +45,26 @@ def _convert_ingestion_input_to_blob(data: BinaryIO) -> Blob:
         mime_type=mimetype,
     )
 
+
 def _sanitize_document_content(document: Document) -> Document:
     """Sanitize the document."""
     # Without this, PDF ingestion fails with
     # "A string literal cannot contain NUL (0x00) characters".
     document.page_content = document.page_content.replace("\x00", "x")
 
-def _update_document_metadata(document: Document, namespace: str, file_id: Optional[str] = None) -> None:
-    """Mutation in place that adds namespace and file_id to the document metadata."""
+
+def _update_document_metadata(
+    document: Document, namespace: str, file_id: Optional[str] = None
+) -> None:
+    """Mutation in place that adds namespace and file_id to the document
+    metadata."""
     try:
         document.metadata["namespace"] = namespace
         document.metadata["file_id"] = file_id if file_id is not None else None
     except Exception as e:
         logger.error(f"Error updating document metadata: {e}")
         raise e
+
 
 def ingest_blob(
     blob: Blob,
@@ -87,7 +94,9 @@ def ingest_blob(
                 docs_to_index = []
 
         if docs_to_index:
-            logger.debug(f"Adding remaining {len(docs_to_index)} documents to vector store")
+            logger.debug(
+                f"Adding remaining {len(docs_to_index)} documents to vector store"
+            )
             ids.extend(vectorstore.add_documents(docs_to_index))
 
     except Exception as e:
@@ -112,7 +121,6 @@ class IngestRunnable(RunnableSerializable[BinaryIO, list[str]]):
     file_id: Optional[str]
     """The file id of the document to ingest."""
 
-
     class Config:
         arbitrary_types_allowed = True
 
@@ -128,7 +136,9 @@ class IngestRunnable(RunnableSerializable[BinaryIO, list[str]]):
 
     @property
     def vectorstore(self) -> VectorStore:
-        qdrant_client = QdrantClient(settings.VECTOR_DB_HOST, port = settings.VECTOR_DB_PORT)
+        qdrant_client = QdrantClient(
+            settings.VECTOR_DB_HOST, port=settings.VECTOR_DB_PORT
+        )
         collection_name = settings.VECTOR_DB_COLLECTION_NAME
         vector_size = settings.VECTOR_DB_ENCODER_DIMENSIONS
 
@@ -139,7 +149,7 @@ class IngestRunnable(RunnableSerializable[BinaryIO, list[str]]):
             client=qdrant_client,
             collection_name=collection_name,
             embeddings=OpenAIEmbeddings(),
-            vector_name="default"
+            vector_name="default",
         )
 
     class Config:
@@ -179,6 +189,7 @@ class IngestRunnable(RunnableSerializable[BinaryIO, list[str]]):
 
         return ids
 
+
 ingest_runnable = IngestRunnable(
     text_splitter=RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200),
 ).configurable_fields(
@@ -196,6 +207,5 @@ ingest_runnable = IngestRunnable(
         id="file_id",
         annotation=str,
         name="File ID",
-    )
+    ),
 )
-

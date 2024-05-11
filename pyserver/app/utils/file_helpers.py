@@ -1,4 +1,3 @@
-import uuid
 import mimetypes
 from langchain.document_loaders.parsers import BS4HTMLParser, PDFMinerParser
 from langchain.document_loaders.parsers.generic import MimeTypeBasedParser
@@ -20,6 +19,7 @@ MIMETYPE_BASED_PARSER = MimeTypeBasedParser(
     fallback_parser=None,
 )
 
+
 def guess_mime_type(file_bytes: bytes) -> str:
     """Guess the mime-type of a file."""
     try:
@@ -30,28 +30,33 @@ def guess_mime_type(file_bytes: bytes) -> str:
         ) from e
     return magic.from_buffer(file_bytes, mime=True)
 
+
 def guess_file_extension(file_type: str) -> str:
     """Guess the file extension based on the file type."""
     extension = mimetypes.guess_extension(file_type)
 
     if extension:
-        return extension.lstrip('.')  # Remove the leading dot from the extension
+        return extension.lstrip(".")  # Remove the leading dot from the extension
     else:
         # Fallback for common file types
-        if 'PDF' in file_type.upper():
-            return 'pdf'
-        elif 'TEXT' in file_type.upper():
-            return 'txt'
-        elif 'HTML' in file_type.upper():
-            return 'html'
-        elif 'WORD' in file_type.upper():
-            return 'doc' if 'Microsoft Word 2007+' in file_type else 'docx'
+        if "PDF" in file_type.upper():
+            return "pdf"
+        elif "TEXT" in file_type.upper():
+            return "txt"
+        elif "HTML" in file_type.upper():
+            return "html"
+        elif "WORD" in file_type.upper():
+            return "doc" if "Microsoft Word 2007+" in file_type else "docx"
         else:
-            raise ValueError(f"Unable to determine file extension for file type: {file_type}")
+            raise ValueError(
+                f"Unable to determine file extension for file type: {file_type}"
+            )
+
 
 def get_file_handler(mime_type: str):
     """Get the appropriate file handler based on the mime type."""
     return HANDLERS.get(mime_type)
+
 
 def is_mime_type_supported(mime_type: str) -> bool:
     """Check if the mime type is supported."""

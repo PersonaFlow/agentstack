@@ -34,14 +34,17 @@ Much of the API and business language is modeled after the OpenAI Assistants API
 - [x] Assistants API
 - [x] File management
 - [x] Advanced RAG with adaptive chunking and summarization
-- [ ] Advanced RAG assistants integration
+- [x] Advanced RAG assistants integration
+- [x] More LLMs, embedding options
+- [x] Local LLMs and embeddings (Ollama, Huggingface)
+- [ ] Auth
+- [ ] Admin client (in progress)
 - [ ] More agent types (self-reflection, etc.)
 - [ ] Persona generation
 - [ ] PersonaGen integration
 - [ ] Evaluation and scoring of assistants and RAG configurations
 - [ ] TypeScript SDK
 - [ ] Python SDK
-- [ ] Admin tool
 
 # Technology Stack
 
@@ -53,7 +56,8 @@ Much of the API and business language is modeled after the OpenAI Assistants API
 - Orchestration: LangChain
 - Agentic Assistants: LangGraph
 - Document Processing: Semantic-Router, Unstructured
-- Frontend: TypeScript/React (coming soon)
+- Frontend: TypeScript/React 
+- Mono-repo manager: Pants
 
 # Setup
 
@@ -68,48 +72,29 @@ Follow these instructions if you are only running from Docker and do not need to
 
 ## Dev Setup
 
-_Review "PersonaFlow PyServer Prerequisites" below for instructions on installing Python and Poetry._
+_Builds and dependencies are managed by [Pantsbuild](https://www.pantsbuild.org/2.20/docs/python/overview). Pants is a fast, scalable, user-friendly rust-based build system._
 
-1. Clone the repo
-2. From root directory, create a new virtual env with `python  -m venv .venv`
-3. Activate the virtual env with `source .venv/bin/activate`
-4. Create .env.local file using the .env.local.example template.
-5. Open docker-compose.yaml and comment out the `pyserver` block under `services`
-6. Open docker on your machine if it is not already running and run `docker-compose up -d`. This will download and start the images for Qdrant, Postgres, and Unstructured-API
-7. Install the dependencies by running `cd pyserver && poetry install --no-root`.
-8. When that is fiinished, you will need to run the database migration with `alembic upgrade head` while still in the `pyserver` directory.
-9. Run `poetry run python start.py` to start the server.
-10. Navigate to `http://localhost:9000/docs` to see the API documentation.
-11. Continue with "Testing the APIs" below
 
-## PersonaFlow PyServer Prerequisites
+1. [install Pants](https://www.pantsbuild.org/2.20/docs/getting-started/installing-pants) on your system.
+2. Clone the repo and make sure you have Python 3.11.* installed and the interpreter selected in your IDE.
+3. Create .env.local file using the .env.local.example template.
+4. Open docker-compose.yaml and comment out the `stack` block under `services`
+5. Open docker on your machine if it is not already running and run `docker-compose up -d`. This will download and start the images for Qdrant, Postgres, and Unstructured-API
+6. Install dependencies by running `pip install -r requirements.txt`.
+7.  When that is fiinished, you will need to run the database migration with `alembic upgrade head` from the /stack directory.
+8.  Run `pants run stack:local` to start the server.
+9. Navigate to `http://localhost:9000/docs` to see the API documentation.
 
-Before starting the dev setup, make sure you have Python 3.11 or above installed:
+## Useful Pants Commands
+- Format: `pants fmt ::`
+- Test: `pants test ::`
+- Run PersonaStack: `pants run stack:local`
 
-- Download and install python from [https://www.python.org/downloads/](https://www.python.org/downloads/)
-- (Optional) create an alias for python to point to python3 in your shell configuration file (e.g., .zshrc or .bash_profile), like this (for mac):
-
-```shell
-echo 'alias python=python3' >> ~/.zshrc
-source ~/.zshrc
-```
-
-- Run the `Update Shell Profile.command` and `Install Certificates.command` files, located in the folder where Python was installed.
-  Now you are ready to set up PyServer...
-
-The pyserver uses Poetry for dependency and env management. To install Poetry, run:
-
-```shell
-curl -sSL https://install.python-poetry.org | python -
-```
-
-After installing Poetry, it might tell you to add something to your shell profile script (eg. `echo 'export PATH="$HOME/.poetry/bin:$PATH"' >> ~/.zshrc`). Make sure to do this if it tells you to.
-
-> Note: be sure to restart your terminal or run: `source ~/.zshrc` to make sure the changes take effect. Run `poetry --version` to check that Poetry is installed correctly.
+Note: `::` means all files in project. For more information on targeting, see: [Targets and BUILD files](https://www.pantsbuild.org/2.20/docs/using-pants/key-concepts/targets-and-build-files).
 
 # API Usage
 
-To test the APIs, you can use the Swagger UI at `http://localhost:9000/docs`.
+To run the APIs by themseleves, you can use the Swagger UI at `http://localhost:9000/docs` or import the openapi json file into Postman.
 
 ## Document Processing
 
@@ -117,7 +102,7 @@ Currently there are 2 systems of document processing. The `/api/v1/rag/assistant
 
 The `/api/v1/rag/ingest` and `/api/v1/rag/query` exist as standalone endpoints for document processing. These endpoints only support embeddings generated by OpenAI and Cohere at the moment, with support for Azure OpenAI, Huggingface embeddings, and Ollama for local embedding models soon to come.
 
-For the standalone endpoints, processing of unstructured data is handled primarily by the [embedding service](./pyserver/app/rag/embedding_service.py), which does the partioning, chunking, embedding, and upserting of documents. The splitting of documents can be done by title, where the title elements of the document are detected and then split accordingly, or the splits can be created according to semantic similarity of the surrounding content. The embeddings are then stored in the Qdrant vector database. Note that other vector database options will be added soon.
+For the standalone endpoints, processing of unstructured data is handled primarily by the [embedding service](./stack/app/rag/embedding_service.py), which does the partioning, chunking, embedding, and upserting of documents. The splitting of documents can be done by title, where the title elements of the document are detected and then split accordingly, or the splits can be created according to semantic similarity of the surrounding content. The embeddings are then stored in the Qdrant vector database. Note that other vector database options will be added soon.
 
 The `/api/v1/rag/ingest` endpoint supports the ingesting of documents that are uploaded with the request, or provided as a list of file objects containing URLs. This means that you could create a single collection that contains data from a combination of local files and web content.
 

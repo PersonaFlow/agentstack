@@ -1,7 +1,7 @@
 from typing import Annotated
 
 from fastapi import Depends
-from app.core.api_key import get_api_key
+from pyserver.app.core.api_key import get_api_key
 
 from fastapi.security.api_key import APIKey
 

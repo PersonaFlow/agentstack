@@ -14,7 +14,7 @@ from langgraph.graph import END
 from langgraph.graph.message import MessageGraph
 from langgraph.prebuilt import ToolExecutor, ToolInvocation
 
-from app.schema.message_types import LiberalToolMessage
+from pyserver.app.schema.message_types import LiberalToolMessage
 
 
 def get_tools_agent_executor(
@@ -41,7 +41,7 @@ def get_tools_agent_executor(
         return [SystemMessage(content=system_message)] + msgs
 
     llm_with_tools = llm.bind_tools(tools) if tools else llm
-    
+
     agent = _get_messages | llm_with_tools
     tool_executor = ToolExecutor(tools)
 

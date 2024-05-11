@@ -14,19 +14,22 @@ from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.schema import AIMessage, HumanMessage, StrOutputParser
 from langchain.schema.runnable import RunnableMap
 
-from app.repositories import get_assistant_repository, AssistantRepository, ThreadRepository, get_thread_repository
-from app.api.annotations import ApiKey
-from app.schema import TitleRequest, Thread, FeedbackCreateRequest
-from app.agents import agent
-from app.utils.stream import astream_state, to_sse
-from app.repositories import ThreadRepository
+from pyserver.app.agents.configurable_agent import agent
+from pyserver.app.api.annotations import ApiKey
+from pyserver.app.schema.thread import Thread
+from pyserver.app.repositories.assistant import AssistantRepository, get_assistant_repository
+from pyserver.app.repositories.thread import ThreadRepository, get_thread_repository
+from pyserver.app.schema.feedback import FeedbackCreateRequest
+from pyserver.app.schema.title import TitleRequest
+from pyserver.app.utils.stream import astream_state, to_sse
 from sse_starlette import EventSourceResponse
-from app.core.configuration import get_settings
+from pyserver.app.core.configuration import get_settings
 
 settings = get_settings()
 if settings.ENABLE_LANGSMITH_TRACING:
     from langsmith import Client
     from langchain.callbacks.tracers import LangChainTracer
+
     tracer = LangChainTracer(project_name=settings.LANGSMITH_PROJECT_NAME)
     langsmith_client = Client()
 
@@ -37,18 +40,19 @@ router = APIRouter()
 
 class CreateRunPayload(BaseModel):
     """Payload for creating a run."""
+
     user_id: str
     assistant_id: Optional[str] = None
     thread_id: Optional[str] = None
     input: list[dict]
     config: Optional[RunnableConfig] = None
 
-async def _run_input_and_config(
-        payload: CreateRunPayload,
-        assistant_repository: AssistantRepository,
-        thread_repository: ThreadRepository,
-):
 
+async def _run_input_and_config(
+    payload: CreateRunPayload,
+    assistant_repository: AssistantRepository,
+    thread_repository: ThreadRepository,
+):
     if payload.thread_id and not payload.assistant_id:
         thread: Thread = thread_repository.retrieve_thread(payload.thread_id)
         payload.assistant_id = thread.assistant_id
@@ -62,7 +66,9 @@ async def _run_input_and_config(
         )
         payload.thread_id = str(thread.id)
 
-    assistant = await assistant_repository.retrieve_assistant(assistant_id=payload.assistant_id)
+    assistant = await assistant_repository.retrieve_assistant(
+        assistant_id=payload.assistant_id
+    )
 
     if not assistant:
         await logger.exception("Invalid Assistant ID Provided", exc_info=False)
@@ -88,36 +94,47 @@ async def _run_input_and_config(
 
     return payload.input, config
 
-@router.post("/stream", tags=[DEFAULT_TAG], response_class=EventSourceResponse,
-             operation_id="stream_run",
-             summary="Stream an LLM run.",
-             description="""
+
+@router.post(
+    "/stream",
+    tags=[DEFAULT_TAG],
+    response_class=EventSourceResponse,
+    operation_id="stream_run",
+    summary="Stream an LLM run.",
+    description="""
                 Endpoint to stream an LLM response. If the thread_id is not provided, a new thread will be created as long as the assistant_id is included. <br>
                 Note that the input should be a list of messages in the format: <br>
                 content: string <br>
                 role: string <br>
                 additional_kwargs: dict <br>
                 example: bool <br>
-                """)
+                """,
+)
 async def stream_run(
     api_key: ApiKey,
     payload: CreateRunPayload,
     assistant_repository: AssistantRepository = Depends(get_assistant_repository),
     thread_repository: ThreadRepository = Depends(get_thread_repository),
 ):
-    if (settings.ENABLE_LANGSMITH_TRACING):
+    if settings.ENABLE_LANGSMITH_TRACING:
         global trace_url
         trace_url = None
 
-    input_, config = await _run_input_and_config(payload, assistant_repository, thread_repository)
+    input_, config = await _run_input_and_config(
+        payload, assistant_repository, thread_repository
+    )
 
     return EventSourceResponse(to_sse(astream_state(agent, input_, config)))
 
 
-@router.post("", tags=[DEFAULT_TAG], response_model=dict,
-             operation_id="create_run",
-             summary="Create a run",
-             description="Create a run to be processed by the LLM.")
+@router.post(
+    "",
+    tags=[DEFAULT_TAG],
+    response_model=dict,
+    operation_id="create_run",
+    summary="Create a run",
+    description="Create a run to be processed by the LLM.",
+)
 async def create_run(
     api_key: ApiKey,
     payload: CreateRunPayload,
@@ -125,31 +142,45 @@ async def create_run(
     assistant_repository: AssistantRepository = Depends(get_assistant_repository),
     thread_repository: ThreadRepository = Depends(get_thread_repository),
 ):
-    input_, config = await _run_input_and_config(payload, assistant_repository, thread_repository)
+    input_, config = await _run_input_and_config(
+        payload, assistant_repository, thread_repository
+    )
     background_tasks.add_task(agent.ainvoke, input_, config)
     return {"status": "ok"}
 
 
-@router.get("/input_schema", tags=[DEFAULT_TAG], response_model=dict,
-            operation_id="get_input_schema",
-            summary="Return the input schema of the runnable.",
-            description="Return the input schema of the runnable.")
+@router.get(
+    "/input_schema",
+    tags=[DEFAULT_TAG],
+    response_model=dict,
+    operation_id="get_input_schema",
+    summary="Return the input schema of the runnable.",
+    description="Return the input schema of the runnable.",
+)
 async def input_schema() -> dict:
     return agent.get_input_schema().schema()
 
 
-@router.get("/output_schema", tags=[DEFAULT_TAG], response_model=dict,
-            operation_id="get_output_schema",
-            summary="Return the output schema of the runnable.",
-            description="Return the output schema of the runnable.")
+@router.get(
+    "/output_schema",
+    tags=[DEFAULT_TAG],
+    response_model=dict,
+    operation_id="get_output_schema",
+    summary="Return the output schema of the runnable.",
+    description="Return the output schema of the runnable.",
+)
 async def output_schema() -> dict:
     return agent.get_output_schema().schema()
 
 
-@router.get("/config_schema", tags=[DEFAULT_TAG], response_model=dict,
-            operation_id="get_config_schema",
-            summary="Return the config schema of the runnable.",
-            description="Return the config schema of the runnable.")
+@router.get(
+    "/config_schema",
+    tags=[DEFAULT_TAG],
+    response_model=dict,
+    operation_id="get_config_schema",
+    summary="Return the config schema of the runnable.",
+    description="Return the config schema of the runnable.",
+)
 async def config_schema() -> dict:
     return agent.config_schema().schema()
 
@@ -163,12 +194,16 @@ Conversation:
 {chat_history}
 """
 
-@router.post("/title", tags=[DEFAULT_TAG], response_model=Thread,
-            operation_id="generate_title",
-            summary="Generate a title to name the thread.",
-            description="Generates a title for the conversation by sending a list of interactions to the model.")
-async def title_endpoint(api_key: ApiKey, request: TitleRequest) -> Thread:
 
+@router.post(
+    "/title",
+    tags=[DEFAULT_TAG],
+    response_model=Thread,
+    operation_id="generate_title",
+    summary="Generate a title to name the thread.",
+    description="Generates a title for the conversation by sending a list of interactions to the model.",
+)
+async def title_endpoint(api_key: ApiKey, request: TitleRequest) -> Thread:
     if not request.thread_id:
         raise ValueError("Thread ID is required")
 
@@ -184,7 +219,7 @@ async def title_endpoint(api_key: ApiKey, request: TitleRequest) -> Thread:
             converted_chat_history.append(HumanMessage(content=message.content))
         elif message.type == "ai":
             converted_chat_history.append(AIMessage(content=message.content))
-# TODO extract this out to be a shared llm config
+    # TODO extract this out to be a shared llm config
     llm = ChatOpenAI(
         model="gpt-3.5-turbo-1106",
         streaming=False,
@@ -216,7 +251,9 @@ async def title_endpoint(api_key: ApiKey, request: TitleRequest) -> Thread:
             config={"callbacks": [tracer] if settings.ENABLE_LANGSMITH_TRACING else []},
         )
         try:
-            thread = await thread_service.update_thread(request.thread_id, {"name": title})
+            thread = await thread_service.update_thread(
+                request.thread_id, {"name": title}
+            )
             return thread
         except Exception as e:
             logger.debug(f"Failure calling update thread service: {e}")
@@ -226,10 +263,16 @@ async def title_endpoint(api_key: ApiKey, request: TitleRequest) -> Thread:
         logger.debug(f"API Endpoint Exception - Failed to generate title: {e}")
         raise
 
+
 if settings.ENABLE_LANGSMITH_TRACING and tracing_is_enabled():
-    @router.post("/feedback", tags=["Feedback"], response_model=dict,
-                 summary="Send feedback on an individual run to langsmith",
-                 description="Send feedback on an individual run to langsmith. **Disabled if ENABLE_LANGSMITH_TRACING is not explicitly set to `true`**.")
+
+    @router.post(
+        "/feedback",
+        tags=["Feedback"],
+        response_model=dict,
+        summary="Send feedback on an individual run to langsmith",
+        description="Send feedback on an individual run to langsmith. **Disabled if ENABLE_LANGSMITH_TRACING is not explicitly set to `true`**.",
+    )
     def create_run_feedback(feedback_create_req: FeedbackCreateRequest) -> dict:
         langsmith_client.create_feedback(
             feedback_create_req.run_id,

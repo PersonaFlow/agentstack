@@ -1,5 +1,5 @@
-from typing import Any, List, Optional
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field
+
 
 class TokenResponse(BaseModel):
     # limeade_account_id: int

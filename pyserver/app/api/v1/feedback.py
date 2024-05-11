@@ -1,14 +1,16 @@
 from fastapi import APIRouter, Request
 
-from app.core.configuration import Settings
+from pyserver.app.core.configuration import Settings
 
 settings = Settings()
 if settings.ENABLE_LANGSMITH_TRACING:
     from langsmith import Client
-    from app.utils import aget_trace_url
+    from pyserver.app.utils import aget_trace_url
+
     client = Client()
 
 router = APIRouter()
+
 
 @router.post("/feedback")
 async def send_feedback(request: Request):
@@ -44,6 +46,7 @@ async def update_feedback(request: Request):
         )
     # TODO: add langfuse feedback
     return {"result": "patched feedback successfully", "code": 200}
+
 
 @router.post("/get_trace")
 async def get_trace(request: Request):

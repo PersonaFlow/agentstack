@@ -29,9 +29,10 @@ from fastapi import Request, Response
 from starlette.concurrency import iterate_in_threadpool
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 
-from app.core.configuration import Settings
-# from app.core.pg_database import get_postgresql_session
-from app.models.request_log import RequestLog
+from pyserver.app.core.configuration import Settings
+
+# from pyserver.app.core.pg_database import get_postgresql_session
+from pyserver.app.models.request_log import RequestLog
 
 
 class RequestLoggerMiddleware(BaseHTTPMiddleware):

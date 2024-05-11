@@ -4,10 +4,14 @@ from langchain.schema.language_model import BaseLanguageModel
 from langchain.schema.runnable import Runnable, RunnableMap
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder, PromptTemplate
 from langchain.schema.output_parser import StrOutputParser
-from app.utils import format_docs
+from pyserver.app.utils import format_docs
+
 
 def create_retriever_chain(
-    llm: BaseLanguageModel, retriever: BaseRetriever, rephrase_template: str, use_chat_history: bool
+    llm: BaseLanguageModel,
+    retriever: BaseRetriever,
+    rephrase_template: str,
+    use_chat_history: bool,
 ) -> Runnable:
     CONDENSE_QUESTION_PROMPT = PromptTemplate.from_template(rephrase_template)
     if not use_chat_history:
@@ -28,6 +32,7 @@ def create_retriever_chain(
         conversation_chain = condense_question_chain | retriever
         return conversation_chain
 
+
 def create_universal_retrieval_chain(
     llm: BaseLanguageModel,
     retriever: BaseRetriever,
@@ -35,7 +40,6 @@ def create_universal_retrieval_chain(
     rephrase_template: str,
     use_chat_history: bool = False,
 ) -> Runnable:
-    
     retriever_chain = create_retriever_chain(
         llm, retriever, rephrase_template, use_chat_history
     ).with_config(run_name="ChatPipeline")
@@ -52,7 +56,7 @@ def create_universal_retrieval_chain(
         [
             ("system", response_template),
             MessagesPlaceholder(variable_name="chat_history"),
-            ("human", "{question}"), 
+            ("human", "{question}"),
         ]
     )
 

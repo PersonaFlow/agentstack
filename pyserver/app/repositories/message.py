@@ -22,22 +22,25 @@ Key Functionalities:
 """
 
 from sqlalchemy import select
-from app.models.message import Message
-from app.repositories.base import BaseRepository
+from pyserver.app.models.message import Message
+from pyserver.app.repositories.base import BaseRepository
 import structlog
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi import HTTPException, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.core.datastore import get_postgresql_session_provider
+from pyserver.app.core.datastore import get_postgresql_session_provider
 from typing import List
 
 logger = structlog.get_logger()
 
-def get_message_repository(session: AsyncSession = Depends(get_postgresql_session_provider)):
+
+def get_message_repository(
+    session: AsyncSession = Depends(get_postgresql_session_provider),
+):
     return MessageRepository(postgresql_session=session)
 
-class MessageRepository(BaseRepository):
 
+class MessageRepository(BaseRepository):
     def __init__(self, postgresql_session):
         self.postgresql_session = postgresql_session
 
@@ -49,23 +52,30 @@ class MessageRepository(BaseRepository):
             return message
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
-            await logger.exception("Failed to create message due to a database error", exc_info=True, message_data=data)
-            raise HTTPException(status_code=400, detail="Failed to create message.") from e
+            await logger.exception(
+                "Failed to create message due to a database error",
+                exc_info=True,
+                message_data=data,
+            )
+            raise HTTPException(
+                status_code=400, detail="Failed to create message."
+            ) from e
 
     @staticmethod
     def _get_retrieve_query():
         """Constructs the default query for message retrieval."""
-        return select(Message.id,
-                      Message.thread_id,
-                      Message.user_id,
-                      Message.assistant_id,
-                      Message.content,
-                      Message.role,
-                      Message.kwargs,
-                      Message.example,
-                      Message.created_at,
-                      Message.updated_at
-                    )
+        return select(
+            Message.id,
+            Message.thread_id,
+            Message.user_id,
+            Message.assistant_id,
+            Message.content,
+            Message.role,
+            Message.kwargs,
+            Message.example,
+            Message.created_at,
+            Message.updated_at,
+        )
 
     async def retrieve_messages_by_thread_id(self, thread_id: str) -> List[Message]:
         """Retrieves messages based on their thread_id."""
@@ -75,18 +85,31 @@ class MessageRepository(BaseRepository):
             records = result.fetchall()
             return records
         except SQLAlchemyError as e:
-            await logger.exception("Failed to retrieve messages by thread_id due to a database error", exc_info=True, thread_id=thread_id)
-            raise HTTPException(status_code=500, detail="Failed to retrieve messages by thread_id.")
+            await logger.exception(
+                "Failed to retrieve messages by thread_id due to a database error",
+                exc_info=True,
+                thread_id=thread_id,
+            )
+            raise HTTPException(
+                status_code=500, detail="Failed to retrieve messages by thread_id."
+            )
 
     async def update_message(self, message_id: str, data: dict) -> Message:
         """Updates an existing message."""
         try:
-            message = await self.update(model=Message, values=data, object_id=message_id)
+            message = await self.update(
+                model=Message, values=data, object_id=message_id
+            )
             await self.postgresql_session.commit()
             return message
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
-            await logger.exception("Failed to update message due to a database error", exc_info=True, message_id=message_id, message_data=data)
+            await logger.exception(
+                "Failed to update message due to a database error",
+                exc_info=True,
+                message_id=message_id,
+                message_data=data,
+            )
             raise HTTPException(status_code=400, detail="Failed to update message.")
 
     async def delete_message(self, message_id: str) -> Message:
@@ -97,5 +120,9 @@ class MessageRepository(BaseRepository):
             return message
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
-            await logger.exception("Failed to delete message due to a database error", exc_info=True, message_id=message_id)
+            await logger.exception(
+                "Failed to delete message due to a database error",
+                exc_info=True,
+                message_id=message_id,
+            )
             raise HTTPException(status_code=400, detail="Failed to delete message.")
