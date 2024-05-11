@@ -77,12 +77,12 @@ _Builds and dependencies are managed by [Pantsbuild](https://www.pantsbuild.org/
 
 1. [install Pants](https://www.pantsbuild.org/2.20/docs/getting-started/installing-pants) on your system.
 2. Clone the repo and make sure you have Python 3.11.* installed and the interpreter selected in your IDE.
-3. Create .env.local file using the .env.local.example template.
-4. Open docker-compose.yaml and comment out the `stack` block under `services`
+3. Create .env.local and .env.production files using the .env.local.example and .env.production.example templates.
+4. Open docker-compose.yaml and comment out the `stack` block under `services` if it is not already commented out.
 5. Open docker on your machine if it is not already running and run `docker-compose up -d`. This will download and start the images for Qdrant, Postgres, and Unstructured-API
 6. Install dependencies by running `pip install -r requirements.txt`.
-7.  When that is fiinished, you will need to run the database migration with `alembic upgrade head` from the /stack directory.
-8.  Run `pants run stack:local` to start the server.
+7.  When that is fiinished, run the database migration with `alembic upgrade head`.
+8.  Run `pants run stack:local` to start the server. Include the `--loop` flag to auto-reload the server on changes.
 9. Navigate to `http://localhost:9000/docs` to see the API documentation.
 
 ## Useful Pants Commands

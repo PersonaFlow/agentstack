@@ -3,7 +3,7 @@ from typing import List
 from semantic_router.encoders import BaseEncoder
 from langchain_community.embeddings.ollama import OllamaEmbeddings
 
-from app.core.configuration import get_settings
+from stack.app.core.configuration import get_settings
 
 settings = get_settings()
 
