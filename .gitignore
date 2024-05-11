@@ -181,3 +181,7 @@ dist-ssr
 *.sln
 *.sw?
 *.code-workspace
+
+# Pants workspace files
+/.pants.d
+/dist/
