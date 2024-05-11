@@ -1,16 +1,16 @@
 services:
-  pyserver:
-    build:
-      context: ./pyserver
-      dockerfile: Dockerfile
-    container_name: pyserver
-    # restart: on-failure
-    ports:
-      - "9000:9000"
-    networks:
-      - net
-    env_file:
-      - .env.production
+  # stack:
+  #   build:
+  #     context: ./stack
+  #     dockerfile: Dockerfile
+  #   container_name: PersonaStack
+  #   # restart: on-failure
+  #   ports:
+  #     - "9000:9000"
+  #   networks:
+  #     - net
+  #   env_file:
+  #     - .env.production
   postgresql:
     # Use a custom Docker build context for PostgreSQL.
     build: ./contrib/postgresql
