@@ -13,7 +13,7 @@ GRANT ALL PRIVILEGES ON DATABASE internal TO internal;
 
 
 \c internal;
-CREATE SCHEMA pyserver;
-ALTER SCHEMA pyserver OWNER TO internal;
+CREATE SCHEMA personaflow;
+ALTER SCHEMA personaflow OWNER TO internal;
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
