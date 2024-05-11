@@ -1,16 +1,11 @@
 from fastapi import APIRouter, Depends, status
 from typing import List
-from pyserver.app.repositories import (
-    ThreadRepository,
-    MessageRepository,
-    UserRepository,
-    AssistantRepository,
-    get_thread_repository,
-    get_message_repository,
-    get_user_repository,
-    get_assistant_repository,
-)
-from pyserver.app.schema import CreateThreadSchema, Thread, UpdateThreadSchema, Message
+from pyserver.app.repositories.thread import ThreadRepository, get_thread_repository
+from pyserver.app.repositories.message import MessageRepository, get_message_repository
+from pyserver.app.repositories.user import UserRepository, get_user_repository
+from pyserver.app.repositories.assistant import AssistantRepository, get_assistant_repository
+from pyserver.app.schema.thread import CreateThreadSchema, Thread, UpdateThreadSchema
+from pyserver.app.schema.message import Message
 from pyserver.app.api.annotations import ApiKey
 from pyserver.app.core.exception import NotFoundException
 

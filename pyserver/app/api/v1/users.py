@@ -6,16 +6,15 @@ This module provides the FastAPI endpoints related to user management functional
 
 """
 
+from typing import List, Optional
 from fastapi import APIRouter, status, Query, Depends
 from pyserver.app.api.annotations import ApiKey
 from pyserver.app.core.exception import NotFoundException
-from pyserver.app.models.thread import Thread
-from pyserver.app.models.user import User
+from pyserver.app.schema.thread import Thread
+from pyserver.app.schema.user import User, CreateUserSchema, UpdateUserSchema
 from pyserver.app.repositories.thread import ThreadRepository, get_thread_repository
 from pyserver.app.repositories.user import UserRepository, get_user_repository
-from pyserver.app.schema.user import CreateUserSchema, UpdateUserSchema
 from pyserver.app.utils import group_threads
-from typing import List, Optional
 
 router = APIRouter()
 DEFAULT_TAG = "Users"

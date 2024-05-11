@@ -16,7 +16,7 @@ from langchain.schema.runnable import RunnableMap
 
 from pyserver.app.agents.configurable_agent import agent
 from pyserver.app.api.annotations import ApiKey
-from pyserver.app.models.thread import Thread
+from pyserver.app.schema.thread import Thread
 from pyserver.app.repositories.assistant import AssistantRepository, get_assistant_repository
 from pyserver.app.repositories.thread import ThreadRepository, get_thread_repository
 from pyserver.app.schema.feedback import FeedbackCreateRequest

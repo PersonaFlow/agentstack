@@ -1,5 +1,5 @@
 from typing import List, Optional
-from pyserver.app.schema import Thread, GroupedThreads
+from pyserver.app.schema.thread import Thread, GroupedThreads
 from datetime import datetime, timedelta, timezone
 
 

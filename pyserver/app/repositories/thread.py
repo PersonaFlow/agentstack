@@ -11,7 +11,7 @@ from pyserver.app.core.datastore import get_postgresql_session_provider
 from typing import Optional, Any
 from langchain_core.messages import message_chunk_to_message
 
-from pyserver.app.agents import AgentType, get_agent_executor
+from pyserver.app.agents.configurable_agent import AgentType, get_agent_executor
 
 from langgraph.channels.base import ChannelsManager
 from langgraph.checkpoint.base import empty_checkpoint

@@ -14,7 +14,8 @@ from pyserver.app.agents.xml_agent import get_xml_agent_executor
 from pyserver.app.agents.chatbot import get_chatbot_executor
 from pyserver.app.core.pg_checkpoint_saver import get_pg_checkpoint_saver
 from pyserver.app.core.configuration import get_settings
-from pyserver.app.llms import (
+from pyserver.app.schema.assistant import AgentType, LLMType
+from pyserver.app.core.llms import (
     get_anthropic_llm,
     get_google_llm,
     get_mixtral_fireworks,
@@ -58,17 +59,6 @@ Tool = Union[
     SecFilings,
     PressReleases,
 ]
-
-
-class AgentType(str, Enum):
-    GPT_35_TURBO = "GPT 3.5 Turbo"
-    GPT_4 = "GPT 4 Turbo"
-    AZURE_OPENAI = "GPT 4 (Azure OpenAI)"
-    CLAUDE2 = "Claude 2"
-    BEDROCK_CLAUDE2 = "Claude 2 (Amazon Bedrock)"
-    GEMINI = "GEMINI"
-    OLLAMA = "Ollama"
-
 
 DEFAULT_SYSTEM_MESSAGE = "You are a helpful assistant."
 
@@ -179,18 +169,6 @@ class ConfigurableAgent(RunnableBinding):
             kwargs=kwargs or {},
             config=config or {},
         )
-
-
-class LLMType(str, Enum):
-    GPT_35_TURBO = "GPT 3.5 Turbo"
-    GPT_4 = "GPT 4 Turbo"
-    AZURE_OPENAI = "GPT 4 (Azure OpenAI)"
-    CLAUDE2 = "Claude 2"
-    BEDROCK_CLAUDE2 = "Claude 2 (Amazon Bedrock)"
-    GEMINI = "GEMINI"
-    MIXTRAL = "Mixtral"
-    OLLAMA = "Ollama"
-
 
 def get_chatbot(
     llm_type: LLMType,
