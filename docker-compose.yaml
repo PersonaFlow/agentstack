@@ -59,6 +59,14 @@ services:
       - 8000:8000
     networks:
       - net
+  # Uncomment if you want to run local models using ollama docker image
+  # ollama:
+  #   image: ollama/ollama
+  #   container_name: embed-ollama
+  #   ports:
+  #     - 11435:11434
+  #   volumes:
+  #     - ./models:/root/.ollama/models
 
 configs:
   qdrant_config:
@@ -67,9 +75,10 @@ configs:
 
 networks:
   net:
-#    driver: bridge
 volumes:
   qdrant_data:
     driver: local
   postgresql_data:
     driver: local
+  # models:
+  #   driver: local
