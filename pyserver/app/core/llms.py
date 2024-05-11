@@ -8,10 +8,11 @@ from langchain_anthropic import ChatAnthropic
 from langchain_community.chat_models import BedrockChat, ChatFireworks
 from langchain_community.chat_models.ollama import ChatOllama
 from langchain_google_vertexai import ChatVertexAI
-from app.core.configuration import get_settings
+from pyserver.app.core.configuration import get_settings
 
 settings = get_settings()
 logger = logging.getLogger(__name__)
+
 
 @lru_cache(maxsize=4)
 def get_openai_llm(gpt_4: bool = False, azure: bool = False):
@@ -27,15 +28,15 @@ def get_openai_llm(gpt_4: bool = False, azure: bool = False):
     if not azure:
         try:
             llm = ChatOpenAI(
-                model=settings.GPT_4_MODEL_NAME if gpt_4 else settings.GPT_35_MODEL_NAME,
+                model=settings.GPT_4_MODEL_NAME
+                if gpt_4
+                else settings.GPT_35_MODEL_NAME,
                 http_client=http_client,
                 temperature=0,
             )
             return llm
         except Exception as e:
-            logger.error(
-                f"Failed to instantiate ChatOpenAI due to: {str(e)}."
-            )
+            logger.error(f"Failed to instantiate ChatOpenAI due to: {str(e)}.")
     else:
         llm = AzureChatOpenAI(
             temperature=0,
@@ -45,6 +46,7 @@ def get_openai_llm(gpt_4: bool = False, azure: bool = False):
             openai_api_key=settings.AZURE_OPENAI_API_KEY,
         )
         return llm
+
 
 @lru_cache(maxsize=2)
 def get_anthropic_llm(bedrock: bool = False):
@@ -68,7 +70,9 @@ def get_anthropic_llm(bedrock: bool = False):
 @lru_cache(maxsize=1)
 def get_google_llm():
     return ChatVertexAI(
-        model_name=settings.GOOGLE_VERTEX_MODEL, convert_system_message_to_human=True, streaming=True
+        model_name=settings.GOOGLE_VERTEX_MODEL,
+        convert_system_message_to_human=True,
+        streaming=True,
     )
 
 

@@ -30,7 +30,9 @@ async def astream_state(
             new_messages: list[BaseMessage] = []
 
             # event["data"]["chunk"] is a Sequence[AnyMessage] or a Dict[str, Any]
-            state_chunk_msgs: Union[Sequence[AnyMessage], Dict[str, Any]] = event["data"]["chunk"]
+            state_chunk_msgs: Union[Sequence[AnyMessage], Dict[str, Any]] = event[
+                "data"
+            ]["chunk"]
             if isinstance(state_chunk_msgs, dict):
                 state_chunk_msgs = event["data"]["chunk"]["messages"]
 
@@ -56,7 +58,7 @@ _serializer = WellKnownLCSerializer()
 
 
 async def to_sse(messages_stream: MessagesStream) -> AsyncIterator[dict]:
-    """Consume the stream into an EventSourceResponse"""
+    """Consume the stream into an EventSourceResponse."""
     try:
         async for chunk in messages_stream:
             if isinstance(chunk, str):
@@ -75,7 +77,6 @@ async def to_sse(messages_stream: MessagesStream) -> AsyncIterator[dict]:
         logger.error("error in stream", exc_info=True)
         yield {
             "event": "error",
-
             "data": orjson.dumps(
                 {"status_code": 500, "message": "Internal Server Error"}
             ).decode(),

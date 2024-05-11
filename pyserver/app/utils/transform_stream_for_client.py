@@ -2,6 +2,7 @@ import json
 from typing import AsyncIterator
 from fastapi.encoders import jsonable_encoder
 
+
 async def transform_stream_for_client(
     stream: AsyncIterator,
 ) -> AsyncIterator[str]:

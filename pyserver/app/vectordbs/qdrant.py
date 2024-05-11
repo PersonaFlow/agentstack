@@ -5,15 +5,16 @@ from qdrant_client.http import models as rest
 from semantic_router.encoders import BaseEncoder
 from tqdm import tqdm
 import structlog
-from app.schema.rag import DeleteDocumentsResponse, BaseDocumentChunk
-from app.vectordbs.base import BaseVectorDatabase
-from app.core.configuration import get_settings
+from pyserver.app.schema.rag import DeleteDocumentsResponse, BaseDocumentChunk
+from pyserver.app.vectordbs.base import BaseVectorDatabase
+from pyserver.app.core.configuration import get_settings
 from qdrant_client.http import models as qdrant_models
 
 
 settings = get_settings()
 
 logger = structlog.get_logger()
+
 
 class QdrantService(BaseVectorDatabase):
     def __init__(
@@ -35,9 +36,7 @@ class QdrantService(BaseVectorDatabase):
         )
 
         self.client = QdrantClient(
-            credentials["host"],
-            api_key=credentials["api_key"],
-            https=False
+            credentials["host"], api_key=credentials["api_key"], https=False
         )
 
         collections = self.client.get_collections()
@@ -81,8 +80,12 @@ class QdrantService(BaseVectorDatabase):
 
         self.client.upsert(collection_name=self.index_name, wait=True, points=points)
 
-
-    async def query(self, input: str, top_k: int = settings.MAX_QUERY_TOP_K, namespace: Optional[str] = None) -> List:
+    async def query(
+        self,
+        input: str,
+        top_k: int = settings.MAX_QUERY_TOP_K,
+        namespace: Optional[str] = None,
+    ) -> List:
         vectors = await self._generate_vectors(input=input)
         if not namespace:
             namespace = self.namespace
@@ -129,14 +132,20 @@ class QdrantService(BaseVectorDatabase):
             for result in search_result
         ]
 
-    async def delete(self, file_id: str, assistant_id: Optional[str] = None) -> DeleteDocumentsResponse:
-
+    async def delete(
+        self, file_id: str, assistant_id: Optional[str] = None
+    ) -> DeleteDocumentsResponse:
         must_conditions = [
-            rest.FieldCondition(key="metadata.file_id", match=rest.MatchValue(value=str(file_id)))
+            rest.FieldCondition(
+                key="metadata.file_id", match=rest.MatchValue(value=str(file_id))
+            )
         ]
         if assistant_id:
             must_conditions.append(
-                rest.FieldCondition(key="metadata.namespace", match=rest.MatchValue(value=str(assistant_id)))
+                rest.FieldCondition(
+                    key="metadata.namespace",
+                    match=rest.MatchValue(value=str(assistant_id)),
+                )
             )
 
         common_filter = rest.Filter(must=must_conditions)

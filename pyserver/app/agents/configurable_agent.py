@@ -1,4 +1,3 @@
-import pickle
 from enum import Enum
 from typing import Any, Dict, Mapping, Optional, Sequence, Union
 
@@ -10,20 +9,21 @@ from langchain_core.runnables import (
 from langgraph.graph.message import Messages
 from langgraph.pregel import Pregel
 
-from app.agents.tools_agent import get_tools_agent_executor
-from app.agents.xml_agent import get_xml_agent_executor
-from app.agents.chatbot import get_chatbot_executor
-from app.core.pg_checkpoint_saver import get_pg_checkpoint_saver
-from app.core.configuration import get_settings
-from app.llms import (
+from pyserver.app.agents.tools_agent import get_tools_agent_executor
+from pyserver.app.agents.xml_agent import get_xml_agent_executor
+from pyserver.app.agents.chatbot import get_chatbot_executor
+from pyserver.app.core.pg_checkpoint_saver import get_pg_checkpoint_saver
+from pyserver.app.core.configuration import get_settings
+from pyserver.app.schema.assistant import AgentType, LLMType
+from pyserver.app.core.llms import (
     get_anthropic_llm,
     get_google_llm,
     get_mixtral_fireworks,
     get_ollama_llm,
     get_openai_llm,
 )
-from app.agents.retrieval import get_retrieval_executor
-from app.agents.tools import (
+from pyserver.app.agents.retrieval import get_retrieval_executor
+from pyserver.app.agents.tools import (
     RETRIEVAL_DESCRIPTION,
     TOOLS,
     ActionServer,
@@ -59,17 +59,6 @@ Tool = Union[
     SecFilings,
     PressReleases,
 ]
-
-
-class AgentType(str, Enum):
-    GPT_35_TURBO = "GPT 3.5 Turbo"
-    GPT_4 = "GPT 4 Turbo"
-    AZURE_OPENAI = "GPT 4 (Azure OpenAI)"
-    CLAUDE2 = "Claude 2"
-    BEDROCK_CLAUDE2 = "Claude 2 (Amazon Bedrock)"
-    GEMINI = "GEMINI"
-    OLLAMA = "Ollama"
-
 
 DEFAULT_SYSTEM_MESSAGE = "You are a helpful assistant."
 
@@ -168,7 +157,9 @@ class ConfigurableAgent(RunnableBinding):
         _agent = get_agent_executor(
             _tools, agent, system_message, interrupt_before_action
         )
-        agent_executor = _agent.with_config({"recursion_limit": settings.LANGGRAPH_RECURSION_LIMIT})
+        agent_executor = _agent.with_config(
+            {"recursion_limit": settings.LANGGRAPH_RECURSION_LIMIT}
+        )
         super().__init__(
             tools=tools,
             agent=agent,
@@ -178,18 +169,6 @@ class ConfigurableAgent(RunnableBinding):
             kwargs=kwargs or {},
             config=config or {},
         )
-
-
-class LLMType(str, Enum):
-    GPT_35_TURBO = "GPT 3.5 Turbo"
-    GPT_4 = "GPT 4 Turbo"
-    AZURE_OPENAI = "GPT 4 (Azure OpenAI)"
-    CLAUDE2 = "Claude 2"
-    BEDROCK_CLAUDE2 = "Claude 2 (Amazon Bedrock)"
-    GEMINI = "GEMINI"
-    MIXTRAL = "Mixtral"
-    OLLAMA = "Ollama"
-
 
 def get_chatbot(
     llm_type: LLMType,

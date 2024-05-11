@@ -1,13 +1,14 @@
 import uuid
 from enum import Enum
 from typing import Literal, Optional
-from fastapi import UploadFile
 from pydantic import BaseModel, Field, validator
-from semantic_router.encoders import BaseEncoder, CohereEncoder, OpenAIEncoder, HuggingFaceEncoder, AzureOpenAIEncoder
-# from app.rag.ollama_encoder import OllamaEncoder
-from app.core.configuration import get_settings
+from semantic_router.encoders import BaseEncoder, CohereEncoder, OpenAIEncoder
+
+# from pyserver.app.rag.ollama_encoder import OllamaEncoder
+from pyserver.app.core.configuration import get_settings
 
 settings = get_settings()
+
 
 class VectorDatabaseType(Enum):
     qdrant = "qdrant"
@@ -16,22 +17,25 @@ class VectorDatabaseType(Enum):
 class VectorDatabase(BaseModel):
     type: VectorDatabaseType = Field(
         default=settings.VECTOR_DB_NAME,
-        description="Vector database type. Must be one of VectorDatabaseType enum."
+        description="Vector database type. Must be one of VectorDatabaseType enum.",
     )
     config: dict = Field(
         default=settings.VECTOR_DB_CONFIG,
-        description="Vector database configuration object."
+        description="Vector database configuration object.",
     )
 
 
 # Ingest Schemas
 
+
 class ContextType(str, Enum):
     """Context where files or generated embeddings are used."""
+
     assistants = "assistants"
     threads = "threads"
     rag = "rag"
     personas = "personas"
+
 
 class EncoderProvider(str, Enum):
     cohere = "cohere"
@@ -44,8 +48,7 @@ class EncoderProvider(str, Enum):
 
 class EncoderConfig(BaseModel):
     provider: EncoderProvider = Field(
-        default=settings.VECTOR_DB_ENCODER_NAME,
-        description="Embedding provider"
+        default=settings.VECTOR_DB_ENCODER_NAME, description="Embedding provider"
     )
     encoder_model: str = Field(
         default=settings.VECTOR_DB_ENCODER_MODEL,
@@ -53,7 +56,8 @@ class EncoderConfig(BaseModel):
     )
     dimensions: int = Field(
         default=settings.VECTOR_DB_ENCODER_DIMENSIONS,
-        description="Dimension of the encoder output")
+        description="Dimension of the encoder output",
+    )
 
     @classmethod
     def get_encoder_config(cls, encoder_provider: EncoderProvider):
@@ -68,7 +72,7 @@ class EncoderConfig(BaseModel):
                 "default_model_name": "text-embedding-3-small",
                 "default_dimensions": 1536,
             },
-              # TODO: huggingface encoders requires pytorch and transformers which adds a lot of weight to the docker image.
+            # TODO: huggingface encoders requires pytorch and transformers which adds a lot of weight to the docker image.
             # ...will need to branstorm solution
             # EncoderProvider.huggingface: {
             #     "class": HuggingFaceEncoder,
@@ -82,7 +86,7 @@ class EncoderConfig(BaseModel):
             #     "default_dimensions": 1536,
             # },
             # TODO: Create an ollama encoder
-            }
+        }
         return encoder_configs.get(encoder_provider)
 
     def get_encoder(self) -> BaseEncoder:
@@ -96,21 +100,30 @@ class EncoderConfig(BaseModel):
 
 
 class UnstructuredConfig(BaseModel):
-    partition_strategy: Literal["auto", "hi_res"] = Field(default=settings.DEFAULT_PARTITION_STRATEGY)
+    partition_strategy: Literal["auto", "hi_res"] = Field(
+        default=settings.DEFAULT_PARTITION_STRATEGY
+    )
     hi_res_model_name: Literal["detectron2_onnx", "chipper"] = Field(
-        default=settings.DEFAULT_HI_RES_MODEL_NAME, description="Only for `hi_res` strategy"
+        default=settings.DEFAULT_HI_RES_MODEL_NAME,
+        description="Only for `hi_res` strategy",
     )
     process_tables: bool = Field(
-        default=settings.PROCESS_UNSTRUCTURED_TABLES, description="Only for `hi_res` strategy"
+        default=settings.PROCESS_UNSTRUCTURED_TABLES,
+        description="Only for `hi_res` strategy",
     )
+
 
 class SplitterConfig(BaseModel):
     name: Literal["semantic", "by_title"] = Field(
         default=settings.DEFAULT_CHUNKING_STRATEGY, description="Splitter method"
     )
-    min_tokens: int = Field(default=settings.DEFAULT_SEMANTIC_CHUNK_MIN_TOKENS, description="Only for `semantic` method")
+    min_tokens: int = Field(
+        default=settings.DEFAULT_SEMANTIC_CHUNK_MIN_TOKENS,
+        description="Only for `semantic` method",
+    )
     max_tokens: int = Field(
-        default=settings.DEFAULT_SEMANTIC_CHUNK_MAX_TOKENS, description="Only for `semantic` and `recursive` methods"
+        default=settings.DEFAULT_SEMANTIC_CHUNK_MAX_TOKENS,
+        description="Only for `semantic` and `recursive` methods",
     )
     rolling_window_size: int = Field(
         default=settings.SEMANTIC_ROLLING_WINDOW_SIZE,
@@ -118,41 +131,98 @@ class SplitterConfig(BaseModel):
         "for comparing similarity between elements",
     )
     prefix_titles: bool = Field(
-        default=settings.PREFIX_TITLES, description="Add to prefix titles in chunk, only `semantic` method"
+        default=settings.PREFIX_TITLES,
+        description="Add to prefix titles in chunk, only `semantic` method",
     )
     prefix_summary: bool = Field(
         default=settings.PREFIX_SUMMARY, description="Add to split sub-document summary"
-)
+    )
+
 
 class DocumentProcessorConfig(BaseModel):
-    summarize: bool = Field(default=settings.CREATE_SUMMARY_COLLECTION, description="Create a separate collection of document summaries")
-    encoder: EncoderConfig = Field(default=EncoderConfig(), description="Embeddings provider coniguration. If not provided, this comes from the env config.")
-    unstructured: UnstructuredConfig = Field(default=UnstructuredConfig(), description="UnstructuredIO configuration. If not provided, this comes from the env config.")
-    splitter: SplitterConfig = Field(default=SplitterConfig(), description="Document partition manager configuration. If not provided, this comes from the env config.")
+    summarize: bool = Field(
+        default=settings.CREATE_SUMMARY_COLLECTION,
+        description="Create a separate collection of document summaries",
+    )
+    encoder: EncoderConfig = Field(
+        default=EncoderConfig(),
+        description="Embeddings provider coniguration. If not provided, this comes from the env config.",
+    )
+    unstructured: UnstructuredConfig = Field(
+        default=UnstructuredConfig(),
+        description="UnstructuredIO configuration. If not provided, this comes from the env config.",
+    )
+    splitter: SplitterConfig = Field(
+        default=SplitterConfig(),
+        description="Document partition manager configuration. If not provided, this comes from the env config.",
+    )
+
 
 class IngestRequestPayload(BaseModel):
     files: list[uuid.UUID] = Field(..., description="An array of file ids to ingest")
-    purpose: Optional[ContextType] = Field(default=ContextType.assistants, description="Context of where the embeddings will be used.")
-    index_name: Optional[str] = Field(default=settings.VECTOR_DB_COLLECTION_NAME, description="Name of the vector database follection to ingest the files into. If not provided, the `VECTOR_DB_COLLECTION_NAME` env var is used.")
-    namespace: Optional[str] = Field(None, description="Context of the embeddings: This is the assistant_id, thread_id, file_id, or random uuid that is used for filtering the results.")
-    vector_database: Optional[VectorDatabase] = Field(default=VectorDatabase(), description="Vector database to store the embeddings. If not provided, this comes from the env config.")
-    document_processor: Optional[DocumentProcessorConfig] = Field(default=DocumentProcessorConfig(), description="Document processor configuration. If not provided, this comes from the env config.")
-    webhook_url: Optional[str] = Field(None, description="Webhook url to send the notification to when the ingestion is completed.")
+    purpose: Optional[ContextType] = Field(
+        default=ContextType.assistants,
+        description="Context of where the embeddings will be used.",
+    )
+    index_name: Optional[str] = Field(
+        default=settings.VECTOR_DB_COLLECTION_NAME,
+        description="Name of the vector database follection to ingest the files into. If not provided, the `VECTOR_DB_COLLECTION_NAME` env var is used.",
+    )
+    namespace: Optional[str] = Field(
+        None,
+        description="Context of the embeddings: This is the assistant_id, thread_id, file_id, or random uuid that is used for filtering the results.",
+    )
+    vector_database: Optional[VectorDatabase] = Field(
+        default=VectorDatabase(),
+        description="Vector database to store the embeddings. If not provided, this comes from the env config.",
+    )
+    document_processor: Optional[DocumentProcessorConfig] = Field(
+        default=DocumentProcessorConfig(),
+        description="Document processor configuration. If not provided, this comes from the env config.",
+    )
+    webhook_url: Optional[str] = Field(
+        None,
+        description="Webhook url to send the notification to when the ingestion is completed.",
+    )
+
 
 # Query Schemas
 class QueryRequestPayload(BaseModel):
     input: str = Field(..., description="Input text to query")
-    namespace: Optional[str] = Field(None, description="Context of the query: This is the assistant_id, thread_id, file_id, or random uuid that is used for filtering the results.")
-    context: Optional[ContextType] = Field(default=ContextType.assistants, description="Context of where the embeddings will be used.")
-    index_name: Optional[str] = Field(default=settings.VECTOR_DB_COLLECTION_NAME, description="Name of the vector database follection to query from. If not provided, the `VECTOR_DB_COLLECTION_NAME` env var is used.")
-    vector_database: Optional[VectorDatabase] = Field(default=VectorDatabase(), description="Vector database to query from. If not provided, this comes from the env config.")
-    encoder: Optional[EncoderConfig] = Field(default=EncoderConfig(), description="Embeddings provider configuration. If not provided, this comes from the env config.")
-    enable_rerank: Optional[bool] = Field(default=settings.ENABLE_RERANK_BY_DEFAULT, description="Enable reranking of the results. *NOTE: `COHERE_API_KEY` env var is required to use this feature.*")
-    interpreter_mode: Optional[bool] = Field(False, description="Enable code interpreter mode.")
-    exclude_fields: Optional[list[str]] = Field(None, description="List of fields to exclude from the results.")
+    namespace: Optional[str] = Field(
+        None,
+        description="Context of the query: This is the assistant_id, thread_id, file_id, or random uuid that is used for filtering the results.",
+    )
+    context: Optional[ContextType] = Field(
+        default=ContextType.assistants,
+        description="Context of where the embeddings will be used.",
+    )
+    index_name: Optional[str] = Field(
+        default=settings.VECTOR_DB_COLLECTION_NAME,
+        description="Name of the vector database follection to query from. If not provided, the `VECTOR_DB_COLLECTION_NAME` env var is used.",
+    )
+    vector_database: Optional[VectorDatabase] = Field(
+        default=VectorDatabase(),
+        description="Vector database to query from. If not provided, this comes from the env config.",
+    )
+    encoder: Optional[EncoderConfig] = Field(
+        default=EncoderConfig(),
+        description="Embeddings provider configuration. If not provided, this comes from the env config.",
+    )
+    enable_rerank: Optional[bool] = Field(
+        default=settings.ENABLE_RERANK_BY_DEFAULT,
+        description="Enable reranking of the results. *NOTE: `COHERE_API_KEY` env var is required to use this feature.*",
+    )
+    interpreter_mode: Optional[bool] = Field(
+        False, description="Enable code interpreter mode."
+    )
+    exclude_fields: Optional[list[str]] = Field(
+        None, description="List of fields to exclude from the results."
+    )
 
 
 # Documents
+
 
 class BaseDocument(BaseModel):
     id: str
@@ -279,9 +349,17 @@ class DeleteFile(BaseModel):
 
 class DeleteRequestPayload(BaseModel):
     files: list[DeleteFile] = Field(..., description="Array of files to delete")
-    index_name: Optional[str] = Field(settings.VECTOR_DB_COLLECTION_NAME, description="Name of the vector database follection to do the deletion. If not provided, the `VECTOR_DB_COLLECTION_NAME` env var is used.")
-    vector_database: Optional[VectorDatabase] = Field(VectorDatabase(), description="Vector database to use for the deletion.")
-    encoder: Optional[EncoderConfig] = Field(EncoderConfig(), description="Encoder configuration to use for the deletion.")
+    index_name: Optional[str] = Field(
+        settings.VECTOR_DB_COLLECTION_NAME,
+        description="Name of the vector database follection to do the deletion. If not provided, the `VECTOR_DB_COLLECTION_NAME` env var is used.",
+    )
+    vector_database: Optional[VectorDatabase] = Field(
+        VectorDatabase(), description="Vector database to use for the deletion."
+    )
+    encoder: Optional[EncoderConfig] = Field(
+        EncoderConfig(), description="Encoder configuration to use for the deletion."
+    )
+
 
 class DeleteDocumentsResponse(BaseModel):
     num_deleted_chunks: int

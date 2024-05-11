@@ -8,8 +8,8 @@ from loguru._defaults import LOGURU_FORMAT
 
 
 class InterceptHandler(logging.Handler):
-    """
-    Default handler from examples in loguru documentaion.
+    """Default handler from examples in loguru documentaion.
+
     See https://loguru.readthedocs.io/en/stable/overview.html#entirely-compatible-with-standard-logging
     """
 
@@ -56,8 +56,7 @@ def format_record(record: dict) -> str:
 
 
 def init_logging():
-    """
-    Replaces logging handlers with a handler for using the custom handler.
+    """Replaces logging handlers with a handler for using the custom handler.
 
     WARNING!
     if you call the init_logging in startup event function,
@@ -69,7 +68,6 @@ def init_logging():
     INFO:     Started server process [6036]
     INFO:     Waiting for application startup.
     2020-07-25 02:19:21.357 | INFO     | uvicorn.lifespan.on:startup:34 - Application startup complete.
-
     """
 
     # disable handlers for specific uvicorn loggers

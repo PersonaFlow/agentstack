@@ -35,8 +35,8 @@ initialize logging at the start of the application.
 
 Example:
     ```python
-    from app.logger import init_logger
-    from app.core.configuration import Settings
+    from pyserver.app.logger import init_logger
+    from pyserver.app.core.configuration import Settings
 
     settings = Settings()
     init_logger(settings)
@@ -50,13 +50,14 @@ from pydantic import ValidationError
 import structlog
 from structlog.types import EventDict, Processor
 
-from app.core.configuration import EnvironmentEnum, Settings
+from pyserver.app.core.configuration import EnvironmentEnum, Settings
 
 
 def drop_color_message_key(_, __, event_dict: EventDict) -> EventDict:
-    """
-    Uvicorn logs the message a second time in the extra `color_message`, but we don't
-    need it. This processor drops the key from the event dict if it exists.
+    """Uvicorn logs the message a second time in the extra `color_message`, but
+    we don't need it.
+
+    This processor drops the key from the event dict if it exists.
     """
     event_dict.pop("color_message", None)
     return event_dict
@@ -70,7 +71,6 @@ def init_structlogger(settings: Settings):
         if isinstance(error, ValidationError):
             event_dict["error"] = error.json()
         return event_dict
-
 
     shared_processors: list[Processor] = [
         timestamper,
@@ -152,11 +152,9 @@ def init_structlogger(settings: Settings):
     logging.getLogger("uvicorn.access").propagate = False
 
     def handle_exception(exc_type, exc_value, exc_traceback):
-        """
-        Log any uncaught exception instead of letting it be printed by Python
-        (but leave KeyboardInterrupt untouched to allow users to Ctrl+C to stop)
-        See https://stackoverflow.com/a/16993115/3641865
-        """
+        """Log any uncaught exception instead of letting it be printed by
+        Python (but leave KeyboardInterrupt untouched to allow users to Ctrl+C
+        to stop) See https://stackoverflow.com/a/16993115/3641865."""
         if issubclass(exc_type, KeyboardInterrupt):
             sys.__excepthook__(exc_type, exc_value, exc_traceback)
             return

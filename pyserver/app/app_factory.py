@@ -1,4 +1,3 @@
-
 from typing import Callable
 from contextlib import asynccontextmanager
 from asgi_correlation_id import CorrelationIdMiddleware
@@ -10,13 +9,16 @@ from fastapi.exceptions import RequestValidationError, ResponseValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
-from app.core import init_logging, init_structlogger
-from app.api.v1 import api_router
-from app.core.configuration import Settings
-from app.middlewares import SystemLoggerMiddleware
+from pyserver.app.api.v1 import api_router
+from pyserver.app.core.configuration import Settings
+from pyserver.app.core.logger import init_logging
+from pyserver.app.core.struct_logger import init_structlogger
+from pyserver.app.middlewares.system_logger import SystemLoggerMiddleware
+
 
 def create_async_engine_with_settings(settings: Settings) -> AsyncEngine:
     return create_async_engine(settings.INTERNAL_DATABASE_URI, echo=True)
+
 
 def get_lifespan(settings: Settings) -> Callable:
     @asynccontextmanager
@@ -50,7 +52,7 @@ def create_app(settings: Settings):
 
     _app.add_middleware(
         CORSMiddleware,
-        allow_origins=['*'],
+        allow_origins=["*"],
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -78,7 +80,9 @@ def create_app(settings: Settings):
         )
 
     @_app.exception_handler(ResponseValidationError)
-    async def response_validation_exception_handler(request, exc: ResponseValidationError):
+    async def response_validation_exception_handler(
+        request, exc: ResponseValidationError
+    ):
         return JSONResponse(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             content={"detail": exc.errors()},
