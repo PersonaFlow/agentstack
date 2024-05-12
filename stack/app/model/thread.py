@@ -4,7 +4,7 @@ from sqlalchemy import String, text, DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from stack.app.core.configuration import settings
-from stack.app.models.base import Base
+from stack.app.model.base import Base
 
 
 class Thread(Base):

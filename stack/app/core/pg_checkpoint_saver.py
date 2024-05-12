@@ -13,7 +13,7 @@ from langgraph.checkpoint.base import (
     CheckpointTuple,
     SerializerProtocol,
 )
-from stack.app.models.checkpoint import PostgresCheckpoint
+from stack.app.model.checkpoint import PostgresCheckpoint
 from pydantic import Field
 from langchain.schema.runnable.utils import ConfigurableFieldSpec
 from stack.app.core.configuration import get_settings

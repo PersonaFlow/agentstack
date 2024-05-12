@@ -5,7 +5,7 @@ from sqlalchemy.dialects.postgresql import UUID, JSONB, ARRAY
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
 from stack.app.core.configuration import settings
-from stack.app.models.base import Base
+from stack.app.model.base import Base
 
 
 class Assistant(Base):

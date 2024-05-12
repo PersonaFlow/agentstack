@@ -2,7 +2,7 @@ import uuid
 import os
 from datetime import datetime
 from sqlalchemy import select
-from stack.app.models.file import File
+from stack.app.model.file import File
 from stack.app.repositories.base import BaseRepository
 import structlog
 from sqlalchemy.exc import SQLAlchemyError

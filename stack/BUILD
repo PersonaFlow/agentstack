@@ -6,3 +6,9 @@ pex_binary(
     dependencies=["//:reqs#asyncpg", "//:reqs#python-multipart"],
     execution_mode="venv",
 )
+
+docker_image(
+    name="docker",
+)
+
+shell_sources()

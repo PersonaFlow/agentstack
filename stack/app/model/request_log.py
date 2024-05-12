@@ -40,7 +40,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from stack.app.core.configuration import settings
-from stack.app.models.base import Base
+from stack.app.model.base import Base
 
 
 from datetime import datetime
@@ -48,7 +48,7 @@ import uuid
 from sqlalchemy import String, text, DateTime, Integer, Float
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import UUID, JSONB
-from stack.app.models.base import Base
+from stack.app.model.base import Base
 
 
 class RequestLog(Base):
