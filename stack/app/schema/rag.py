@@ -2,9 +2,8 @@ import uuid
 from enum import Enum
 from typing import Literal, Optional
 from pydantic import BaseModel, Field, validator
-from semantic_router.encoders import BaseEncoder, CohereEncoder, OpenAIEncoder
-
-# from stack.app.rag.ollama_encoder import OllamaEncoder
+from semantic_router.encoders import BaseEncoder, CohereEncoder, OpenAIEncoder, AzureOpenAIEncoder, MistralEncoder
+from stack.app.rag.encoders.ollama_encoder import OllamaEncoder
 from stack.app.core.configuration import get_settings
 
 settings = get_settings()
@@ -43,7 +42,7 @@ class EncoderProvider(str, Enum):
     huggingface = "huggingface"
     azure_openai = "azure_openai"
     mistral = "mistral"
-    # ollama = "ollama"
+    ollama = "ollama"
 
 
 class EncoderConfig(BaseModel):
@@ -72,20 +71,28 @@ class EncoderConfig(BaseModel):
                 "default_model_name": "text-embedding-3-small",
                 "default_dimensions": 1536,
             },
+            EncoderProvider.ollama: {
+                "class": OllamaEncoder,
+                "default_model_name": "all-minilm",
+                "default_dimensions": 384,
+            },
+            EncoderProvider.azure_openai: {
+                "class": AzureOpenAIEncoder,
+                "default_model_name": "text-embedding-3-small",
+                "default_dimensions": 1536,
+            },
+            EncoderProvider.mistral: {
+                "class": MistralEncoder,
+                "default_model_name": "mistral-embed",
+                "default_dimensions": 1024,
+            },
             # TODO: huggingface encoders requires pytorch and transformers which adds a lot of weight to the docker image.
-            # ...will need to branstorm solution
+            # ...Should we just get rid of this since we have ollama?
             # EncoderProvider.huggingface: {
             #     "class": HuggingFaceEncoder,
             #     "default_model_name": settings.HUGGINGFACE_EMBEDDING_MODEL_NAME or "distilbert-base-uncased",
             #     "default_dimensions": 1024,
             # },
-            # TODO: Add Azure OpenAI Encoder
-            # EncoderProvider.azure_openai: {
-            #     "class": AzureOpenAIEncoder,
-            #     "default_model_name": "text-embedding-3-small",
-            #     "default_dimensions": 1536,
-            # },
-            # TODO: Create an ollama encoder
         }
         return encoder_configs.get(encoder_provider)
 
