@@ -67,6 +67,7 @@ class Settings(BaseSettings):
 
     # Required if you intend to use reranking functionality to query documents
     COHERE_API_KEY: Optional[str] = os.getenv("COHERE_API_KEY", None)
+    MIXTRAL_FIREWORKS_API_KEY: Optional[str] = os.getenv("MIXTRAL_FIREWORKS_API_KEY", None)
 
     # Used for processing of unstructured documents to be ingested into vector db
     # "semantic" splitting method will not work without these

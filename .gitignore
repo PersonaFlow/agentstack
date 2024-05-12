@@ -185,3 +185,5 @@ dist-ssr
 # Pants workspace files
 /.pants.d
 /dist/
+
+models/
