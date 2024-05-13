@@ -28,16 +28,16 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 # Setting the metadata for the database tables.
-from stack.app.models.base import Base
+from stack.app.model.base import Base
 
 target_metadata = Base.metadata
 
 # Dynamically importing all models.
-from stack.app import models
+from stack.app import model
 
-for _, module_name, is_package in pkgutil.iter_modules(models.__path__):
+for _, module_name, is_package in pkgutil.iter_modules(model.__path__):
     if not is_package:
-        importlib.import_module(f".{module_name}", models.__name__)
+        importlib.import_module(f".{module_name}", model.__name__)
 
 
 def run_migrations_offline() -> None:

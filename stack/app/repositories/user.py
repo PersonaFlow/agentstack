@@ -32,7 +32,7 @@ Notes:
 """
 import uuid
 from sqlalchemy import select
-from stack.app.models.user import User
+from stack.app.model.user import User
 from stack.app.repositories.base import BaseRepository
 from stack.app.schema.user import CreateUserSchema, UpdateUserSchema
 import structlog
