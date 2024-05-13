@@ -1,6 +1,6 @@
 from sqlalchemy import select
 from stack.app.core import logger
-from stack.app.models.thread import Thread
+from stack.app.model.thread import Thread
 from stack.app.repositories.base import BaseRepository
 import structlog
 from sqlalchemy.exc import SQLAlchemyError

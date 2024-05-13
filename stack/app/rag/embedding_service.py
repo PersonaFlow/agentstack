@@ -23,7 +23,7 @@ from stack.app.rag.summarizer import completion
 from stack.app.vectordbs import get_vector_service
 from stack.app.schema.file import FileSchema
 from stack.app.core.configuration import get_settings
-from stack.app.models.file import File
+from stack.app.model.file import File
 
 # TODO: Add similarity score to the BaseDocumentChunk
 # TODO: Add relevance score to the BaseDocumentChunk

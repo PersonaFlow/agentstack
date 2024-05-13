@@ -22,7 +22,7 @@ Key Functionalities:
 """
 
 from sqlalchemy import select
-from stack.app.models.message import Message
+from stack.app.model.message import Message
 from stack.app.repositories.base import BaseRepository
 import structlog
 from sqlalchemy.exc import SQLAlchemyError

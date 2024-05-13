@@ -4,11 +4,11 @@ from sqlalchemy import String, text, DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from stack.app.core.configuration import settings
-from stack.app.models.base import Base
+from stack.app.model.base import Base
 from sqlalchemy import event
 
-from stack.app.models.base import Base
-from stack.app.models.util import generate_unique_identifier
+from stack.app.model.base import Base
+from stack.app.model.util import generate_unique_identifier
 
 
 class User(Base):

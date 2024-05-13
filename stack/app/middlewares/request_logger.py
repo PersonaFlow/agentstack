@@ -32,7 +32,7 @@ from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoin
 from stack.app.core.configuration import Settings
 
 # from stack.app.core.pg_database import get_postgresql_session
-from stack.app.models.request_log import RequestLog
+from stack.app.model.request_log import RequestLog
 
 
 class RequestLoggerMiddleware(BaseHTTPMiddleware):

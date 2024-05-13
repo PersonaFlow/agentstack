@@ -1,6 +1,6 @@
 import uuid
 from sqlalchemy import select
-from stack.app.models.assistant import Assistant
+from stack.app.model.assistant import Assistant
 from stack.app.repositories.base import BaseRepository
 import structlog
 from sqlalchemy.exc import SQLAlchemyError
