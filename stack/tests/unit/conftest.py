@@ -5,28 +5,46 @@ import subprocess
 import asyncpg
 import pytest
 
-from app.auth.settings import AuthType
-from app.auth.settings import settings as auth_settings
-from app.lifespan import get_pg_pool, lifespan
-from app.server import app
+from stack.app.main import app
+from stack.app.core.lifespan import lifespan, get_pg_pool
+from dotenv import load_dotenv
 
-auth_settings.auth_type = AuthType.NOOP
+env_path = ".env.local"
+load_dotenv(env_path)
+# from stack.app.core.configuration import get_settings
+
+# settings = get_settings()
 
 # Temporary handling of environment variables for testing
-os.environ["OPENAI_API_KEY"] = "test"
-
+os.environ["OPENAI_API_KEY"] = "sk-test"
 TEST_DB = "test"
-assert os.environ["POSTGRES_DB"] != TEST_DB, "Test and main database conflict."
-os.environ["POSTGRES_DB"] = TEST_DB
+
+# def set_test_env_vars():
+#     os.environ["OPENAI_API_KEY"] = "sk-test"
+#     assert os.environ["INTERNAL_DATABASE_DATABASE"] != TEST_DB, "Test and main database conflict."
+#     os.environ["INTERNAL_DATABASE_DATABASE"] = TEST_DB
+
+# set_test_env_vars()
+
+# def pytest_configure(config):
+#     set_test_env_vars()
+
+def test_env_vars():
+    assert os.environ["OPENAI_API_KEY"] == "sk-test"
+    print(f"OPENAI_API_KEY: {os.environ['OPENAI_API_KEY']}")
+
+
+assert os.environ["INTERNAL_DATABASE_DATABASE"] != TEST_DB, "Test and main database conflict."
+os.environ["INTERNAL_DATABASE_DATABASE"] = TEST_DB
 
 
 async def _get_conn() -> asyncpg.Connection:
     return await asyncpg.connect(
-        user=os.environ["POSTGRES_USER"],
-        password=os.environ["POSTGRES_PASSWORD"],
-        host=os.environ["POSTGRES_HOST"],
-        port=os.environ["POSTGRES_PORT"],
-        database="postgres",
+        user=os.environ["INTERNAL_DATABASE_USER"],
+        password=os.environ["INTERNAL_DATABASE_PASSWORD"],
+        host=os.environ["INTERNAL_DATABASE_HOST"],
+        port=os.environ["INTERNAL_DATABASE_PORT"],
+        database=os.environ["INTERNAL_DATABASE_DATABASE"],
     )
 
 
@@ -49,7 +67,7 @@ async def _drop_test_db() -> None:
 
 
 def _migrate_test_db() -> None:
-    subprocess.run(["make", "migrate"], check=True)
+    subprocess.run(["alembic", "upgrade", "head"], check=True)
 
 
 @pytest.fixture(scope="session")
