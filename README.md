@@ -80,7 +80,7 @@ _Builds and dependencies are managed by [Pantsbuild](https://www.pantsbuild.org/
 3. Create .env.local and .env.production files using the .env.local.example and .env.production.example templates.
 4. Open docker-compose.yaml and comment out the `stack` block under `services` if it is not already commented out.
 5. Open docker on your machine if it is not already running and run `docker-compose up -d`. This will download and start the images for Qdrant, Postgres, and Unstructured-API
-6. Install dependencies by running `pip install -r requirements.txt`.
+6. Install dependencies by running `poetry install --no-root`. 
 7.  When that is fiinished, run the database migration with `alembic upgrade head`.
 8.  Run `pants run stack:local` to start the server. Include the `--loop` flag to auto-reload the server on changes.
 9. Navigate to `http://localhost:9000/docs` to see the API documentation.
@@ -88,9 +88,12 @@ _Builds and dependencies are managed by [Pantsbuild](https://www.pantsbuild.org/
 ## Useful Pants Commands
 - Format: `pants fmt ::`
 - Test: `pants test ::`
-- Run PersonaStack: `pants run stack:local`
+- Run PersonaStack locally: `pants run stack:local`
+- Run PersonaStack with auto-reload and "debug" logging: `pants run stack:local --loop --ldebug`
 
 Note: `::` means all files in project. For more information on targeting, see: [Targets and BUILD files](https://www.pantsbuild.org/2.20/docs/using-pants/key-concepts/targets-and-build-files).
+
+>_Pants uses a constraints.txt as the lock file for dependencies, which is exported from the from poetry.lock. If you add a new dependency, you will need to run `poetry lock` to update the poetry.lock, followed by `poetry export --format constraints.txt --output constraints.txt` to regenerate the constraints file which will lock the new dependency to the version in the poetry.lock file._
 
 # API Usage
 
