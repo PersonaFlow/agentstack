@@ -1,6 +1,6 @@
 'use client'
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClient, QueryClientProvider, HydrationBoundary } from '@tanstack/react-query'
 import { ReactNode } from 'react'
 
 
@@ -29,6 +29,9 @@ export default function Providers({children}: {children: ReactNode}) {
    const queryClient = getQueryClient()
 
     return <QueryClientProvider client={queryClient}>
+        {/* Might have to redeclare in each server component. */}
+        <HydrationBoundary>
         {children}
+        </HydrationBoundary>
     </QueryClientProvider>
 }
