@@ -3,7 +3,7 @@ from uuid import uuid4
 
 import asyncpg
 
-from tests.unit.app.helpers import get_client
+from tests.integration.app.helpers import get_client
 
 
 def _project(d: dict, *, exclude_keys: Optional[Sequence[str]]) -> dict:
