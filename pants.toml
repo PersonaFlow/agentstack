@@ -34,7 +34,7 @@ interpreter_constraints = ["CPython>=3.11,<3.12"]
 # `generate-lockfiles` goal for Pants to generate the lockfile for you.
 enable_resolves = true
 
-resolves = { python-default = "python-default.lock"}
+resolves = { python-default = "constraints.txt"}
 
 [python-bootstrap]
 # We search for interpreters both on the $PATH and in the `$(pyenv root)/versions` folder.
