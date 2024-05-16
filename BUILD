@@ -1,1 +1,5 @@
-python_requirements(name="reqs")
+poetry_requirements(name="reqs")
+
+python_tests(
+    name="root",
+)
