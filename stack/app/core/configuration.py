@@ -32,14 +32,14 @@ class LogLevelEnum(enum.Enum):
     ERROR = "ERROR"
     CRITICAL = "CRITICAL"
 
-
+# TODO: See if this is still needed for alembic migrations
 # We load env variables here to allow for db migration scripts to run
 # If we have the `ENVIRONMENT`variable already, we are running in Docker or Kubernetes
 # and do not need to load the.env file
-environment = os.getenv("ENVIRONMENT")
-if not environment:
-    env_path = "../../../.env.local"
-    load_dotenv(env_path)
+# environment = os.getenv("ENVIRONMENT")
+# if not environment:
+#     env_path = "../../../.env"
+#     load_dotenv(env_path)
 
 
 class Settings(BaseSettings):

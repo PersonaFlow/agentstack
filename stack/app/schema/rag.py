@@ -1,7 +1,7 @@
 import uuid
 from enum import Enum
 from typing import Literal, Optional
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from semantic_router.encoders import BaseEncoder, CohereEncoder, OpenAIEncoder, AzureOpenAIEncoder, MistralEncoder
 from stack.app.rag.encoders.ollama_encoder import OllamaEncoder
 from stack.app.core.configuration import get_settings
@@ -299,7 +299,7 @@ class BaseDocumentChunk(BaseModel):
             dense_embedding=metadata.get("values"),
         )
 
-    @validator("id")
+    @field_validator("id")
     def id_must_be_valid_uuid(cls, v):
         try:
             uuid_obj = uuid.UUID(v, version=4)
@@ -307,7 +307,7 @@ class BaseDocumentChunk(BaseModel):
         except ValueError:
             raise ValueError(f"id must be a valid UUID, got {v}")
 
-    @validator("dense_embedding")
+    @field_validator("dense_embedding")
     def embeddings_must_be_list_of_floats(cls, v):
         if v is None:
             return v  # Allow None to pass through

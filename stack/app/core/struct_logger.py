@@ -15,7 +15,7 @@ Functions:
 - `drop_color_message_key`: Removes the `color_message` key from the event dict. Uvicorn
   logs the message a second time in the `color_message` field, which is unnecessary for
   our purposes.
-- `init_logger`: The main function that sets up the logger for the application. It configures
+- `init_structlogger`: The main function that sets up the logger for the application. It configures
   processors, handlers, formatters, and other logging settings.
 - `handle_validation_error`: Processes ValidationError instances in the logs, ensuring they
   are properly serialized.
@@ -35,11 +35,11 @@ initialize logging at the start of the application.
 
 Example:
     ```python
-    from stack.app.logger import init_logger
+    from stack.app.logger import init_structlogger
     from stack.app.core.configuration import Settings
 
     settings = Settings()
-    init_logger(settings)
+    init_structlogger(settings)
     ```
 
 """
@@ -79,13 +79,13 @@ def init_structlogger(settings: Settings):
         structlog.contextvars.merge_contextvars,
         structlog.processors.CallsiteParameterAdder(
             {
-                structlog.processors.CallsiteParameter.PATHNAME,
+                # structlog.processors.CallsiteParameter.PATHNAME,
                 structlog.processors.CallsiteParameter.FILENAME,
                 structlog.processors.CallsiteParameter.MODULE,
                 structlog.processors.CallsiteParameter.FUNC_NAME,
                 structlog.processors.CallsiteParameter.THREAD,
-                structlog.processors.CallsiteParameter.THREAD_NAME,
-                structlog.processors.CallsiteParameter.PROCESS,
+                # structlog.processors.CallsiteParameter.THREAD_NAME,
+                # structlog.processors.CallsiteParameter.PROCESS,
                 structlog.processors.CallsiteParameter.PROCESS_NAME,
             }
         ),

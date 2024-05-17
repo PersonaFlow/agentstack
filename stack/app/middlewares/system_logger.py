@@ -20,9 +20,6 @@ Key Functionalities:
 - **Error Handling**: If an exception occurs while processing the request, it's logged under "api.error", and a generic 500 response is returned.
 - **Custom Headers**: The middleware also sets a custom header (`X-Process-Time`) in the response to indicate the processing time in seconds.
 
-Note:
------
-This middleware is especially valuable for monitoring and observability purposes. Structured logs can be easily integrated with modern log management systems for easier analysis and troubleshooting.
 
 """
 

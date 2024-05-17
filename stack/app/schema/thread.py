@@ -5,7 +5,7 @@ schema/thread.py
 This module provides Pydantic models for thread data serialization, validation, and response formatting.
 
 """
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from typing import List, Optional
 import uuid
 from datetime import datetime
@@ -45,7 +45,7 @@ class CreateThreadSchema(BaseModel):
         None, description="(Optional) Additional kwargs associated with the thread."
     )
 
-    @validator("user_id")
+    @field_validator("user_id")
     def must_not_be_empty(cls, v):
         if not v:
             raise ValueError("This field must not be empty")

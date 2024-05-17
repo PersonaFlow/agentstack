@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 import uuid
 from typing import Optional
 from enum import Enum
@@ -132,7 +132,7 @@ class CreateAssistantSchema(BaseModel):
         False, description="Whether the assistant is public."
     )
 
-    @validator("name", "config")
+    @field_validator("name", "config")
     def must_not_be_empty(cls, v):
         if not v:
             raise ValueError("name, config must not be empty")
