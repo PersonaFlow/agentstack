@@ -3,13 +3,32 @@ from uuid import uuid4
 
 import asyncpg
 
-from tests.integration.app.helpers import get_client
+from stack.tests.integration.app.helpers import get_client
 
 
 def _project(d: dict, *, exclude_keys: Optional[Sequence[str]]) -> dict:
     """Return a dict with only the keys specified."""
     _exclude = set(exclude_keys) if exclude_keys else set()
     return {k: v for k, v in d.items() if k not in _exclude}
+
+async def test_list_and_create_users(pool: asyncpg.pool.Pool) -> None:
+    """Test list and create users."""
+    headers = {"X-API-KEY": "1234"}
+
+    async with pool.acquire() as conn:
+        assert len(await conn.fetch("SELECT * FROM users;")) == 0
+
+    async with get_client() as client:
+        response = await client.get(
+            "/users/",
+            headers=headers,
+        )
+        assert response.status_code == 200
+
+        assert response.json() == []
+
+        # create a user...
+
 
 
 async def test_list_and_create_assistants(pool: asyncpg.pool.Pool) -> None:

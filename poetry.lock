@@ -435,62 +435,18 @@ html5lib = ["html5lib"]
 lxml = ["lxml"]
 
 [[package]]
-name = "black"
-version = "23.12.1"
-description = "The uncompromising code formatter."
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "black-23.12.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:e0aaf6041986767a5e0ce663c7a2f0e9eaf21e6ff87a5f95cbf3675bfd4c41d2"},
-    {file = "black-23.12.1-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:c88b3711d12905b74206227109272673edce0cb29f27e1385f33b0163c414bba"},
-    {file = "black-23.12.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a920b569dc6b3472513ba6ddea21f440d4b4c699494d2e972a1753cdc25df7b0"},
-    {file = "black-23.12.1-cp310-cp310-win_amd64.whl", hash = "sha256:3fa4be75ef2a6b96ea8d92b1587dd8cb3a35c7e3d51f0738ced0781c3aa3a5a3"},
-    {file = "black-23.12.1-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:8d4df77958a622f9b5a4c96edb4b8c0034f8434032ab11077ec6c56ae9f384ba"},
-    {file = "black-23.12.1-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:602cfb1196dc692424c70b6507593a2b29aac0547c1be9a1d1365f0d964c353b"},
-    {file = "black-23.12.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:9c4352800f14be5b4864016882cdba10755bd50805c95f728011bcb47a4afd59"},
-    {file = "black-23.12.1-cp311-cp311-win_amd64.whl", hash = "sha256:0808494f2b2df923ffc5723ed3c7b096bd76341f6213989759287611e9837d50"},
-    {file = "black-23.12.1-cp312-cp312-macosx_10_9_x86_64.whl", hash = "sha256:25e57fd232a6d6ff3f4478a6fd0580838e47c93c83eaf1ccc92d4faf27112c4e"},
-    {file = "black-23.12.1-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:2d9e13db441c509a3763a7a3d9a49ccc1b4e974a47be4e08ade2a228876500ec"},
-    {file = "black-23.12.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:6d1bd9c210f8b109b1762ec9fd36592fdd528485aadb3f5849b2740ef17e674e"},
-    {file = "black-23.12.1-cp312-cp312-win_amd64.whl", hash = "sha256:ae76c22bde5cbb6bfd211ec343ded2163bba7883c7bc77f6b756a1049436fbb9"},
-    {file = "black-23.12.1-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:1fa88a0f74e50e4487477bc0bb900c6781dbddfdfa32691e780bf854c3b4a47f"},
-    {file = "black-23.12.1-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:a4d6a9668e45ad99d2f8ec70d5c8c04ef4f32f648ef39048d010b0689832ec6d"},
-    {file = "black-23.12.1-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:b18fb2ae6c4bb63eebe5be6bd869ba2f14fd0259bda7d18a46b764d8fb86298a"},
-    {file = "black-23.12.1-cp38-cp38-win_amd64.whl", hash = "sha256:c04b6d9d20e9c13f43eee8ea87d44156b8505ca8a3c878773f68b4e4812a421e"},
-    {file = "black-23.12.1-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:3e1b38b3135fd4c025c28c55ddfc236b05af657828a8a6abe5deec419a0b7055"},
-    {file = "black-23.12.1-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:4f0031eaa7b921db76decd73636ef3a12c942ed367d8c3841a0739412b260a54"},
-    {file = "black-23.12.1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:97e56155c6b737854e60a9ab1c598ff2533d57e7506d97af5481141671abf3ea"},
-    {file = "black-23.12.1-cp39-cp39-win_amd64.whl", hash = "sha256:dd15245c8b68fe2b6bd0f32c1556509d11bb33aec9b5d0866dd8e2ed3dba09c2"},
-    {file = "black-23.12.1-py3-none-any.whl", hash = "sha256:78baad24af0f033958cad29731e27363183e140962595def56423e626f4bee3e"},
-    {file = "black-23.12.1.tar.gz", hash = "sha256:4ce3ef14ebe8d9509188014d96af1c456a910d5b5cbf434a09fef7e024b3d0d5"},
-]
-
-[package.dependencies]
-click = ">=8.0.0"
-mypy-extensions = ">=0.4.3"
-packaging = ">=22.0"
-pathspec = ">=0.9.0"
-platformdirs = ">=2"
-
-[package.extras]
-colorama = ["colorama (>=0.4.3)"]
-d = ["aiohttp (>=3.7.4)", "aiohttp (>=3.7.4,!=3.9.0)"]
-jupyter = ["ipython (>=7.8.0)", "tokenize-rt (>=3.2.0)"]
-uvloop = ["uvloop (>=0.15.2)"]
-
-[[package]]
 name = "boto3"
-version = "1.34.107"
+version = "1.34.108"
 description = "The AWS SDK for Python"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "boto3-1.34.107-py3-none-any.whl", hash = "sha256:a7280f54babc8e285d85d2558dd6167e4deb069e03abe43a55b643e10c03952b"},
-    {file = "boto3-1.34.107.tar.gz", hash = "sha256:2500963ddd7fee0c891db596ed73f203a62e8ee6faf1543c7a14169b1d557bc3"},
+    {file = "boto3-1.34.108-py3-none-any.whl", hash = "sha256:3601267d76cac17f1d4595c3d8d968dc15be074b79bfa3985187a02b328a0a5f"},
+    {file = "boto3-1.34.108.tar.gz", hash = "sha256:677723295151d29ff9b363598a20c1997c4e2af7e50669d9e428b757fe586a10"},
 ]
 
 [package.dependencies]
-botocore = ">=1.34.107,<1.35.0"
+botocore = ">=1.34.108,<1.35.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.10.0,<0.11.0"
 
@@ -499,13 +455,13 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.34.107"
+version = "1.34.108"
 description = "Low-level, data-driven core of boto 3."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "botocore-1.34.107-py3-none-any.whl", hash = "sha256:98bfab930391a21d24ed7a7bc86ec2ec076607318ab8de0c37d2587f73a88d89"},
-    {file = "botocore-1.34.107.tar.gz", hash = "sha256:4620286a814c3c8abc59145203650a6b2a4f538e887552fa1bc6896b6d11b28b"},
+    {file = "botocore-1.34.108-py3-none-any.whl", hash = "sha256:b1b9d00804267669c5fcc36489269f7e9c43580c30f0885fbf669cf73cec720b"},
+    {file = "botocore-1.34.108.tar.gz", hash = "sha256:384c9408c447631475dc41fdc9bf2e0f30c29c420d96bfe8b468bdc2bace3e13"},
 ]
 
 [package.dependencies]
@@ -2515,21 +2471,19 @@ extended-testing = ["jinja2 (>=3,<4)"]
 
 [[package]]
 name = "langchain-google-vertexai"
-version = "1.0.3"
+version = "1.0.4"
 description = "An integration package connecting Google VertexAI and LangChain"
 optional = false
 python-versions = "<4.0,>=3.8.1"
 files = [
-    {file = "langchain_google_vertexai-1.0.3-py3-none-any.whl", hash = "sha256:407caa2b10cd20d4748cebfc6e405d28d8ef4a0e4f21b01739eca4e24c4f04d2"},
-    {file = "langchain_google_vertexai-1.0.3.tar.gz", hash = "sha256:a3929bc07b971072e7cd21ffe28d843640faaf93763f473077d6786745cce247"},
+    {file = "langchain_google_vertexai-1.0.4-py3-none-any.whl", hash = "sha256:f9d217df2d5cfafb2e551ddd5f1c43611222f542ee0df0cc3b5faed82e657ee3"},
+    {file = "langchain_google_vertexai-1.0.4.tar.gz", hash = "sha256:bb2d2e93cc2896b9bdc96789c2df247f6392184dffc0c3dddc06889f2b530465"},
 ]
 
 [package.dependencies]
 google-cloud-aiplatform = ">=1.47.0,<2.0.0"
 google-cloud-storage = ">=2.14.0,<3.0.0"
-langchain-core = ">=0.1.42,<0.2.0"
-types-protobuf = ">=4.24.0.4,<5.0.0.0"
-types-requests = ">=2.31.0,<3.0.0"
+langchain-core = ">=0.1.42,<0.3"
 
 [package.extras]
 anthropic = ["anthropic[vertexai] (>=0.23.0,<1)"]
@@ -3578,17 +3532,6 @@ files = [
 ]
 
 [[package]]
-name = "pathspec"
-version = "0.12.1"
-description = "Utility library for gitignore style pattern matching of file paths."
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "pathspec-0.12.1-py3-none-any.whl", hash = "sha256:a0d503e138a4c123b27490a4f7beda6a01c6f288df0e4a8b79c7eb0dc7b4cc08"},
-    {file = "pathspec-0.12.1.tar.gz", hash = "sha256:a482d51503a1ab33b1c67a6c3813a26953dbdc71c31dacaef9a838c4e29f5712"},
-]
-
-[[package]]
 name = "pdfminer-six"
 version = "20221105"
 description = "PDF parser and analyzer"
@@ -3693,22 +3636,6 @@ mic = ["olefile"]
 tests = ["check-manifest", "coverage", "defusedxml", "markdown2", "olefile", "packaging", "pyroma", "pytest", "pytest-cov", "pytest-timeout"]
 typing = ["typing-extensions"]
 xmp = ["defusedxml"]
-
-[[package]]
-name = "platformdirs"
-version = "4.2.2"
-description = "A small Python package for determining appropriate platform-specific dirs, e.g. a `user data dir`."
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "platformdirs-4.2.2-py3-none-any.whl", hash = "sha256:2d7a1657e36a80ea911db832a8a6ece5ee53d8de21edd5cc5879af6530b1bfee"},
-    {file = "platformdirs-4.2.2.tar.gz", hash = "sha256:38b7b51f512eed9e84a22788b4bce1de17c0adb134d6becb09836e37d8654cd3"},
-]
-
-[package.extras]
-docs = ["furo (>=2023.9.10)", "proselint (>=0.13)", "sphinx (>=7.2.6)", "sphinx-autodoc-typehints (>=1.25.2)"]
-test = ["appdirs (==1.4.4)", "covdefaults (>=2.3)", "pytest (>=7.4.3)", "pytest-cov (>=4.1)", "pytest-mock (>=3.12)"]
-type = ["mypy (>=1.8)"]
 
 [[package]]
 name = "pluggy"
@@ -4123,23 +4050,23 @@ image = ["Pillow (>=8.0.0)"]
 
 [[package]]
 name = "pytest"
-version = "7.4.4"
+version = "8.2.0"
 description = "pytest: simple powerful testing with Python"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 files = [
-    {file = "pytest-7.4.4-py3-none-any.whl", hash = "sha256:b090cdf5ed60bf4c45261be03239c2c1c22df034fbffe691abe93cd80cea01d8"},
-    {file = "pytest-7.4.4.tar.gz", hash = "sha256:2cf0005922c6ace4a3e2ec8b4080eb0d9753fdc93107415332f50ce9e7994280"},
+    {file = "pytest-8.2.0-py3-none-any.whl", hash = "sha256:1733f0620f6cda4095bbf0d9ff8022486e91892245bb9e7d5542c018f612f233"},
+    {file = "pytest-8.2.0.tar.gz", hash = "sha256:d507d4482197eac0ba2bae2e9babf0672eb333017bcedaa5fb1a3d42c1174b3f"},
 ]
 
 [package.dependencies]
 colorama = {version = "*", markers = "sys_platform == \"win32\""}
 iniconfig = "*"
 packaging = "*"
-pluggy = ">=0.12,<2.0"
+pluggy = ">=1.5,<2.0"
 
 [package.extras]
-testing = ["argcomplete", "attrs (>=19.2.0)", "hypothesis (>=3.56)", "mock", "nose", "pygments (>=2.7.2)", "requests", "setuptools", "xmlschema"]
+dev = ["argcomplete", "attrs (>=19.2)", "hypothesis (>=3.56)", "mock", "pygments (>=2.7.2)", "requests", "setuptools", "xmlschema"]
 
 [[package]]
 name = "pytest-asyncio"
@@ -4604,32 +4531,6 @@ files = [
 
 [package.dependencies]
 pyasn1 = ">=0.1.3"
-
-[[package]]
-name = "ruff"
-version = "0.0.280"
-description = "An extremely fast Python linter, written in Rust."
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "ruff-0.0.280-py3-none-macosx_10_7_x86_64.whl", hash = "sha256:48ed5aca381050a4e2f6d232db912d2e4e98e61648b513c350990c351125aaec"},
-    {file = "ruff-0.0.280-py3-none-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:ef6ee3e429fd29d6a5ceed295809e376e6ece5b0f13c7e703efaf3d3bcb30b96"},
-    {file = "ruff-0.0.280-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:d878370f7e9463ac40c253724229314ff6ebe4508cdb96cb536e1af4d5a9cd4f"},
-    {file = "ruff-0.0.280-py3-none-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:83e8f372fa5627eeda5b83b5a9632d2f9c88fc6d78cead7e2a1f6fb05728d137"},
-    {file = "ruff-0.0.280-py3-none-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:7008fc6ca1df18b21fa98bdcfc711dad5f94d0fc3c11791f65e460c48ef27c82"},
-    {file = "ruff-0.0.280-py3-none-manylinux_2_17_ppc64.manylinux2014_ppc64.whl", hash = "sha256:fe7118c1eae3fda17ceb409629c7f3b5a22dffa7caf1f6796776936dca1fe653"},
-    {file = "ruff-0.0.280-py3-none-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:37359cd67d2af8e09110a546507c302cbea11c66a52d2a9b6d841d465f9962d4"},
-    {file = "ruff-0.0.280-py3-none-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:bd58af46b0221efb95966f1f0f7576df711cb53e50d2fdb0e83c2f33360116a4"},
-    {file = "ruff-0.0.280-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:2e7c15828d09f90e97bea8feefcd2907e8c8ce3a1f959c99f9b4b3469679f33c"},
-    {file = "ruff-0.0.280-py3-none-musllinux_1_2_aarch64.whl", hash = "sha256:2dae8f2d9c44c5c49af01733c2f7956f808db682a4193180dedb29dd718d7bbe"},
-    {file = "ruff-0.0.280-py3-none-musllinux_1_2_armv7l.whl", hash = "sha256:5f972567163a20fb8c2d6afc60c2ea5ef8b68d69505760a8bd0377de8984b4f6"},
-    {file = "ruff-0.0.280-py3-none-musllinux_1_2_i686.whl", hash = "sha256:8ffa7347ad11643f29de100977c055e47c988cd6d9f5f5ff83027600b11b9189"},
-    {file = "ruff-0.0.280-py3-none-musllinux_1_2_x86_64.whl", hash = "sha256:7a37dab70114671d273f203268f6c3366c035fe0c8056614069e90a65e614bfc"},
-    {file = "ruff-0.0.280-py3-none-win32.whl", hash = "sha256:7784e3606352fcfb193f3cd22b2e2117c444cb879ef6609ec69deabd662b0763"},
-    {file = "ruff-0.0.280-py3-none-win_amd64.whl", hash = "sha256:4a7d52457b5dfcd3ab24b0b38eefaead8e2dca62b4fbf10de4cd0938cf20ce30"},
-    {file = "ruff-0.0.280-py3-none-win_arm64.whl", hash = "sha256:b7de5b8689575918e130e4384ed9f539ce91d067c0a332aedef6ca7188adac2d"},
-    {file = "ruff-0.0.280.tar.gz", hash = "sha256:581c43e4ac5e5a7117ad7da2120d960a4a99e68ec4021ec3cd47fe1cf78f8380"},
-]
 
 [[package]]
 name = "s3transfer"
@@ -5145,17 +5046,6 @@ slack = ["slack-sdk"]
 telegram = ["requests"]
 
 [[package]]
-name = "types-protobuf"
-version = "4.25.0.20240417"
-description = "Typing stubs for protobuf"
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "types-protobuf-4.25.0.20240417.tar.gz", hash = "sha256:c34eff17b9b3a0adb6830622f0f302484e4c089f533a46e3f147568313544352"},
-    {file = "types_protobuf-4.25.0.20240417-py3-none-any.whl", hash = "sha256:e9b613227c2127e3d4881d75d93c93b4d6fd97b5f6a099a0b654a05351c8685d"},
-]
-
-[[package]]
 name = "types-requests"
 version = "2.31.0.6"
 description = "Typing stubs for requests"
@@ -5552,4 +5442,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "jaraco.test", "more
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11.0,<3.12"
-content-hash = "6e074f79cec63c1fcbe41bb12d157c76365cd7ae59c6d1ed7e070b0832159da4"
+content-hash = "c22a020ecabceb5f42240eb1ac4f2ecbb4a28a3af1c9f168299a0d311fd7f017"
