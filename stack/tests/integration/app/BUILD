@@ -1,4 +1,7 @@
-python_sources()
 python_tests(
-    name="tests",
+    name="app",
+)
+
+python_sources(
+    name="app0",
 )

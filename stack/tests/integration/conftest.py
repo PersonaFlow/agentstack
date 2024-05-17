@@ -7,36 +7,12 @@ import pytest
 
 from stack.app.main import app
 from stack.app.core.lifespan import lifespan, get_pg_pool
-from dotenv import load_dotenv
 
-env_path = ".env.local"
-load_dotenv(env_path)
-# from stack.app.core.configuration import get_settings
+from stack.app.core.configuration import get_settings
 
-# settings = get_settings()
+settings = get_settings()
 
-# Temporary handling of environment variables for testing
-os.environ["OPENAI_API_KEY"] = "sk-test"
-TEST_DB = "test"
-
-# def set_test_env_vars():
-#     os.environ["OPENAI_API_KEY"] = "sk-test"
-#     assert os.environ["INTERNAL_DATABASE_DATABASE"] != TEST_DB, "Test and main database conflict."
-#     os.environ["INTERNAL_DATABASE_DATABASE"] = TEST_DB
-
-# set_test_env_vars()
-
-# def pytest_configure(config):
-#     set_test_env_vars()
-
-def test_env_vars():
-    assert os.environ["OPENAI_API_KEY"] == "sk-test"
-    print(f"OPENAI_API_KEY: {os.environ['OPENAI_API_KEY']}")
-
-
-assert os.environ["INTERNAL_DATABASE_DATABASE"] != TEST_DB, "Test and main database conflict."
-os.environ["INTERNAL_DATABASE_DATABASE"] = TEST_DB
-
+TEST_DB = os.environ["INTERNAL_DATABASE_DATABASE"]
 
 async def _get_conn() -> asyncpg.Connection:
     return await asyncpg.connect(

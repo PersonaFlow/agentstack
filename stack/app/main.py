@@ -1,8 +1,7 @@
 import logging
 import os
-
-# from azure.monitor.opentelemetry import configure_azure_monitor
 from dotenv import load_dotenv
+# from azure.monitor.opentelemetry import configure_azure_monitor
 from fastapi.openapi.utils import get_openapi
 
 # from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor

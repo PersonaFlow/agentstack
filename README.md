@@ -89,7 +89,7 @@ _Builds and dependencies are managed by [Pantsbuild](https://www.pantsbuild.org/
 - Format: `pants fmt ::`
 - Test: `pants test ::`
 - Run PersonaStack locally: `pants run stack:local`
-- Run PersonaStack with auto-reload and "debug" logging: `pants run stack:local --loop --ldebug`
+- Run PersonaStack with auto-reload and "debug" logging: `pants run stack:local -ldebug --loop`
 
 Note: `::` means all files in project. For more information on targeting, see: [Targets and BUILD files](https://www.pantsbuild.org/2.20/docs/using-pants/key-concepts/targets-and-build-files).
 

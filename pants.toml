@@ -42,3 +42,26 @@ resolves = { python-default = "constraints.txt"}
 #  problematic system Pythons. See
 #  https://www.pantsbuild.org/docs/python-interpreter-compatibility#changing-the-interpreter-search-path.
 search_path = ["<PATH>", "<PYENV>"]
+
+[test]
+extra_env_vars = [
+  "OPENAI_API_KEY=sk-test",
+  "INTERNAL_DATABASE_DATABASE=TEST_DB",
+  "INTERNAL_DATABASE_USER",
+  "INTERNAL_DATABASE_PASSWORD",
+  "INTERNAL_DATABASE_HOST",
+  "INTERNAL_DATABASE_PORT",
+  "INTERNAL_DATABASE_DATABASE",
+  "INTERNAL_DATABASE_SCHEMA",
+  "VECTOR_DB_HOST",
+  "VECTOR_DB_PORT",
+  "VECTOR_DB_NAME",
+  "VECTOR_DB_COLLECTION_NAME",
+  "VECTOR_DB_ENCODER_NAME",
+  "VECTOR_DB_ENCODER_DIMENSIONS",
+  "VECTOR_DB_ENCODER_MODEL",
+  "VECTOR_DB_DEFAULT_NAMESPACE",
+  "LANGGRAPH_RECURSION_LIMIT",
+  "UNSTRUCTURED_API_KEY",
+  "UNSTRUCTURED_BASE_URL"
+  ]

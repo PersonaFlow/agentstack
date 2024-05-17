@@ -5,4 +5,5 @@ python_tests(
 
 python_test_utils(
     name="test_utils",
+    dependencies=["//:reqs#asyncpg", "//:reqs#python-multipart"]
 )
