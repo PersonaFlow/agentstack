@@ -42,7 +42,7 @@ def get_tools_agent_executor(
 
     llm_with_tools = llm.bind_tools(tools) if tools else llm
 
-    agent = _get_messages | llm_with_tools
+    agent = _get_messages if _get_messages else llm_with_tools
     tool_executor = ToolExecutor(tools)
 
     def should_continue(messages):

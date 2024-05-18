@@ -19,6 +19,9 @@ backend_packages = [
 [source]
 root_patterns = ["/"]
 
+[test]
+extra_env_vars = ['OPENAI_API_KEY']
+
 [python]
 # The default interpreter constraints for code in this repo. Individual targets can override
 #  this with the `interpreter_constraints` field. See

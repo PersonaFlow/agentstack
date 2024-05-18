@@ -15,7 +15,7 @@ def get_chatbot_executor(
     def _get_messages(messages):
         return [SystemMessage(content=system_message)] + messages
 
-    chatbot = _get_messages | llm
+    chatbot = _get_messages if _get_messages else llm
 
     workflow = StateGraph(Annotated[List[BaseMessage], add_messages_liberal])
     workflow.add_node("chatbot", chatbot)

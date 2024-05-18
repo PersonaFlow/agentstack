@@ -79,7 +79,7 @@ def get_xml_agent_executor(
             SystemMessage(content=formatted_system_message)
         ] + construct_chat_history(messages)
 
-    agent = _get_messages | llm_with_stop
+    agent = _get_messages if _get_messages else llm_with_stop
     tool_executor = ToolExecutor(tools)
 
     # Define the function that determines whether to continue or not

@@ -7,6 +7,7 @@ SUMMARY_SUFFIX = "summary"
 settings = get_settings()
 
 client = AsyncOpenAI(
+    # api_key='asdf',
     api_key=settings.OPENAI_API_KEY,
 )
 

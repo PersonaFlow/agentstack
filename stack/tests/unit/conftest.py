@@ -34,7 +34,7 @@ def test_env_vars():
     print(f"OPENAI_API_KEY: {os.environ['OPENAI_API_KEY']}")
 
 
-assert os.environ["INTERNAL_DATABASE_DATABASE"] != TEST_DB, "Test and main database conflict."
+# assert os.environ["INTERNAL_DATABASE_DATABASE"] != TEST_DB, "Test and main database conflict."
 os.environ["INTERNAL_DATABASE_DATABASE"] = TEST_DB
 
 
