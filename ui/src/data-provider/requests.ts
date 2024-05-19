@@ -14,7 +14,9 @@ async function _postMultiPart<T>(
   url: string,
   formData: FormData,
 ): Promise<T> {
-  const response = await axios.post(url, formData);
+  const response = await axios.postForm(url, formData, {
+    headers: { 'Content-Type': 'multipart/form-data'}
+  });
   return response.data;
 }
 

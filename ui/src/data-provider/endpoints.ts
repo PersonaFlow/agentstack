@@ -23,7 +23,8 @@ export const messages = (messageId?: string) => `/api/v1/messages/${formatParam(
 
 // --Assistants--
 export const assistants = (assistantId?: string) => `/api/v1/assistants/${formatParam(assistantId)}`
-export const assistantFiles = (assistantId: string, fileId?: string) => `/api/v1/assistants/${assistantId}/files/${formatParam(fileId)}`
+export const assistantFiles = (assistantId: string, limit?: number, order?: string, before?: string, after?: string) => `/api/v1/assistants/${assistantId}/files/${formatParam(limit)}/${formatParam(order)}/${formatParam(before)}/${formatParam(after)}`
+export const assistantFile = (assistantId: string, fileId?: string ) => `/api/v1/assistants/${assistantId}/files/${formatParam(fileId)}`
 
 // --RAG--
 export const ingest = () => "/api/v1/rag/ingest"
@@ -31,7 +32,7 @@ export const query = () => "/api/v1/rag/query"
 export const queryLCRetriever = () => "/api/v1/rag/query-lc-retriever"
 
 // --Files--
-export const files = (fileId?: string) => `/api/v1/files/${formatParam(fileId)}`
+export const files = (fileId?: string, userId?: string, purpose?: string) => `/api/v1/files/${formatParam(fileId)}`
 export const fileContent = (fileId: string) => `/api/v1/files/${fileId}/content`
 
 // --Health Check--

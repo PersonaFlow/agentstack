@@ -107,3 +107,134 @@ export type TUpdateMessageRequest = {
     content: string;
     additional_kwargs: {};
 }
+
+export type TAssistantRequest = {
+    user_id: string;
+    name: string;
+    config: {};
+    kwargs: {};
+    file_ids: string[];
+    public: boolean;
+}
+
+export interface TAssistant extends TAssistantRequest {
+    id: string;
+    created_at: string;
+    updated_at: string;
+}
+
+export type TAddAssistantFileRequest = {
+    file_id: string;
+}
+
+export type TAssistantFile = {
+    file_id: string;
+    asssistant_id: string;
+}
+
+export type TPurpose = 'assistants' | 'threads' | 'personas'
+
+export type TFile = {
+    id: string;
+    user_id: string;
+    purpose: TPurpose;
+    filename: string;
+    bytes: number;
+    mime_type: string;
+    source: string;
+    kwargs: {};
+    created_at: string;
+    updated_at: string;
+}
+
+export type TVectorDatabase = {
+    type: string;
+    config: {
+        api_key: string;
+        host: string;
+    }
+}
+
+export type TEncoder = {
+    dimensions: number;
+    encoder_model: string;
+    provider: string;
+}
+
+export type TUnstructured = {
+    hi_res_model_name: string;
+    partition_strategy: string;
+    process_tables: boolean;
+}
+
+export type TSplitter = {
+    max_tokens: number;
+    min_tokens: number;
+    name: string;
+    prefix_summary: boolean;
+    prefix_titles: boolean;
+    rolling_window_size: number;
+}
+
+export type TIngestFileDataRequest = {
+    files: string[];
+    purpose: TPurpose;
+    namespace: string;
+    vector_database: TVectorDatabase;
+    document_processor: {
+        summarize: boolean;
+        encoder: TEncoder;
+        unstructured: TUnstructured;
+        splitter: TSplitter;
+    }
+    webhook_url: string;
+}
+
+export type TQuery = {
+    input: string;
+    namespace: string;
+    context: string;
+    index_name: string;
+    vector_database: TVectorDatabase;
+    encoder: TEncoder;
+    enable_rerank: boolean;
+    interpreter_mode: boolean;
+    exclude_fields: string[];
+}
+
+export type TQueryData = {
+    id: string;
+    document_id: string;
+    page_content: string;
+    file_id: string;
+    namespace: string;
+    source: string;
+    source_type: string;
+    chunk_index: number;
+    title: string;
+    purpose: TPurpose;
+    token_count: number;
+    page_number: number;
+    metadata: {};
+    dense_embedding: number[]
+}
+
+export type TQueryResponse = {
+    success: boolean;
+    data: TQueryData[]
+}
+
+export type TUploadFileRequest = {
+    file: File;
+    purpose: TPurpose;
+    user_id: string;
+    filename: string;
+    kwargs: string;
+}
+
+export type TDeleteFileResponse = {
+    file_id: string;
+    num_of_deleted_chunks: number;
+    num_of_assistants: number;
+    assistants: TAssistant[]
+}

@@ -111,10 +111,87 @@ export function deleteMessage(messageId: string): Promise<void> {
     return request.delete(endpoints.messages(messageId))
 }
 
+// --Assistants
+export function getAssistants(): Promise<t.TAssistant[]> {
+    return request.get(endpoints.assistants())
+}
 
+export function createAssistant(params: t.TAssistantRequest): Promise<t.TAssistant> {
+    return request.post(endpoints.assistants())
+}
 
+export function getAssistant(assistantId: string): Promise<t.TAssistant> {
+    return request.get(endpoints.assistants(assistantId))
+}
 
+export function updateAssistant(assistantId: string, params: t.TAssistantRequest): Promise<t.TAssistant> {
+    return request.patch(endpoints.assistants(assistantId), {
+        ...params
+    })
+}
 
+export function deleteAssistant(assistantId: string): Promise<void> {
+    return request.delete(endpoints.assistants(assistantId))
+}
 
+// Send fileId in url rather than in body?
+export function addAssistantFile(assistantId: string, params: t.TAddAssistantFileRequest): Promise<t.TAssistantFile> {
+    return request.post(endpoints.assistantFiles(assistantId), {
+        ...params
+    })
+}
 
+// params should be in body rather than in url?
+export function getAssistantFiles(assistantId: string, limit?: number, order?: string, before?: string, after?: string ): Promise<t.TFile> {
+    return request.get(endpoints.assistantFiles(assistantId, limit, order, before, after ))
+}
+
+export function deleteAssistantFile(assistantId: string, fileId: string): Promise<t.TAssistant> {
+    return request.delete(endpoints.assistantFile(assistantId, fileId))
+}
+
+// --RAG--
+export function ingestFileData(params: t.TIngestFileDataRequest): Promise<{}> {
+    return request.post(endpoints.ingest(), {
+        ...params
+    })
+}
+
+export function queryData(params: t.TQuery): Promise<t.TQueryResponse> {
+    return request.post(endpoints.query(), {
+        ...params
+    })
+}
+
+export function queryLCRetriever(params: t.TQuery): Promise<string> {
+    return request.post(endpoints.queryLCRetriever(), {
+        ...params
+    })
+}
+
+// --Files--
+export function uploadFile(params: FormData): Promise<t.TFile> {
+    return request.postMultiPart(endpoints.files(), params)
+}
+
+export function getFiles(userId: string, purpose?: t.TPurpose): Promise<t.TFile[]> {
+    return request.get(endpoints.files(userId, purpose))
+}
+
+export function getFile(fileId: string): Promise<t.TFile> {
+    return request.get(endpoints.files('', fileId))
+}
+
+export function deleteFile(fileId: string): Promise<t.TDeleteFileResponse> {
+    return request.delete(fileId)
+}
+
+export function getFileContent(fileId: string): Promise<File> {
+    return request.get(endpoints.fileContent(fileId))
+}
+
+// --Health Check--
+export function healthCheck(): Promise<string> {
+    return request.get(endpoints.healthCheck())
+}
 
