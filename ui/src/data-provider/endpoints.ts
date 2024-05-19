@@ -1,16 +1,16 @@
-const formatParam = (param?: string) => param ? param : ""
+const formatParam = (param?: any) => param ? param : ""
 
 // --Runs--
 export const stream = "/api/v1/runs/stream"
 export const runs = "/api/v1/runs"
-export const inputSchema = "/api/v1/runs/input_schema"
-export const outputSchema = "/api/v1/runs/output_schema"
-export const configSchema = "/api/v1/runs/config_schema"
+export const runnableInputSchema = "/api/v1/runs/input_schema"
+export const runnableOutputSchema = "/api/v1/runs/output_schema"
+export const runnableConfigSchema = "/api/v1/runs/config_schema"
 export const title = "/api/v1/runs/title"
 
 // --Users--
 export const users = (userId?: string) => `/api/v1/users/${formatParam(userId)}`
-export const userThreads = (userId: string) => `/api/v1/users/${userId}/threads`
+export const userThreads = (userId: string, grouped?: boolean, timezoneOffset?: number) => `/api/v1/users/${userId}/threads/${formatParam(grouped)/formatParam(timezoneOffset)}`
 export const userStartup = (userId: string) => `/api/v1/users/${userId}/startup`
 
 // --Threads--
