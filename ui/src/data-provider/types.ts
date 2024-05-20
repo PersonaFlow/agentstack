@@ -123,7 +123,7 @@ export interface TAssistant extends TAssistantRequest {
     updated_at: string;
 }
 
-export type TAddAssistantFileRequest = {
+export type TCreateAssistantFileRequest = {
     file_id: string;
 }
 
@@ -237,4 +237,9 @@ export type TDeleteFileResponse = {
     num_of_deleted_chunks: number;
     num_of_assistants: number;
     assistants: TAssistant[]
+}
+
+export type TGenerateTitle = {
+    thread_id: string;
+    history: THistory[];
 }
