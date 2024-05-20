@@ -1,1 +1,23 @@
-{"id":"9116de7b-4fbe-42fe-882b-92f208723c04","name":"Persona","traits":[{"id":"49bc9189-a9e5-48aa-82f0-4c1ae143f29b","name":"skills","version":"1.0.0","facts":[{"id":"1b6674cc-2f11-4de3-9480-e2f63e7bfe51","name":"programming language preference","version":"1.0.0","question":"What programming language do you prefer to use?","answer":"Python","weight":1.0}],"weight":1.0}],"version":"1.0.0"}
+{
+  "id": "9116de7b-4fbe-42fe-882b-92f208723c04",
+  "name": "Persona",
+  "traits": [
+    {
+      "id": "49bc9189-a9e5-48aa-82f0-4c1ae143f29b",
+      "name": "skills",
+      "version": "1.0.0",
+      "facts": [
+        {
+          "id": "1b6674cc-2f11-4de3-9480-e2f63e7bfe51",
+          "name": "programming language preference",
+          "version": "1.0.0",
+          "question": "What programming language do you prefer to use?",
+          "answer": "Python",
+          "weight": 1.0
+        }
+      ],
+      "weight": 1.0
+    }
+  ],
+  "version": "1.0.0"
+}

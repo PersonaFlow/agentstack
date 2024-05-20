@@ -2,8 +2,7 @@
 
 It is all the metadata, traits about me that make me unique.
 
-![PersonaFlow - WhatIsPersona_.png](..%2Fassets%2FPersonaFlow%20-%20WhatIsPersona_.png)
-
+![PersonaFlow-WhatIsPersona.png](../assets/PersonaFlow-WhatIsPersona.png)
 A truly personalized experience is one that captures as many of these attributes about me as possible.
 
 How do we get to know someone?  We ask them questions, so we can start to figure some of these things out.

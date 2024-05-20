@@ -1,0 +1,23 @@
+{
+  "id": "2a63d68c-e97d-4a84-afe0-c72d3594d878",
+  "name": "CEO",
+  "traits": [
+    {
+      "id": "c59530f6-dd64-4bd0-b46f-c50d605b18ef",
+      "name": "skills",
+      "version": "1.0.0",
+      "facts": [
+        {
+          "id": "47a42dc4-42b1-4cea-aa1e-bd4f4c3793a4",
+          "name": "Visionary",
+          "version": "1.0.0",
+          "question": "What is your strongest skill?",
+          "answer": "Seeing the bigger picture and where all the technical pieces fit in, combining them in a visionary sense that maximizes value for customers and shareholders",
+          "weight": 1.0
+        }
+      ],
+      "weight": 1.0
+    }
+  ],
+  "version": "1.0.0"
+}
