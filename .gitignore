@@ -187,3 +187,6 @@ dist-ssr
 /dist/
 
 models/
+
+# Gen
+gen/data

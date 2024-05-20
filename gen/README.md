@@ -31,3 +31,17 @@ The PersonaGen project is intended to provide a powerful engine for personalizat
 
 ## Quickstart
 - TODO
+
+## Initial PoC
+
+For the initial PoC, I want to have a source of structured data to work with, with several relevant personas looking at that data.
+
+5 Personas:
+- CEO
+- Product Manager
+- Team Lead
+- Data Engineer
+- Data Scientist
+
+Initial structured Dataset:
+https://www.kaggle.com/datasets/carrie1/ecommerce-data?resource=download
