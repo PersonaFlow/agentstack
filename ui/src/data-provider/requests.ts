@@ -10,36 +10,24 @@ async function _post<T>(url: string, data?: any): Promise<T> {
   return response.data;
 }
 
-async function _postMultiPart<T>(
-  url: string,
-  formData: FormData,
-): Promise<T> {
+async function _postMultiPart<T>(url: string, formData: FormData): Promise<T> {
   const response = await axios.postForm(url, formData, {
-    headers: { 'Content-Type': 'multipart/form-data'}
+    headers: { "Content-Type": "multipart/form-data" },
   });
   return response.data;
 }
 
-async function _put<T>(
-  url: string,
-  data?: any,
-): Promise<T> {
+async function _put<T>(url: string, data?: any): Promise<T> {
   const response = await axios.put(url, JSON.stringify(data));
   return response.data;
 }
 
-async function _patch<T>(
-  url: string,
-  data?: any,
-): Promise<T> {
+async function _patch<T>(url: string, data?: any): Promise<T> {
   const response = await axios.put(url, JSON.stringify(data));
   return response.data;
 }
 
-async function _delete<T>(
-  url: string,
-  data?: any
-): Promise<T> {
+async function _delete<T>(url: string, data?: any): Promise<T> {
   const response = await axios.delete(url);
   return response.data;
 }
@@ -88,7 +76,7 @@ const request = {
   postMultiPart: _postMultiPart,
   put: _put,
   patch: _patch,
-  delete: _delete
+  delete: _delete,
 };
 
 export default request;
