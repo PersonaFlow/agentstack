@@ -110,7 +110,7 @@ class Settings(BaseSettings):
     INTERNAL_DATABASE_DATABASE: str = os.getenv(
         "INTERNAL_DATABASE_DATABASE", "internal"
     )
-    INTERNAL_DATABASE_SCHEMA: str = os.getenv("INTERNAL_DATABASE_SCHEMA", "stack")
+    INTERNAL_DATABASE_SCHEMA: str = os.getenv("INTERNAL_DATABASE_SCHEMA", "personaflow")
 
     @property
     def INTERNAL_DATABASE_URI(self):  # noqa
