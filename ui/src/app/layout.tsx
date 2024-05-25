@@ -19,7 +19,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.className} h-screen w-screen flex flex-col p-2 gap-2`}>
+      <body>
+        <div className={`${inter.className} h-screen w-screen flex flex-col p-2 gap-2`}>
       <Providers>
         <Header />
         <div className="flex flex-1 gap-2">
@@ -27,6 +28,7 @@ export default function RootLayout({
           {children}
         </div>
       </Providers>
+      </div>
       </body>
     </html>
   );
