@@ -35,6 +35,7 @@ export const messages = (messageId?: string) =>
 // --Assistants--
 export const assistants = (assistantId?: string) =>
   `/api/v1/assistants/${formatParam(assistantId)}`;
+
 export const assistantFiles = (
   assistantId: string,
   limit?: number,

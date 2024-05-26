@@ -149,7 +149,9 @@ export type TUpdateMessageRequest = {
 export type TAssistantRequest = {
   user_id: string;
   name: string;
-  config: {};
+  config: {
+    configurable: TConfigurable;
+  };
   kwargs: {};
   file_ids: string[];
   public: boolean;
