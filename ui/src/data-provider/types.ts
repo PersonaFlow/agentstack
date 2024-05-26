@@ -146,7 +146,7 @@ export type TUpdateMessageRequest = {
   additional_kwargs: {};
 };
 
-export type TAssistantRequest = {
+export type TCreateAssistant = {
   user_id: string;
   name: string;
   config: {
@@ -157,7 +157,7 @@ export type TAssistantRequest = {
   public: boolean;
 };
 
-export interface TAssistant extends TAssistantRequest {
+export interface TAssistant extends TCreateAssistant {
   id: string;
   created_at: string;
   updated_at: string;

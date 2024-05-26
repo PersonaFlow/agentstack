@@ -255,7 +255,7 @@ export const useAssistants = () => {
   });
 };
 
-export const useCreateAssistant = (payload: t.TAssistantRequest) => {
+export const useCreateAssistant = (payload: t.TCreateAssistant) => {
   const queryClient = useQueryClient();
   return useMutation<t.TAssistant, Error>({
     mutationFn: async (): Promise<t.TAssistant> =>
@@ -275,7 +275,7 @@ export const useAssistant = (assistantId: string) => {
 
 export const useUpdateAssistant = (
   assistantId: string,
-  payload: t.TAssistantRequest,
+  payload: t.TCreateAssistant,
 ) => {
   const queryClient = useQueryClient();
   return useMutation<t.TAssistant, Error>({
