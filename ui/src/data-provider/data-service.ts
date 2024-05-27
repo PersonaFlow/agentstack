@@ -132,7 +132,9 @@ export function getAssistants(): Promise<t.TAssistant[]> {
 export function createAssistant(
   payload: t.TCreateAssistant,
 ): Promise<t.TAssistant> {
-  return request.post(endpoints.assistants());
+  return request.post(endpoints.assistants(), {
+    ...payload,
+  });
 }
 
 export function getAssistant(assistantId: string): Promise<t.TAssistant> {

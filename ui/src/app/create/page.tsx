@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { useFiles } from "@/data-provider/query-service";
+import { useCreateAssistant, useFiles } from "@/data-provider/query-service";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -44,6 +44,7 @@ const formSchema = z.object({
 
 export default function Page() {
   const { data: userFiles } = useFiles("1234");
+  const createAssistant = useCreateAssistant();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -67,6 +68,7 @@ export default function Page() {
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values);
+    createAssistant.mutate(values);
   }
 
   return (

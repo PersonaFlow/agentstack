@@ -255,10 +255,10 @@ export const useAssistants = () => {
   });
 };
 
-export const useCreateAssistant = (payload: t.TCreateAssistant) => {
+export const useCreateAssistant = () => {
   const queryClient = useQueryClient();
   return useMutation<t.TAssistant, Error>({
-    mutationFn: async (): Promise<t.TAssistant> =>
+    mutationFn: async (payload: t.TCreateAssistant): Promise<t.TAssistant> =>
       await dataService.createAssistant(payload),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: [QueryKeys.assistants] }),
