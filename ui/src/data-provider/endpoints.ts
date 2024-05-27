@@ -53,8 +53,12 @@ export const query = () => "/api/v1/rag/query";
 export const queryLCRetriever = () => "/api/v1/rag/query-lc-retriever";
 
 // --Files--
-export const files = (fileId?: string, userId?: string, purpose?: string) =>
+export const files = (userId: string, purpose?: string) =>
+  `/api/v1/files?user_id=${userId}`;
+
+export const file = (fileId?: string, userId?: string, purpose?: string) =>
   `/api/v1/files/${formatParam(fileId)}`;
+
 export const fileContent = (fileId: string) =>
   `/api/v1/files/${fileId}/content`;
 

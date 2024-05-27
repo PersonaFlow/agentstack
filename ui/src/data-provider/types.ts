@@ -279,6 +279,11 @@ export type TDeleteFileResponse = {
   assistants: TAssistant[];
 };
 
+export type TGetFiles = {
+  user_id: string;
+  purpose?: string;
+};
+
 export type TGenerateTitle = {
   thread_id: string;
   history: THistory[];

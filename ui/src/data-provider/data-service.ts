@@ -203,18 +203,15 @@ export function queryLCRetriever(payload: t.TQuery): Promise<string> {
 
 // --Files--
 export function uploadFile(payload: FormData): Promise<t.TFile> {
-  return request.postMultiPart(endpoints.files(), payload);
+  return request.postMultiPart(endpoints.file(), payload);
 }
 
-export function getFiles(
-  userId: string,
-  purpose?: t.TPurpose,
-): Promise<t.TFile[]> {
+export function getFiles(userId: string, purpose?: string): Promise<t.TFile[]> {
   return request.get(endpoints.files(userId, purpose));
 }
 
 export function getFile(fileId: string): Promise<t.TFile> {
-  return request.get(endpoints.files("", fileId));
+  return request.get(endpoints.file("", fileId));
 }
 
 export function deleteFile(fileId: string): Promise<t.TDeleteFileResponse> {
