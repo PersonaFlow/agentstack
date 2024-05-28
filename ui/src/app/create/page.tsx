@@ -95,6 +95,7 @@ const formSchema = z.object({
       llm_type: z.string(),
       retrieval_description: z.string(),
       system_message: z.string(),
+      tools: z.array(z.string()),
     }),
   }),
   file_ids: z.array(z.string()),
@@ -102,7 +103,7 @@ const formSchema = z.object({
 
 const defaultValues = {
   public: false,
-  name: "",
+  name: undefined,
   config: {
     configurable: {
       interrupt_before_action: false,
@@ -112,10 +113,21 @@ const defaultValues = {
       retrieval_description:
         "Can be used to look up information that was uploaded for this assistant.",
       system_message: "You are a helpful assistant.",
+      tools: [],
     },
   },
   file_ids: [],
 };
+
+const tools = [
+  "DDG Search",
+  "Search (Tavily)",
+  "Search (short answer, Tavily)",
+  "Retrieval",
+  "Arxiv",
+  "PubMed",
+  "Wikipedia",
+];
 
 export default function Page() {
   // const { data: userFiles } = useFiles("1234");
@@ -306,14 +318,6 @@ export default function Page() {
         />
 
         <div className="flex flex-col gap-4 w-40">
-          {/* <div>
-            <h3>Assistant Files</h3>
-            <div className="max-h-[200px] overflow-y-scroll">
-              {mapFileIDToFilename().map((filename) => (
-                <p className="py-2">{filename}</p>
-              ))}
-            </div>
-          </div> */}
           <Dialog>
             <DialogTrigger className="border-2 border-solid p-2 border-black rounded h-10 w-40">
               Manage Files
@@ -323,7 +327,7 @@ export default function Page() {
                 <DialogTitle>Select Files</DialogTitle>
                 <DialogDescription className="flex flex-col gap-6">
                   <Accordion type="single" collapsible>
-                    <AccordionItem value="item-1">
+                    <AccordionItem value="files">
                       <AccordionTrigger>Files</AccordionTrigger>
                       <AccordionContent className="overflow-y-scroll h-[200px]">
                         {mockFiles.map((file) => (
@@ -370,33 +374,86 @@ export default function Page() {
               </DialogHeader>
             </DialogContent>
           </Dialog>
-          {/* <Button className="w-40"> */}
-          {/* Add new file */}
-          {/* <Input type="file" /> */}
-          {/* </Button> */}
         </div>
 
-        {/* <FormField
-          control={form.control}
-          name="retrieval_description"
-          render={({ field }) => (
-            <FormItem className="flex flex-col">
-              <FormLabel>Retrieval description</FormLabel>
-              <FormControl>
-                <Textarea
-                  className="w-[400px]"
-                  placeholder="Used to look up information that was uploaded for this assistant."
+        <Dialog>
+          <DialogTrigger className="border-2 border-solid p-2 border-black rounded h-10 w-40">
+            Manage Tools
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Select Tools</DialogTitle>
+              <DialogDescription className="flex flex-col gap-6">
+                <Accordion type="single" collapsible>
+                  <AccordionItem value="tools">
+                    <AccordionTrigger>Tools</AccordionTrigger>
+                    <AccordionContent className="overflow-y-scroll h-[150px]">
+                      {tools.map((tool) => (
+                        <FormField
+                          key={tool}
+                          control={form.control}
+                          name="config.configurable.tools"
+                          render={({ field }) => {
+                            return (
+                              <FormItem
+                                key={tool}
+                                className="flex flex-row items-start space-x-3 space-y-0"
+                              >
+                                <FormControl>
+                                  <Checkbox
+                                    checked={field.value?.includes(tool)}
+                                    onCheckedChange={(checked) => {
+                                      return checked
+                                        ? field.onChange([...field.value, tool])
+                                        : field.onChange(
+                                            field.value?.filter(
+                                              (value) => value !== tool,
+                                            ),
+                                          );
+                                    }}
+                                  />
+                                </FormControl>
+                                <FormLabel className="text-sm font-normal">
+                                  {tool}
+                                </FormLabel>
+                              </FormItem>
+                            );
+                          }}
+                        />
+                      ))}
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+                <FormField
+                  control={form.control}
+                  name="config.configurable.interrupt_before_action"
+                  render={({ field }) => {
+                    return (
+                      <FormItem className="flex flex-col gap-2">
+                        <FormLabel>Interrupt before action?</FormLabel>
+                        <Switch
+                          onCheckedChange={(checked) => field.onChange(checked)}
+                        />
+                      </FormItem>
+                    );
+                  }}
                 />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-        <div className="flex items-center gap-2">
-          <Label htmlFor="interrupt_before_action">
-            Interrupt before action?
-          </Label>
-          <Switch id="interrupt_before_action" />
-        </div> */}
+                <FormField
+                  control={form.control}
+                  name="config.configurable.retrieval_description"
+                  render={({ field }) => {
+                    return (
+                      <FormItem className="flex flex-col gap-2">
+                        <FormLabel>Retrieval Description</FormLabel>
+                        <Textarea {...field} />
+                      </FormItem>
+                    );
+                  }}
+                />
+              </DialogDescription>
+            </DialogHeader>
+          </DialogContent>
+        </Dialog>
       </form>
     </Form>
   );
