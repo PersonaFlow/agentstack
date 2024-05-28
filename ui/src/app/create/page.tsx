@@ -12,13 +12,12 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useCreateAssistant, useFiles } from "@/data-provider/query-service";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -40,6 +39,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useEffect } from "react";
 
 const mockFiles = [
   {
@@ -91,7 +91,7 @@ const formSchema = z.object({
     configurable: z.object({
       interrupt_before_action: z.boolean(),
       type: z.string(),
-      agent_type: z.string(),
+      agent_type: z.string().optional(),
       llm_type: z.string(),
       retrieval_description: z.string(),
       system_message: z.string(),
@@ -100,40 +100,68 @@ const formSchema = z.object({
   file_ids: z.array(z.string()),
 });
 
+const defaultValues = {
+  public: false,
+  name: "",
+  config: {
+    configurable: {
+      interrupt_before_action: false,
+      type: "agent",
+      agent_type: "GPT 3.5 Turbo",
+      llm_type: "GPT 3.5 Turbo",
+      retrieval_description:
+        "Can be used to look up information that was uploaded for this assistant.",
+      system_message: "You are a helpful assistant.",
+    },
+  },
+  file_ids: [],
+};
+
 export default function Page() {
-  const { data: userFiles } = useFiles("1234");
-  const createAssistant = useCreateAssistant();
+  // const { data: userFiles } = useFiles("1234");
+  // const createAssistant = useCreateAssistant();
+  // useWatch({ name: "type" });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      public: false,
-      name: "",
-      config: {
-        configurable: {
-          interrupt_before_action: false,
-          type: "agent",
-          agent_type: "GPT 3.5 Turbo",
-          llm_type: "GPT 3.5 Turbo",
-          retrieval_description:
-            "Can be used to look up information that was uploaded for this assistant.",
-          system_message: "You are a helpful assistant.",
-        },
-      },
-      file_ids: [],
-    },
+    defaultValues: defaultValues,
   });
+
+  const botType = form.watch("config.configurable.type");
+
+  useEffect(() => {
+    if (botType !== "agent") {
+      form.setValue("config.configurable.agent_type", undefined);
+    }
+  }, [botType]);
+
+  // Seems to be rendering a million times, but why...
+  // console.log("render");
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values);
     // createAssistant.mutate(values);
   }
 
-  function mapFileIDToFilename() {
-    return form
-      .getValues()
-      .file_ids.map((id) => mockFiles.find((file) => file.id === id)?.filename);
-  }
+  // function mapFileIDToFilename() {
+  //   return form
+  //     .getValues()
+  //     .file_ids.map((id) => mockFiles.find((file) => file.id === id)?.filename);
+  // }
+
+  // useEffect(() => {
+  //   if (form.getValues().config.configurable.type !== "agent") {
+  //     form.setValue("agent_type", undefined);
+  //   }
+  // }, [form.getValues()]);
+  // useEffect(() => {
+  //   if (form.getValues().config.configurable.type !== "agent") {
+  //     const _defaultValues = { ...defaultValues };
+  //     _defaultValues.config.configurable.agent_type = undefined;
+
+  //     form.reset({ ..._defaultValues });
+  //   }
+  // }, [form.getValues().config.configurable.type]);
 
   return (
     <Form {...form}>
@@ -222,7 +250,7 @@ export default function Page() {
                       defaultValue={field.value}
                     >
                       <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Agent Type" />
+                        <SelectValue placeholder="Select Agent Type" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="GPT 3.5 Turbo">
