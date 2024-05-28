@@ -32,6 +32,14 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const mockFiles = [
   {
@@ -281,48 +289,60 @@ export default function Page() {
         />
 
         <div className="flex gap-4">
-          {mockFiles?.length > 0 && (
-            <Accordion type="single" collapsible>
-              <AccordionItem value="item-1">
-                <AccordionTrigger>Files</AccordionTrigger>
-                <AccordionContent className="overflow-y-scroll h-[200px]">
-                  {mockFiles.map((file) => (
-                    <FormField
-                      key={file.id}
-                      control={form.control}
-                      name="file_ids"
-                      render={({ field }) => {
-                        return (
-                          <FormItem
+          <Dialog>
+            <DialogTrigger>Open</DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Select Files</DialogTitle>
+                <DialogDescription className="flex flex-col gap-6">
+                  <Accordion type="single" collapsible>
+                    <AccordionItem value="item-1">
+                      <AccordionTrigger>Files</AccordionTrigger>
+                      <AccordionContent className="overflow-y-scroll h-[200px]">
+                        {mockFiles.map((file) => (
+                          <FormField
                             key={file.id}
-                            className="flex flex-row items-start space-x-3 space-y-0"
-                          >
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value?.includes(file.id)}
-                                onCheckedChange={(checked) => {
-                                  return checked
-                                    ? field.onChange([...field.value, file.id])
-                                    : field.onChange(
-                                        field.value?.filter(
-                                          (value) => value !== file.id,
-                                        ),
-                                      );
-                                }}
-                              />
-                            </FormControl>
-                            <FormLabel className="text-sm font-normal">
-                              {file.filename}
-                            </FormLabel>
-                          </FormItem>
-                        );
-                      }}
-                    />
-                  ))}
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          )}
+                            control={form.control}
+                            name="file_ids"
+                            render={({ field }) => {
+                              return (
+                                <FormItem
+                                  key={file.id}
+                                  className="flex flex-row items-start space-x-3 space-y-0"
+                                >
+                                  <FormControl>
+                                    <Checkbox
+                                      checked={field.value?.includes(file.id)}
+                                      onCheckedChange={(checked) => {
+                                        return checked
+                                          ? field.onChange([
+                                              ...field.value,
+                                              file.id,
+                                            ])
+                                          : field.onChange(
+                                              field.value?.filter(
+                                                (value) => value !== file.id,
+                                              ),
+                                            );
+                                      }}
+                                    />
+                                  </FormControl>
+                                  <FormLabel className="text-sm font-normal">
+                                    {file.filename}
+                                  </FormLabel>
+                                </FormItem>
+                              );
+                            }}
+                          />
+                        ))}
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                  <Button className="w-40">New File</Button>
+                </DialogDescription>
+              </DialogHeader>
+            </DialogContent>
+          </Dialog>
           {/* <Button className="w-40"> */}
           {/* Add new file */}
           {/* <Input type="file" /> */}
