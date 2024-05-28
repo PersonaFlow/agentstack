@@ -118,6 +118,7 @@ export default function Page() {
             name="config.configurable.type"
             render={({ field }) => (
               <FormItem className="flex flex-col">
+                <FormLabel>Bot Type</FormLabel>
                 <FormControl>
                   <Select
                     onValueChange={field.onChange}
@@ -143,6 +144,7 @@ export default function Page() {
             name="config.configurable.agent_type"
             render={({ field }) => (
               <FormItem className="flex flex-col">
+                <FormLabel>Agent Type</FormLabel>
                 <FormControl>
                   <Select
                     onValueChange={field.onChange}
@@ -178,6 +180,7 @@ export default function Page() {
           name="config.configurable.llm_type"
           render={({ field }) => (
             <FormItem className="flex flex-col">
+              <FormLabel>LLM Type</FormLabel>
               <FormControl>
                 <Select
                   onValueChange={field.onChange}
@@ -229,7 +232,7 @@ export default function Page() {
               name="file_ids"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Retrieval descriptio</FormLabel>
+                  <FormLabel>Files</FormLabel>
                   <FormControl>
                     <Select
                       onValueChange={field.onChange}
