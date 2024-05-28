@@ -120,7 +120,6 @@ const defaultValues = {
 export default function Page() {
   // const { data: userFiles } = useFiles("1234");
   // const createAssistant = useCreateAssistant();
-  // useWatch({ name: "type" });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -131,6 +130,7 @@ export default function Page() {
 
   useEffect(() => {
     if (botType !== "agent") {
+      // Set undefined agent_type if bot is not an agent
       form.setValue("config.configurable.agent_type", undefined);
     }
   }, [botType]);
@@ -142,26 +142,6 @@ export default function Page() {
     console.log(values);
     // createAssistant.mutate(values);
   }
-
-  // function mapFileIDToFilename() {
-  //   return form
-  //     .getValues()
-  //     .file_ids.map((id) => mockFiles.find((file) => file.id === id)?.filename);
-  // }
-
-  // useEffect(() => {
-  //   if (form.getValues().config.configurable.type !== "agent") {
-  //     form.setValue("agent_type", undefined);
-  //   }
-  // }, [form.getValues()]);
-  // useEffect(() => {
-  //   if (form.getValues().config.configurable.type !== "agent") {
-  //     const _defaultValues = { ...defaultValues };
-  //     _defaultValues.config.configurable.agent_type = undefined;
-
-  //     form.reset({ ..._defaultValues });
-  //   }
-  // }, [form.getValues().config.configurable.type]);
 
   return (
     <Form {...form}>
