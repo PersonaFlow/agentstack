@@ -129,6 +129,12 @@ export default function Page() {
     // createAssistant.mutate(values);
   }
 
+  function mapFileIDToFilename() {
+    return form
+      .getValues()
+      .file_ids.map((id) => mockFiles.find((file) => file.id === id)?.filename);
+  }
+
   return (
     <Form {...form}>
       <form
@@ -202,40 +208,43 @@ export default function Page() {
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="config.configurable.agent_type"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel>Agent Type</FormLabel>
-                <FormControl>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Agent Type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="GPT 3.5 Turbo">
-                        GPT 3.5 Turbo
-                      </SelectItem>
-                      <SelectItem value="GPT 4 Turbo">GPT 4 Turbo</SelectItem>
-                      <SelectItem value="GPT 4 (Azure OpenAI)">
-                        GPT 4 (Azure OpenAI)
-                      </SelectItem>
-                      <SelectItem value="Claude 2">Claude 2</SelectItem>
-                      <SelectItem value="Claude 2 (Amazon Bedrock)">
-                        Claude 2 (Amazon Bedrock)
-                      </SelectItem>
-                      <SelectItem value="GEMINI">GEMINI</SelectItem>
-                      <SelectItem value="Ollama">Ollama</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </FormControl>
-              </FormItem>
-            )}
-          />
+          {form.getValues().config.configurable.type === "agent" && (
+            <FormField
+              control={form.control}
+              name="config.configurable.agent_type"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Agent Type</FormLabel>
+                  <FormControl>
+                    <Select
+                      // value={form.getValues().config.configurable.type !== "agent" && undefined}
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Agent Type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="GPT 3.5 Turbo">
+                          GPT 3.5 Turbo
+                        </SelectItem>
+                        <SelectItem value="GPT 4 Turbo">GPT 4 Turbo</SelectItem>
+                        <SelectItem value="GPT 4 (Azure OpenAI)">
+                          GPT 4 (Azure OpenAI)
+                        </SelectItem>
+                        <SelectItem value="Claude 2">Claude 2</SelectItem>
+                        <SelectItem value="Claude 2 (Amazon Bedrock)">
+                          Claude 2 (Amazon Bedrock)
+                        </SelectItem>
+                        <SelectItem value="GEMINI">GEMINI</SelectItem>
+                        <SelectItem value="Ollama">Ollama</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          )}
         </div>
 
         <FormField
@@ -288,9 +297,19 @@ export default function Page() {
           )}
         />
 
-        <div className="flex gap-4">
+        <div className="flex flex-col gap-4 w-40">
+          {/* <div>
+            <h3>Assistant Files</h3>
+            <div className="max-h-[200px] overflow-y-scroll">
+              {mapFileIDToFilename().map((filename) => (
+                <p className="py-2">{filename}</p>
+              ))}
+            </div>
+          </div> */}
           <Dialog>
-            <DialogTrigger>Open</DialogTrigger>
+            <DialogTrigger className="border-2 border-solid p-2 border-black rounded h-10 w-40">
+              Manage Files
+            </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Select Files</DialogTitle>
