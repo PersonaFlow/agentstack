@@ -20,15 +20,17 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <div className={`${inter.className} h-screen w-screen flex flex-col p-2 gap-2`}>
-      <Providers>
-        <Header />
-        <div className="flex flex-1 gap-2">
-          <Sidebar />
-          {children}
+        <div
+          className={`${inter.className} h-screen w-screen flex flex-col p-2 gap-2`}
+        >
+          <Providers>
+            <Header />
+            <div className="flex flex-1 gap-2 overflow-y-hidden">
+              <Sidebar />
+              {children}
+            </div>
+          </Providers>
         </div>
-      </Providers>
-      </div>
       </body>
     </html>
   );

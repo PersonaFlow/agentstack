@@ -25,6 +25,56 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Checkbox } from "@/components/ui/checkbox";
+
+const mockFiles = [
+  {
+    filename: "a.pdf",
+    id: "1",
+  },
+  {
+    filename: "b.pdf",
+    id: "2",
+  },
+  {
+    filename: "c.pdf",
+    id: "3",
+  },
+  {
+    filename: "d.pdf",
+    id: "4",
+  },
+  {
+    filename: "e.pdf",
+    id: "5",
+  },
+  {
+    filename: "f.pdf",
+    id: "6",
+  },
+  {
+    filename: "g.pdf",
+    id: "7",
+  },
+  {
+    filename: "h.pdf",
+    id: "8",
+  },
+  {
+    filename: "i.pdf",
+    id: "9",
+  },
+  {
+    filename: "j.pdf",
+    id: "10",
+  },
+];
 
 const formSchema = z.object({
   public: z.boolean(),
@@ -68,7 +118,7 @@ export default function Page() {
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values);
-    createAssistant.mutate(values);
+    // createAssistant.mutate(values);
   }
 
   return (
@@ -77,7 +127,12 @@ export default function Page() {
         onSubmit={form.handleSubmit(onSubmit)}
         className="p-6 border-solid border-2 w-full gap-4 flex flex-col"
       >
-        <h1>Create Assistant</h1>
+        <div className="flex">
+          <h1>Create Assistant</h1>
+          <Button type="submit" className="w-40 ml-auto">
+            Save Assistant
+          </Button>
+        </div>
         <div className="flex gap-12 items-center">
           <FormField
             control={form.control}
@@ -226,33 +281,47 @@ export default function Page() {
         />
 
         <div className="flex gap-4">
-          {userFiles?.length > 0 && (
-            <FormField
-              control={form.control}
-              name="file_ids"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Files</FormLabel>
-                  <FormControl>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Files" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {userFiles?.map((file) => (
-                          <SelectItem value={file.id}>
-                            {file.filename}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+          {mockFiles?.length > 0 && (
+            <Accordion type="single" collapsible>
+              <AccordionItem value="item-1">
+                <AccordionTrigger>Files</AccordionTrigger>
+                <AccordionContent className="overflow-y-scroll h-[200px]">
+                  {mockFiles.map((file) => (
+                    <FormField
+                      key={file.id}
+                      control={form.control}
+                      name="file_ids"
+                      render={({ field }) => {
+                        return (
+                          <FormItem
+                            key={file.id}
+                            className="flex flex-row items-start space-x-3 space-y-0"
+                          >
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value?.includes(file.id)}
+                                onCheckedChange={(checked) => {
+                                  return checked
+                                    ? field.onChange([...field.value, file.id])
+                                    : field.onChange(
+                                        field.value?.filter(
+                                          (value) => value !== file.id,
+                                        ),
+                                      );
+                                }}
+                              />
+                            </FormControl>
+                            <FormLabel className="text-sm font-normal">
+                              {file.filename}
+                            </FormLabel>
+                          </FormItem>
+                        );
+                      }}
+                    />
+                  ))}
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           )}
           {/* <Button className="w-40"> */}
           {/* Add new file */}
@@ -281,9 +350,6 @@ export default function Page() {
           </Label>
           <Switch id="interrupt_before_action" />
         </div> */}
-        <Button type="submit" className="w-40">
-          Submit
-        </Button>
       </form>
     </Form>
   );
