@@ -108,7 +108,7 @@ if __name__ == "__main__":
                 facts=[
                     Fact(
                         id=uuid.uuid4(),
-                        name='Data Expect',
+                        name='Data Expert',
                         question='What is your strongest skill?',
                         answer='Expertise at moving large volumes of data with low-latency and high reliability.',
                         version=version,
