@@ -49,7 +49,6 @@ async def create_user(
     summary="List all users ",
     description="""
                 GET endpoint at `/users` for listing all users. <br>
-                *This is meant for admin operation.* <br>
                 ** TODO: add access control.** <br>
                 ** TODO: add pagination.**
                 ** TODO: add order and filtering.**
@@ -134,8 +133,6 @@ async def delete_user(
     summary="Retrieve threads by user ",
     description="""
                 GET endpoint at `/users/{user_id}/threads` for fetching all threads associated with a specific user using its id. <br>
-                *This is meant for admin operation.* <br>
-                ** TODO: add pagination.**
             """,
 )
 async def retrieve_user_threads(
