@@ -1,22 +1,22 @@
 import logging
 import os
 from dotenv import load_dotenv
-# from azure.monitor.opentelemetry import configure_azure_monitor
+from azure.monitor.opentelemetry import configure_azure_monitor
 from fastapi.openapi.utils import get_openapi
 
-# from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
-# If we have the `ENVIRONMENT`variable already, we are running in Docker or Kubernetes
-# and do not need to load the .env file
 environment = os.getenv("ENVIRONMENT")
 if not environment:
-    env_path = ".env"
+    from pathlib import Path
+    cwd = Path.cwd()
+    env_path = cwd / ".env"
     load_dotenv(env_path)
 
-from stack.app.app_factory import create_app
-from stack.app.core.configuration import Settings
 
-settings = Settings()
+from stack.app.app_factory import create_app
+from stack.app.core.configuration import settings
+
 
 """
 Application Insights configuration
@@ -29,12 +29,12 @@ logging.getLogger("urllib3").setLevel(logging.WARN)
 logging.getLogger("opentelemetry").setLevel(logging.WARN)
 AI_CONN_STR_ENV_NAME = "APPLICATIONINSIGHTS_CONNECTION_STRING"
 AI_CONN_STR = os.getenv(AI_CONN_STR_ENV_NAME)
-# if AI_CONN_STR and AI_CONN_STR != "":
-#     configure_azure_monitor(
-#         connection_string=os.getenv(AI_CONN_STR_ENV_NAME),
-#         logger_name="personaflow",
-#         logging_level=os.getenv("INFO"),
-#     )
+if AI_CONN_STR and AI_CONN_STR != "":
+    configure_azure_monitor(
+        connection_string=os.getenv(AI_CONN_STR_ENV_NAME),
+        logger_name="personaflow",
+        logging_level=os.getenv("INFO"),
+    )
 
 if settings.ENABLE_LANGSMITH_TRACING:
     from langsmith import Client
@@ -42,7 +42,7 @@ if settings.ENABLE_LANGSMITH_TRACING:
     client = Client()
 
 app = create_app(settings)
-# FastAPIInstrumentor.instrument_app(app)
+FastAPIInstrumentor.instrument_app(app)
 
 
 def get_custom_openapi():

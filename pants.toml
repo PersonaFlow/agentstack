@@ -45,7 +45,7 @@ search_path = ["<PATH>", "<PYENV>"]
 
 [test]
 extra_env_vars = [
-  "PERSONAFLOW_API_KEY="1234"
+  "PERSONAFLOW_API_KEY=1234",
   "OPENAI_API_KEY=sk-test",
   "INTERNAL_DATABASE_DATABASE=TEST_DB",
   "INTERNAL_DATABASE_USER",

@@ -1,5 +1,9 @@
 [tool.poetry]
-package-mode = false
+name = "personaflow"
+version = "0.1.0"
+description = ""
+authors = ["PersonaFlow"]
+readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.11.0,<3.12"
@@ -66,4 +70,21 @@ pytest-socket = "^0.6.0"
 pytest-watch = "^4.2.0"
 pytest-timeout = "^2.2.0"
 pytest-cov = "^4.0.0"
+
+[tool.pytest.ini_options]
+norecuredirs = [
+  "*.eggs",
+  ".eggs",
+  "dist",
+  "build",
+  "docs",
+  ".tox",
+  ".git",
+  "__pycache__"
+]
+asyncio_mode = "auto"
+addopts = [
+  "--strict-markers",
+  "--tb=short"
+]
 

@@ -1,13 +1,20 @@
 import asyncio
+import pytest
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from stack.app.core.configuration import get_settings
+
+@pytest.fixture(scope="module")
+def event_loop():
+    loop = asyncio.new_event_loop()
+    yield loop
+    loop.close()
 
 
 async def test_db_connection():
     from sqlalchemy.sql import text
     from dotenv import load_dotenv
-    env_path = ".env.local"
+    env_path = ".env"
     load_dotenv(env_path)
     settings = get_settings()
 

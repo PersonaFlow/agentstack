@@ -6,6 +6,7 @@
 # the context provided by Alembic.
 
 # Necessary imports for asynchronous operations, importing modules, and logging.
+import os
 import asyncio
 import importlib
 import pkgutil
@@ -39,13 +40,15 @@ for _, module_name, is_package in pkgutil.iter_modules(model.__path__):
     if not is_package:
         importlib.import_module(f".{module_name}", model.__name__)
 
+def get_database_uri():
+    return os.getenv("TEST_DATABASE_URI", settings.INTERNAL_DATABASE_URI)
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
 
     In this mode, an actual database connection is not established.
     """
-    url = settings.INTERNAL_DATABASE_URI
+    url = get_database_uri()
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -80,7 +83,7 @@ async def run_async_migrations() -> None:
     """Create an asynchronous engine and associate a connection with the
     migration context."""
     payload = config.get_section(config.config_ini_section, {})
-    payload["sqlalchemy.url"] = settings.INTERNAL_DATABASE_URI
+    payload["sqlalchemy.url"] = get_database_uri()
     connectable = async_engine_from_config(
         payload,
         prefix="sqlalchemy.",

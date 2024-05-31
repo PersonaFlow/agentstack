@@ -36,15 +36,17 @@ class LogLevelEnum(enum.Enum):
 # We load env variables here to allow for db migration scripts to run
 # If we have the `ENVIRONMENT`variable already, we are running in Docker or Kubernetes
 # and do not need to load the.env file
-# environment = os.getenv("ENVIRONMENT")
-# if not environment:
-#     env_path = "../../../.env"
-#     load_dotenv(env_path)
+environment = os.getenv("ENVIRONMENT")
+if not environment:
+    env_path = "../../../.env"
+    load_dotenv(env_path)
 
 
 class Settings(BaseSettings):
     class Config:
         case_sensitive = True
+        env_file = ".env"
+        env_file_encoding = 'utf-8'
 
     TITLE: str = "PersonaFlow"
     VERSION: str = "0.1.0"
@@ -227,5 +229,5 @@ try:
     settings = Settings()
 except ValidationError as e:
     error_messages = [err for err in e.errors()]
-    logger.error(f"Settings validation error: {error_messages}")
-    sys.exit(1)
+    # logger.error(f"Settings validation error: {error_messages}")
+    # sys.exit(1)
