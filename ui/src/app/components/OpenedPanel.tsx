@@ -33,6 +33,7 @@ import { z } from "zod";
 import { mockFiles } from "@/mockFiles";
 import { AssistantSelector } from "./AssistantSelector";
 import { Button } from "@/components/ui/button";
+import UploadFiles from "./UploadFiles";
 
 const formSchema = z.object({
   public: z.boolean(),
@@ -387,6 +388,7 @@ export function OpenedPanel() {
                     }}
                   />
                 ))}
+                <UploadFiles />
               </AccordionContent>
             </AccordionItem>
           </Accordion>
