@@ -10,7 +10,8 @@ export default function BuildPanel() {
   const drawerStyles = {
     open: "p-4 border-solid border-2 h-full flex flex-col gap-4 overflow-x-hidden sm:min-w-[520px]",
     closed:
-      "p-4 border-solid border-2 h-full flex flex-col gap-4 overflow-x-hidden min-w-[50px]",
+      // "p-4 border-solid border-2 h-full flex flex-col gap-4 overflow-x-hidden min-w-[50px]",
+      "hidden",
   };
 
   return (
@@ -27,7 +28,8 @@ export default function BuildPanel() {
         />
       )}
       <div className={isOpen ? drawerStyles["open"] : drawerStyles["closed"]}>
-        {isOpen ? <OpenedPanel /> : <ClosedPanel />}
+        {/* {isOpen ? <OpenedPanel /> : <ClosedPanel />} */}
+        <OpenedPanel />
       </div>
     </div>
   );
