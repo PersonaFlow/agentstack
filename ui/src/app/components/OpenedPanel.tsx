@@ -134,14 +134,14 @@ export function OpenedPanel() {
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="overflow-y-scroll"
+          className="overflow-hidden"
         >
           <Accordion type="multiple">
             <AccordionItem value="Assistant Builder">
               <AccordionTrigger className="p-2">
                 Build Assistants
               </AccordionTrigger>
-              <AccordionContent className="overflow-y-scroll p-2 flex flex-col gap-5 my-3">
+              <AccordionContent className="overflow-y-scroll p-2 flex flex-col gap-5 my-3 hide-scrollbar">
                 <div className="flex gap-6">
                   <FormField
                     control={form.control}
