@@ -4,7 +4,8 @@ import "@/styles/main.css";
 import Header from "@/components/Header";
 import Providers from "@/providers/Providers";
 import Sidebar from "@/components/Sidebar";
-import Builder from "./components/Builder";
+import Builder from "./components/BuildPanel";
+import BuildPanel from "./components/BuildPanel";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -29,7 +30,7 @@ export default function RootLayout({
             <div className="flex flex-1 gap-2 overflow-y-hidden">
               <Sidebar />
               {children}
-              <Builder />
+              <BuildPanel />
             </div>
           </Providers>
         </div>

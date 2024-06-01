@@ -40,7 +40,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useEffect } from "react";
-import Builder from "./components/Builder";
+import Builder from "./components/BuildPanel";
 // import Sidebar from "./components/Sidebar";
 
 const mockFiles = [
