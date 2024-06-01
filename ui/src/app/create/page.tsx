@@ -40,6 +40,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useEffect } from "react";
+import Builder from "./components/Builder";
+// import Sidebar from "./components/Sidebar";
 
 const mockFiles = [
   {
@@ -154,6 +156,15 @@ export default function Page() {
     console.log(values);
     // createAssistant.mutate(values);
   }
+
+  return (
+    <>
+      <div className="border-solid border-2 w-full gap-4 flex flex-col">
+        {/* <Sidebar /> */}
+      </div>
+      <Builder />
+    </>
+  );
 
   return (
     <Form {...form}>
