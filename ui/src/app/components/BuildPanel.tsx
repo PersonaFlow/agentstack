@@ -8,7 +8,7 @@ export default function BuildPanel() {
   const [isOpen, setIsOpen] = useState(true);
 
   const drawerStyles = {
-    open: "p-4 border-solid border-2 h-full flex flex-col gap-4 overflow-x-hidden min-w-[340px] sm:min-w-[352px]",
+    open: "p-4 border-solid border-2 h-full flex flex-col gap-4 overflow-x-hidden sm:min-w-[520px]",
     closed:
       "p-4 border-solid border-2 h-full flex flex-col gap-4 overflow-x-hidden min-w-[50px]",
   };

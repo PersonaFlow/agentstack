@@ -132,10 +132,10 @@ export function OpenedPanel() {
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <Accordion type="multiple">
             <AccordionItem value="Assistant Builder">
-              <AccordionTrigger className="p-3">
+              <AccordionTrigger className="p-2">
                 Build Assistants
               </AccordionTrigger>
-              <AccordionContent className="overflow-y-scroll p-3">
+              <AccordionContent className="overflow-y-scroll p-2 flex flex-col gap-3">
                 <div className="flex gap-6">
                   <FormField
                     control={form.control}
@@ -292,41 +292,46 @@ export function OpenedPanel() {
                     </FormItem>
                   )}
                 />
-                <div>
-                  {tools.map((tool) => (
-                    <FormField
-                      key={tool}
-                      control={form.control}
-                      name="config.configurable.tools"
-                      render={({ field }) => {
-                        return (
-                          <FormItem
-                            key={tool}
-                            className="flex flex-row items-start space-x-3 space-y-0"
-                          >
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value?.includes(tool)}
-                                onCheckedChange={(checked) => {
-                                  return checked
-                                    ? field.onChange([...field.value, tool])
-                                    : field.onChange(
-                                        field.value?.filter(
-                                          (value) => value !== tool,
-                                        ),
-                                      );
-                                }}
-                              />
-                            </FormControl>
-                            <FormLabel className="text-sm font-normal">
-                              {tool}
-                            </FormLabel>
-                          </FormItem>
-                        );
-                      }}
-                    />
-                  ))}
-                </div>
+                <Accordion type="multiple">
+                  <AccordionItem value="Assistant Builder">
+                    <AccordionTrigger className="p-2">Tools</AccordionTrigger>
+                    <AccordionContent className="overflow-y-scroll p-2 flex flex-col gap-3">
+                      {tools.map((tool) => (
+                        <FormField
+                          key={tool}
+                          control={form.control}
+                          name="config.configurable.tools"
+                          render={({ field }) => {
+                            return (
+                              <FormItem
+                                key={tool}
+                                className="flex flex-row items-start space-x-3 space-y-0"
+                              >
+                                <FormControl>
+                                  <Checkbox
+                                    checked={field.value?.includes(tool)}
+                                    onCheckedChange={(checked) => {
+                                      return checked
+                                        ? field.onChange([...field.value, tool])
+                                        : field.onChange(
+                                            field.value?.filter(
+                                              (value) => value !== tool,
+                                            ),
+                                          );
+                                    }}
+                                  />
+                                </FormControl>
+                                <FormLabel className="text-sm font-normal">
+                                  {tool}
+                                </FormLabel>
+                              </FormItem>
+                            );
+                          }}
+                        />
+                      ))}
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
                 <FormField
                   control={form.control}
                   name="config.configurable.interrupt_before_action"
