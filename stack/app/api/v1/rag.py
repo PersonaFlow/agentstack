@@ -69,7 +69,7 @@ async def ingest(
         # TODO: return stats from ingestion
         return {"success": True}
     except Exception as e:
-        await logger.exception(f"Error ingesting files: {str(e)}")
+        logger.exception(f"Error ingesting files: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while ingesting the files.",
@@ -110,12 +110,12 @@ async def query(api_key: ApiKey, payload: QueryRequestPayload):
         )
         return response_data
     except HTTPException as e:
-        await logger.exception(
+        logger.exception(
             f"Error querying vector database: {str(e)}", exc_info=True
         )
         raise e
     except Exception as e:
-        await logger.exception(
+        logger.exception(
             f"Error querying vector database: {str(e)}", exc_info=True
         )
         raise HTTPException(status_code=500, detail=str(e))

@@ -71,7 +71,7 @@ async def _run_input_and_config(
     )
 
     if not assistant:
-        await logger.exception("Invalid Assistant ID Provided", exc_info=False)
+        logger.exception("Invalid Assistant ID Provided", exc_info=False)
         raise ValueError(f"Invalid Assistant ID Provided")
 
     config: RunnableConfig = {

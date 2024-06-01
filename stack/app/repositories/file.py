@@ -52,7 +52,7 @@ class FileRepository(BaseRepository):
             return update_file
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
-            await logger.exception(
+            logger.exception(
                 f"Failed to create file due to a database error.",
                 exc_info=True,
                 file_data=data,
@@ -89,7 +89,7 @@ class FileRepository(BaseRepository):
             records = await self.retrieve_all(model=File, filters=filters)
             return records
         except SQLAlchemyError as e:
-            await logger.exception(
+            logger.exception(
                 f"Failed to retrieve files due to a database error.",
                 exc_info=True,
                 user_id=user_id,
@@ -104,7 +104,7 @@ class FileRepository(BaseRepository):
             record = await self.retrieve_one(query=query, object_id=file_id)
             return record
         except SQLAlchemyError as e:
-            await logger.exception(
+            logger.exception(
                 f"Failed to retrieve file due to a database error.",
                 exc_info=True,
                 file_id=file_id,
@@ -125,12 +125,12 @@ class FileRepository(BaseRepository):
             return file
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
-            await logger.exception(
+            logger.exception(
                 f"Failed to delete file due to a database error: ", exc_info=True
             )
             raise HTTPException(status_code=400, detail="Failed to delete file.")
         except FileNotFoundError as e:
-            await logger.exception(
+            logger.exception(
                 f"Failed to delete file content from local file system: ",
                 exc_info=True,
                 file_id=file_id,
@@ -144,10 +144,10 @@ class FileRepository(BaseRepository):
         try:
             file = await self.retrieve_file(file_id)
             if not file:
-                await logger.exception(f"File: {file_id} not found.")
+                logger.exception(f"File: {file_id} not found.")
                 raise HTTPException(status_code=404, detail="File not found.")
             file_path = file.source
-            await logger.info(
+            logger.info(
                 f"Reading content for file {file_id} from local file system. File path: {file_path}"
             )
             with open(file_path, "rb") as f:
@@ -155,7 +155,7 @@ class FileRepository(BaseRepository):
             return file_content
 
         except FileNotFoundError as e:
-            await logger.exception(
+            logger.exception(
                 f"Failed to retrieve file content from local file system.",
                 exc_info=True,
                 file_id=file_id,
@@ -163,7 +163,7 @@ class FileRepository(BaseRepository):
             raise HTTPException(status_code=404, detail="File content not found.")
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
-            await logger.exception(
+            logger.exception(
                 f"Failed to delete file due to a database error: ", exc_info=True
             )
             raise HTTPException(status_code=400, detail="Failed to delete file.")
@@ -208,7 +208,7 @@ class FileRepository(BaseRepository):
             records = result.scalars().all()
             return records
         except SQLAlchemyError as e:
-            await logger.exception(
+            logger.exception(
                 f"Failed to retrieve files due to a database error.", exc_info=True
             )
             raise HTTPException(status_code=500, detail="Failed to retrieve files.")
