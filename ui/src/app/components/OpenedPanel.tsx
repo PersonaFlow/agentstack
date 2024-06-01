@@ -32,6 +32,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { mockFiles } from "@/mockFiles";
+import { AssistantSelector } from "./AssistantSelector";
 
 const formSchema = z.object({
   public: z.boolean(),
@@ -109,39 +110,20 @@ export function OpenedPanel() {
 
   return (
     <>
-      <div className="px-2">
-        <Select
-          onValueChange={(value) => setSelectedAssistant(value)}
-          defaultValue={
-            assistantsData.length > 0
-              ? assistantsData[0].name
-              : selectedAssistant
-          }
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {assistantsData.map((assistant) => (
-              <SelectItem value={assistant.name}>{assistant.name}</SelectItem>
-            ))}
-            <SelectItem value="create-assistant">Create Assistant</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      <AssistantSelector />
       {/* <SelectSeparator /> */}
 
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="overflow-hidden"
+          className="overflow-y-scroll hide-scrollbar"
         >
           <Accordion type="multiple">
             <AccordionItem value="Assistant Builder">
               <AccordionTrigger className="p-2">
                 Build Assistants
               </AccordionTrigger>
-              <AccordionContent className="overflow-y-scroll p-2 flex flex-col gap-5 my-3 hide-scrollbar">
+              <AccordionContent className="p-2 flex flex-col gap-5 my-3">
                 <div className="flex gap-6">
                   <FormField
                     control={form.control}
