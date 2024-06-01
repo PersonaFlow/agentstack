@@ -44,7 +44,7 @@ async def create_assistant(
         assistant = await assistant_repository.create_assistant(data=data.model_dump())
         return assistant
     except Exception as e:
-        await logger.exception(f"Error creating assistant: {str(e)}")
+        logger.exception(f"Error creating assistant: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while creating the assistant.",
@@ -159,7 +159,7 @@ async def create_assistant_file(
         # config = {"configurable": {"assistant_id": str(assistant_id), "file_id": str(data.file_id)}}
         # ids = ingest_runnable.batch([file_content_io], config)
         # if not ids:
-        #     await logger.exception(f"Error ingesting file: {data.file_id}")
+        #     logger.exception(f"Error ingesting file: {data.file_id}")
         #     raise HTTPException(status_code=500, detail="An error occurred while ingesting the file.")
 
         file_model = await file_repository.retrieve_file(data.file_id)
@@ -184,10 +184,10 @@ async def create_assistant_file(
         return response_data
 
     except HTTPException as e:
-        await logger.exception(f"Error creating assistant file: {str(e)}")
+        logger.exception(f"Error creating assistant file: {str(e)}")
         raise e
     except Exception as e:
-        await logger.exception(f"Error adding file to assistant: {str(e)}")
+        logger.exception(f"Error adding file to assistant: {str(e)}")
         raise HTTPException(
             status_code=500,
             detail="An error occurred while adding the file to the assistant.",
@@ -212,14 +212,14 @@ async def delete_assistant_file(
         service = get_vector_service()
         # delete the associated vector embeddings
         deleted_chunks = await service.delete(str(file_id), str(assistant_id))
-        await logger.info(f"Deleted {deleted_chunks} chunks")
+        logger.info(f"Deleted {deleted_chunks} chunks")
         # Delete the file from the assistant's file_ids
         assistant = await assistant_repository.remove_file_reference_from_assistant(
             assistant_id, str(file_id)
         )
         return assistant
     except Exception as e:
-        await logger.exception(f"Error deleting assistant file: {str(e)}")
+        logger.exception(f"Error deleting assistant file: {str(e)}")
         raise HTTPException(
             status_code=500,
             detail="An error occurred while deleting the file from the assistant.",
@@ -254,7 +254,7 @@ async def retrieve_assistant_files(
         )
         return files
     except Exception as e:
-        await logger.exception(f"Error retrieving files for assistant: {str(e)}")
+        logger.exception(f"Error retrieving files for assistant: {str(e)}")
         raise HTTPException(
             status_code=500,
             detail="An error occurred while retrieving the files for the assistant.",

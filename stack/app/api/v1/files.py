@@ -179,9 +179,9 @@ async def delete_file(
             assistants = await assistant_repository.remove_all_file_references(file_id)
             num_of_assistants = len(assistants)
             if num_of_assistants > 0:
-                await logger.info(f"Deleted file from {num_of_assistants} assistants")
+                logger.info(f"Deleted file from {num_of_assistants} assistants")
             else:
-                await logger.info(f"Deleted file from 0 assistants")
+                logger.info(f"Deleted file from 0 assistants")
 
         # delete the file from the filesystem
         ext = guess_file_extension(file.mime_type)

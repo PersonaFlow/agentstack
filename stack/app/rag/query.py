@@ -40,7 +40,7 @@ async def get_documents(
 ) -> list[BaseDocumentChunk]:
     chunks = await vector_service.query(input=payload.input, top_k=5)
     if not len(chunks):
-        await logger.info(f"No documents found for query: {payload.input}")
+        logger.info(f"No documents found for query: {payload.input}")
         return []
 
     if not payload.enable_rerank:

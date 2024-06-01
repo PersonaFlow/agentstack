@@ -155,7 +155,7 @@ class QdrantService(BaseVectorDatabase):
             count_filter=common_filter,
             exact=True,
         )
-        await logger.info(f"Preparing to delete {deleted_chunks.count} chunks")
+        logger.info(f"Preparing to delete {deleted_chunks.count} chunks")
 
         self.client.delete(
             collection_name=self.index_name,

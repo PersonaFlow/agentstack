@@ -40,7 +40,7 @@ class AssistantRepository(BaseRepository):
             return assistant
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
-            await logger.exception(
+            logger.exception(
                 f"Failed to create assistant due to a database error.", exc_info=True
             )
             raise HTTPException(
@@ -71,7 +71,7 @@ class AssistantRepository(BaseRepository):
             records = await self.retrieve_all(model=Assistant, filters=filters)
             return records
         except SQLAlchemyError as e:
-            await logger.exception(
+            logger.exception(
                 f"Failed to retrieve assistants due to a database error.", exc_info=True
             )
             raise HTTPException(
@@ -85,7 +85,7 @@ class AssistantRepository(BaseRepository):
             record = await self.retrieve_one(query=query, object_id=assistant_id)
             return record
         except SQLAlchemyError as e:
-            await logger.exception(
+            logger.exception(
                 f"Failed to retrieve assistant due to a database error.", exc_info=True
             )
             raise HTTPException(status_code=500, detail="Failed to retrieve assistant.")
@@ -102,7 +102,7 @@ class AssistantRepository(BaseRepository):
             return assistant
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
-            await logger.exception(
+            logger.exception(
                 f"Failed to update assistant due to a database error. {e}",
                 exc_info=True,
             )
@@ -116,7 +116,7 @@ class AssistantRepository(BaseRepository):
             return assistant
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
-            await logger.exception(
+            logger.exception(
                 f"Failed to delete assistant due to a database error: ", exc_info=True
             )
             raise HTTPException(status_code=400, detail="Failed to delete assistant.")
@@ -138,7 +138,7 @@ class AssistantRepository(BaseRepository):
                 raise HTTPException(status_code=404, detail="Assistant not found")
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
-            await logger.exception(
+            logger.exception(
                 f"Failed to add file to assistant due to a database error.",
                 exc_info=True,
             )
@@ -166,7 +166,7 @@ class AssistantRepository(BaseRepository):
                 raise HTTPException(status_code=404, detail="Assistant not found")
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
-            await logger.exception(
+            logger.exception(
                 f"Failed to remove file from assistant due to a database error.",
                 exc_info=True,
             )
@@ -199,7 +199,7 @@ class AssistantRepository(BaseRepository):
             return updated_assistants
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
-            await logger.exception(
+            logger.exception(
                 f"Failed to remove file references from assistants due to a database error.",
                 exc_info=True,
             )
