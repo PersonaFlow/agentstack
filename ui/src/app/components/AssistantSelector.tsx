@@ -8,11 +8,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAssistants } from "@/data-provider/query-service";
-import { useState } from "react";
 import { LoaderCircle } from "lucide-react";
 
-export function AssistantSelector() {
-  const [selectedAssistant, setSelectedAssistant] = useState("");
+type TAssistantProps = {
+  selectedAssistant: string;
+  setSelectedAssistant: (arg: string) => void;
+};
+
+export function AssistantSelector({
+  selectedAssistant,
+  setSelectedAssistant,
+}: TAssistantProps) {
   const { data: assistantsData, isLoading } = useAssistants();
 
   if (!assistantsData || isLoading) return <LoaderCircle />;

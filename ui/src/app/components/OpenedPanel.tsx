@@ -20,7 +20,6 @@ import {
   Select,
   SelectContent,
   SelectItem,
-  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -33,6 +32,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { mockFiles } from "@/mockFiles";
 import { AssistantSelector } from "./AssistantSelector";
+import { Button } from "@/components/ui/button";
 
 const formSchema = z.object({
   public: z.boolean(),
@@ -98,9 +98,6 @@ export function OpenedPanel() {
     }
   }, [botType]);
 
-  // Seems to be rendering a million times, but why...
-  // console.log("render");
-
   function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values);
     // createAssistant.mutate(values);
@@ -110,8 +107,10 @@ export function OpenedPanel() {
 
   return (
     <>
-      <AssistantSelector />
-      {/* <SelectSeparator /> */}
+      <AssistantSelector
+        selectedAssistant={selectedAssistant}
+        setSelectedAssistant={setSelectedAssistant}
+      />
 
       <Form {...form}>
         <form
@@ -346,6 +345,9 @@ export function OpenedPanel() {
                     );
                   }}
                 />
+                <Button type="submit" className="w-1/4 self-center">
+                  Save
+                </Button>
               </AccordionContent>
             </AccordionItem>
 
