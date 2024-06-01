@@ -109,33 +109,39 @@ export function OpenedPanel() {
 
   return (
     <>
-      <Select
-        onValueChange={(value) => setSelectedAssistant(value)}
-        defaultValue={
-          assistantsData.length > 0 ? assistantsData[0].name : selectedAssistant
-        }
-      >
-        <SelectTrigger className="w-[180px]">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {assistantsData.map((assistant) => (
-            <SelectItem value={assistant.name}>{assistant.name}</SelectItem>
-          ))}
-          <SelectItem value="create-assistant">Create Assistant</SelectItem>
-        </SelectContent>
-      </Select>
-
-      <SelectSeparator />
+      <div className="px-2">
+        <Select
+          onValueChange={(value) => setSelectedAssistant(value)}
+          defaultValue={
+            assistantsData.length > 0
+              ? assistantsData[0].name
+              : selectedAssistant
+          }
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {assistantsData.map((assistant) => (
+              <SelectItem value={assistant.name}>{assistant.name}</SelectItem>
+            ))}
+            <SelectItem value="create-assistant">Create Assistant</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      {/* <SelectSeparator /> */}
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="overflow-y-scroll"
+        >
           <Accordion type="multiple">
             <AccordionItem value="Assistant Builder">
               <AccordionTrigger className="p-2">
                 Build Assistants
               </AccordionTrigger>
-              <AccordionContent className="overflow-y-scroll p-2 flex flex-col gap-3">
+              <AccordionContent className="overflow-y-scroll p-2 flex flex-col gap-5 my-3">
                 <div className="flex gap-6">
                   <FormField
                     control={form.control}
@@ -362,8 +368,8 @@ export function OpenedPanel() {
             </AccordionItem>
 
             <AccordionItem value="files">
-              <AccordionTrigger>Upload Files</AccordionTrigger>
-              <AccordionContent className="overflow-y-scroll h-[200px]">
+              <AccordionTrigger className="p-2">Upload Files</AccordionTrigger>
+              <AccordionContent className="overflow-y-scroll p-2">
                 {mockFiles.map((file) => (
                   <FormField
                     key={file.id}
