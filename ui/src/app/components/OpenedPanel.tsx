@@ -333,23 +333,26 @@ export function OpenedPanel() {
                           }}
                         />
                       ))}
+                      <FormField
+                        control={form.control}
+                        name="config.configurable.interrupt_before_action"
+                        render={({ field }) => {
+                          return (
+                            <FormItem className="flex items-center gap-2">
+                              <FormLabel>Interrupt before action?</FormLabel>
+                              <Switch
+                                className="m-0"
+                                onCheckedChange={(checked) =>
+                                  field.onChange(checked)
+                                }
+                              />
+                            </FormItem>
+                          );
+                        }}
+                      />
                     </AccordionContent>
                   </AccordionItem>
                 </Accordion>
-                <FormField
-                  control={form.control}
-                  name="config.configurable.interrupt_before_action"
-                  render={({ field }) => {
-                    return (
-                      <FormItem className="flex flex-col gap-2">
-                        <FormLabel>Interrupt before action?</FormLabel>
-                        <Switch
-                          onCheckedChange={(checked) => field.onChange(checked)}
-                        />
-                      </FormItem>
-                    );
-                  }}
-                />
                 <FormField
                   control={form.control}
                   name="config.configurable.retrieval_description"
@@ -370,7 +373,7 @@ export function OpenedPanel() {
 
             <AccordionItem value="files">
               <AccordionTrigger className="p-2">Upload Files</AccordionTrigger>
-              <AccordionContent className="overflow-y-scroll p-2">
+              <AccordionContent className="overflow-y-scroll p-2 gap-3 flex flex-col">
                 {mockFiles.map((file) => (
                   <FormField
                     key={file.id}
@@ -404,7 +407,9 @@ export function OpenedPanel() {
                     }}
                   />
                 ))}
-                <UploadFiles />
+                <div className="flex my-3">
+                  <UploadFiles />
+                </div>
               </AccordionContent>
             </AccordionItem>
           </Accordion>

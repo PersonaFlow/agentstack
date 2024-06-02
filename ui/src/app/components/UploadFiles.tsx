@@ -15,6 +15,7 @@ import { Form, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useUploadFile } from "@/data-provider/query-service";
+import { SquarePlus } from "lucide-react";
 
 const formSchema = z.object({});
 
@@ -36,7 +37,10 @@ export default function UploadFiles() {
   return (
     <Dialog>
       <DialogTrigger>
-        <Button>Upload New File</Button>
+        <Button className="flex gap-2">
+          <SquarePlus />
+          Upload New File
+        </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
