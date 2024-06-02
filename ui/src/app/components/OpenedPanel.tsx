@@ -87,7 +87,7 @@ export function OpenedPanel() {
   const [selectedAssistant, setSelectedAssistant] = useState<TAssistant | null>(
     null,
   );
-  const [isNewAssistant, setIsNewAssistant] = useState(false);
+  // const [isNewAssistant, setIsNewAssistant] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -100,14 +100,18 @@ export function OpenedPanel() {
     }, [selectedAssistant]),
   });
 
+  // useEffect(() => {
+  //   console.log(selectedAssistant);
+  // }, [selectedAssistant]);
+
   useEffect(() => {
+    let newDefaults = defaultValues;
     if (selectedAssistant) {
-      form.reset(selectedAssistant);
+      newDefaults = selectedAssistant;
     }
-    if (isNewAssistant) {
-      form.reset(defaultValues);
-    }
-  }, [selectedAssistant, isNewAssistant]);
+    console.log(newDefaults);
+    form.reset(newDefaults);
+  }, [selectedAssistant]);
 
   const botType = form.watch("config.configurable.type");
 
@@ -123,14 +127,14 @@ export function OpenedPanel() {
     // createAssistant.mutate(values);
   }
 
-  if (isLoading || !assistantsData) return <div></div>;
+  if (isLoading || !assistantsData) return <div>is loading</div>;
 
   return (
     <>
       <AssistantSelector
         setSelectedAssistant={setSelectedAssistant}
         selectedAssistant={selectedAssistant}
-        setIsNewAssistant={setIsNewAssistant}
+        // setIsNewAssistant={setIsNewAssistant}
       />
 
       <Form {...form}>

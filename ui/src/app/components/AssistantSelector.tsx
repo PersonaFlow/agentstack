@@ -15,20 +15,19 @@ import { useEffect } from "react";
 type TAssistantProps = {
   setSelectedAssistant: (arg: TAssistant | null) => void;
   selectedAssistant: TAssistant | null;
-  setIsNewAssistant: (arg: boolean) => void;
+  //   setIsNewAssistant: (arg: boolean) => void;
 };
 
 export function AssistantSelector({
   setSelectedAssistant,
   selectedAssistant,
-  setIsNewAssistant,
+  //   setIsNewAssistant,
 }: TAssistantProps) {
   const { data: assistantsData, isLoading } = useAssistants();
 
   const handleValueChange = (value: string) => {
     if (value === "create-assistant") {
-      setSelectedAssistant(null);
-      return setIsNewAssistant(true);
+      return setSelectedAssistant(null);
     }
 
     const _selectedAssistant = assistantsData?.find(
@@ -48,7 +47,6 @@ export function AssistantSelector({
 
   if (isLoading) return <LoaderCircle />;
 
-  console.log(assistantsData);
   return (
     <div className="px-2">
       <Select
