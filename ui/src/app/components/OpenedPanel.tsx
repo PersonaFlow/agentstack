@@ -100,7 +100,9 @@ export function OpenedPanel() {
   });
 
   useEffect(() => {
-    form.reset(selectedAssistant);
+    selectedAssistant
+      ? form.reset(selectedAssistant)
+      : form.reset(defaultValues);
   }, [selectedAssistant]);
 
   // useEffect(() => {
@@ -127,7 +129,10 @@ export function OpenedPanel() {
 
   return (
     <>
-      <AssistantSelector setSelectedAssistant={setSelectedAssistant} />
+      <AssistantSelector
+        setSelectedAssistant={setSelectedAssistant}
+        selectedAssistant={selectedAssistant}
+      />
 
       <Form {...form}>
         <form

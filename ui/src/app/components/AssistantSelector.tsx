@@ -10,12 +10,17 @@ import {
 import { useAssistants } from "@/data-provider/query-service";
 import { TAssistant } from "@/data-provider/types";
 import { LoaderCircle } from "lucide-react";
+import { useEffect } from "react";
 
 type TAssistantProps = {
-  setSelectedAssistant: (arg: TAssistant) => void;
+  setSelectedAssistant: (arg: TAssistant | null) => void;
+  selectedAssistant: TAssistant | null;
 };
 
-export function AssistantSelector({ setSelectedAssistant }: TAssistantProps) {
+export function AssistantSelector({
+  setSelectedAssistant,
+  selectedAssistant,
+}: TAssistantProps) {
   const { data: assistantsData, isLoading } = useAssistants();
 
   const handleValueChange = (value: string) => {
@@ -26,15 +31,22 @@ export function AssistantSelector({ setSelectedAssistant }: TAssistantProps) {
     if (selectedAssistant) setSelectedAssistant(selectedAssistant);
   };
 
-  if (!assistantsData || isLoading) return <LoaderCircle />;
+  useEffect(() => {
+    if (assistantsData && !isLoading) {
+      assistantsData?.length > 0
+        ? setSelectedAssistant(assistantsData[0])
+        : setSelectedAssistant(null);
+    }
+  }, []);
+
+  if (isLoading) return <LoaderCircle />;
+
   return (
     <div className="px-2">
       <Select
         onValueChange={handleValueChange}
         defaultValue={
-          assistantsData.length > 0
-            ? assistantsData[0].name
-            : "Create Assistant"
+          selectedAssistant ? selectedAssistant.name : "create-assistant"
         }
       >
         <SelectTrigger className="w-[180px]">
