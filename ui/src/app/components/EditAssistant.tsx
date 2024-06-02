@@ -25,7 +25,11 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { useAssistant, useAssistants } from "@/data-provider/query-service";
+import {
+  useAssistant,
+  useAssistants,
+  useUpdateAssistant,
+} from "@/data-provider/query-service";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -34,7 +38,7 @@ import { mockFiles } from "@/mockFiles";
 import { AssistantSelector } from "./AssistantSelector";
 import { Button } from "@/components/ui/button";
 import UploadFiles from "./UploadFiles";
-import { TAssistant } from "@/data-provider/types";
+import { TAssistant, TCreateAssistant } from "@/data-provider/types";
 
 const formSchema = z.object({
   public: z.boolean(),
@@ -53,24 +57,6 @@ const formSchema = z.object({
   file_ids: z.array(z.string()),
 });
 
-const defaultValues = {
-  public: false,
-  name: undefined,
-  config: {
-    configurable: {
-      interrupt_before_action: false,
-      type: "agent",
-      agent_type: "GPT 3.5 Turbo",
-      llm_type: "GPT 3.5 Turbo",
-      retrieval_description:
-        "Can be used to look up information that was uploaded for this assistant.",
-      system_message: "You are a helpful assistant.",
-      tools: [],
-    },
-  },
-  file_ids: [],
-};
-
 const tools = [
   "DDG Search",
   "Search (Tavily)",
@@ -81,36 +67,25 @@ const tools = [
   "Wikipedia",
 ];
 
-export function EditAssistant() {
+type TEditAssistantProps = {
+  selectedAssistant: TAssistant;
+};
+
+export function EditAssistant({ selectedAssistant }: TEditAssistantProps) {
   // Note: we prob want to retrieve assistants by userId
   const { data: assistantsData, isLoading } = useAssistants();
-  const [selectedAssistant, setSelectedAssistant] = useState<TAssistant | null>(
-    null,
-  );
-  // const [isNewAssistant, setIsNewAssistant] = useState(false);
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const updateAssistant = useUpdateAssistant(selectedAssistant.id);
+
+  const form = useForm<TAssistant>({
     resolver: zodResolver(formSchema),
     defaultValues: useMemo(() => {
-      let selectedDefaults = defaultValues;
-      if (selectedAssistant) {
-        selectedDefaults = selectedAssistant;
-      }
-      return selectedDefaults;
+      return selectedAssistant;
     }, [selectedAssistant]),
   });
 
-  // useEffect(() => {
-  //   console.log(selectedAssistant);
-  // }, [selectedAssistant]);
-
   useEffect(() => {
-    let newDefaults = defaultValues;
-    if (selectedAssistant) {
-      newDefaults = selectedAssistant;
-    }
-    console.log(newDefaults);
-    form.reset(newDefaults);
+    form.reset(selectedAssistant);
   }, [selectedAssistant]);
 
   const botType = form.watch("config.configurable.type");
@@ -122,12 +97,16 @@ export function EditAssistant() {
     }
   }, [botType]);
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  function onSubmit(values: TAssistant) {
     console.log(values);
+    updateAssistant.mutate(values);
     // createAssistant.mutate(values);
   }
 
+  console.log("edit");
+
   if (isLoading || !assistantsData) return <div>is loading</div>;
+
   return (
     <Form {...form}>
       <form

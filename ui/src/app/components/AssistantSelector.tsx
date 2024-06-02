@@ -8,42 +8,33 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAssistants } from "@/data-provider/query-service";
-import { TAssistant } from "@/data-provider/types";
+import { TCreateAssistant } from "@/data-provider/types";
 import { LoaderCircle } from "lucide-react";
 import { useEffect } from "react";
 
+interface TSelectedAssistant extends TCreateAssistant {
+  id?: string;
+}
+
 type TAssistantProps = {
-  setSelectedAssistant: (arg: TAssistant | null) => void;
-  selectedAssistant: TAssistant | null;
-  //   setIsNewAssistant: (arg: boolean) => void;
+  setSelectedAssistant: (arg: TSelectedAssistant | null) => void;
 };
 
-export function AssistantSelector({
-  setSelectedAssistant,
-  selectedAssistant,
-  //   setIsNewAssistant,
-}: TAssistantProps) {
+export function AssistantSelector({ setSelectedAssistant }: TAssistantProps) {
   const { data: assistantsData, isLoading } = useAssistants();
 
-  const handleValueChange = (value: string) => {
-    if (value === "create-assistant") {
-      return setSelectedAssistant(null);
-    }
-
+  const handleValueChange = (assistantId: string) => {
     const _selectedAssistant = assistantsData?.find(
-      (assistant) => assistant.name === value,
+      (assistant) => assistant.id === assistantId,
     );
 
-    if (_selectedAssistant) setSelectedAssistant(_selectedAssistant);
-  };
+    if (_selectedAssistant) {
+      delete _selectedAssistant.updated_at;
+      delete _selectedAssistant.user_id;
 
-  useEffect(() => {
-    if (assistantsData && !isLoading) {
-      assistantsData?.length > 0
-        ? setSelectedAssistant(assistantsData[0])
-        : setSelectedAssistant(null);
+      setSelectedAssistant(_selectedAssistant);
     }
-  }, [assistantsData]);
+  };
 
   if (isLoading) return <LoaderCircle />;
 
@@ -61,11 +52,10 @@ export function AssistantSelector({
         <SelectContent>
           {assistantsData &&
             assistantsData.map((assistant) => (
-              <SelectItem key={assistant.id} value={assistant.name}>
+              <SelectItem key={assistant.id} value={assistant.id}>
                 {assistant.name}
               </SelectItem>
             ))}
-          <SelectItem value="create-assistant">Create Assistant</SelectItem>
         </SelectContent>
       </Select>
     </div>

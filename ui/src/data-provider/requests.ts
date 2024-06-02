@@ -23,7 +23,7 @@ async function _put<T>(url: string, data?: any): Promise<T> {
 }
 
 async function _patch<T>(url: string, data?: any): Promise<T> {
-  const response = await axios.put(url, JSON.stringify(data));
+  const response = await axios.patch(url, data);
   return response.data;
 }
 

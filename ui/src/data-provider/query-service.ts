@@ -278,13 +278,10 @@ export const useAssistant = (
   });
 };
 
-export const useUpdateAssistant = (
-  assistantId: string,
-  payload: t.TCreateAssistant,
-) => {
+export const useUpdateAssistant = (assistantId: string) => {
   const queryClient = useQueryClient();
   return useMutation<t.TAssistant, Error>({
-    mutationFn: async (): Promise<t.TAssistant> =>
+    mutationFn: async (payload: t.TCreateAssistant): Promise<t.TAssistant> =>
       await dataService.updateAssistant(assistantId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKeys.assistants] });

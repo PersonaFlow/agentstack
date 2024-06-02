@@ -25,16 +25,14 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { useAssistant, useAssistants } from "@/data-provider/query-service";
+import { useAssistants } from "@/data-provider/query-service";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { mockFiles } from "@/mockFiles";
-import { AssistantSelector } from "./AssistantSelector";
 import { Button } from "@/components/ui/button";
 import UploadFiles from "./UploadFiles";
-import { TAssistant } from "@/data-provider/types";
 
 const formSchema = z.object({
   public: z.boolean(),

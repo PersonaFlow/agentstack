@@ -37,7 +37,7 @@ export type TLLMType =
 
 export type TConfigurable = {
   type: TBotType;
-  agent_type: TAgentType;
+  agent_type?: TAgentType;
   interrupt_before_action: boolean;
   retrieval_description: string;
   system_message: string;
