@@ -1,6 +1,7 @@
 import {
   Query,
   QueryObserverResult,
+  QueryOptions,
   useMutation,
   useQuery,
   useQueryClient,
@@ -265,11 +266,15 @@ export const useCreateAssistant = () => {
   });
 };
 
-export const useAssistant = (assistantId: string) => {
+export const useAssistant = (
+  assistantId: string,
+  enabled?: { enabled?: boolean },
+) => {
   return useQuery<t.TAssistant, Error>({
     queryKey: [QueryKeys.assistant, assistantId],
     queryFn: async (): Promise<t.TAssistant> =>
       await dataService.getAssistant(assistantId),
+    ...enabled,
   });
 };
 
@@ -366,10 +371,10 @@ export const useQueryLCRetriever = (payload: t.TQuery) => {
 };
 
 // --Files--
-export const useUploadFile = (payload: FormData) => {
+export const useUploadFile = () => {
   const queryClient = useQueryClient();
   return useMutation<t.TFile, Error>({
-    mutationFn: async (): Promise<t.TFile> =>
+    mutationFn: async (payload: FormData): Promise<t.TFile> =>
       await dataService.uploadFile(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKeys.files] });

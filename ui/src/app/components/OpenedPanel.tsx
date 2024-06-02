@@ -25,15 +25,16 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { useAssistants } from "@/data-provider/query-service";
+import { useAssistant, useAssistants } from "@/data-provider/query-service";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { mockFiles } from "@/mockFiles";
 import { AssistantSelector } from "./AssistantSelector";
 import { Button } from "@/components/ui/button";
 import UploadFiles from "./UploadFiles";
+import { TAssistant } from "@/data-provider/types";
 
 const formSchema = z.object({
   public: z.boolean(),
@@ -83,12 +84,30 @@ const tools = [
 export function OpenedPanel() {
   // Note: we prob want to retrieve assistants by userId
   const { data: assistantsData, isLoading } = useAssistants();
-  const [selectedAssistant, setSelectedAssistant] = useState("");
+  const [selectedAssistant, setSelectedAssistant] = useState<TAssistant | null>(
+    null,
+  );
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: defaultValues,
+    defaultValues: useMemo(() => {
+      let selectedDefaults = defaultValues;
+      if (selectedAssistant) {
+        selectedDefaults = selectedAssistant;
+      }
+      return selectedDefaults;
+    }, [selectedAssistant]),
   });
+
+  useEffect(() => {
+    form.reset(selectedAssistant);
+  }, [selectedAssistant]);
+
+  // useEffect(() => {
+  //   if (selectedAssistant.name === "Create Assistant") {
+  //     // Load blank builder
+  //   }
+  // }, [selectedAssistant]);
 
   const botType = form.watch("config.configurable.type");
 
@@ -108,10 +127,7 @@ export function OpenedPanel() {
 
   return (
     <>
-      <AssistantSelector
-        selectedAssistant={selectedAssistant}
-        setSelectedAssistant={setSelectedAssistant}
-      />
+      <AssistantSelector setSelectedAssistant={setSelectedAssistant} />
 
       <Form {...form}>
         <form
