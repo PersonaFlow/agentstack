@@ -87,6 +87,7 @@ export function OpenedPanel() {
   const [selectedAssistant, setSelectedAssistant] = useState<TAssistant | null>(
     null,
   );
+  const [isNewAssistant, setIsNewAssistant] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -100,16 +101,13 @@ export function OpenedPanel() {
   });
 
   useEffect(() => {
-    selectedAssistant
-      ? form.reset(selectedAssistant)
-      : form.reset(defaultValues);
-  }, [selectedAssistant]);
-
-  // useEffect(() => {
-  //   if (selectedAssistant.name === "Create Assistant") {
-  //     // Load blank builder
-  //   }
-  // }, [selectedAssistant]);
+    if (selectedAssistant) {
+      form.reset(selectedAssistant);
+    }
+    if (isNewAssistant) {
+      form.reset(defaultValues);
+    }
+  }, [selectedAssistant, isNewAssistant]);
 
   const botType = form.watch("config.configurable.type");
 
@@ -132,6 +130,7 @@ export function OpenedPanel() {
       <AssistantSelector
         setSelectedAssistant={setSelectedAssistant}
         selectedAssistant={selectedAssistant}
+        setIsNewAssistant={setIsNewAssistant}
       />
 
       <Form {...form}>

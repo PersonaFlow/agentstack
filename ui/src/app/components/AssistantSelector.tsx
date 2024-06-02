@@ -15,20 +15,27 @@ import { useEffect } from "react";
 type TAssistantProps = {
   setSelectedAssistant: (arg: TAssistant | null) => void;
   selectedAssistant: TAssistant | null;
+  setIsNewAssistant: (arg: boolean) => void;
 };
 
 export function AssistantSelector({
   setSelectedAssistant,
   selectedAssistant,
+  setIsNewAssistant,
 }: TAssistantProps) {
   const { data: assistantsData, isLoading } = useAssistants();
 
   const handleValueChange = (value: string) => {
-    const selectedAssistant = assistantsData?.find(
+    if (value === "create-assistant") {
+      setSelectedAssistant(null);
+      return setIsNewAssistant(true);
+    }
+
+    const _selectedAssistant = assistantsData?.find(
       (assistant) => assistant.name === value,
     );
-    console.log(selectedAssistant);
-    if (selectedAssistant) setSelectedAssistant(selectedAssistant);
+
+    if (_selectedAssistant) setSelectedAssistant(_selectedAssistant);
   };
 
   useEffect(() => {
@@ -37,27 +44,29 @@ export function AssistantSelector({
         ? setSelectedAssistant(assistantsData[0])
         : setSelectedAssistant(null);
     }
-  }, []);
+  }, [assistantsData]);
 
   if (isLoading) return <LoaderCircle />;
 
+  console.log(assistantsData);
   return (
     <div className="px-2">
       <Select
         onValueChange={handleValueChange}
         defaultValue={
-          selectedAssistant ? selectedAssistant.name : "create-assistant"
+          assistantsData ? assistantsData[0].name : "create-assistant"
         }
       >
         <SelectTrigger className="w-[180px]">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          {assistantsData.map((assistant) => (
-            <SelectItem key={assistant.id} value={assistant.name}>
-              {assistant.name}
-            </SelectItem>
-          ))}
+          {assistantsData &&
+            assistantsData.map((assistant) => (
+              <SelectItem key={assistant.id} value={assistant.name}>
+                {assistant.name}
+              </SelectItem>
+            ))}
           <SelectItem value="create-assistant">Create Assistant</SelectItem>
         </SelectContent>
       </Select>
