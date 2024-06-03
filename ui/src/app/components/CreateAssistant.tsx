@@ -25,7 +25,10 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { useAssistants } from "@/data-provider/query-service";
+import {
+  useAssistants,
+  useCreateAssistant,
+} from "@/data-provider/query-service";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -79,8 +82,16 @@ const tools = [
   "Wikipedia",
 ];
 
+const architectureType = [
+  { display: "Chat", value: "chatbot" },
+  { display: "Chat with Retrieval", value: "chat_retrieval" },
+  { display: "Agent", value: "agent" },
+];
+
 export function CreateAssistant() {
   const { data: assistantsData, isLoading } = useAssistants();
+
+  const createAssistant = useCreateAssistant();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -97,8 +108,7 @@ export function CreateAssistant() {
   }, [botType]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
-    // createAssistant.mutate(values);
+    createAssistant.mutate(values);
   }
 
   if (isLoading || !assistantsData) return <div>is loading</div>;
@@ -155,7 +165,7 @@ export function CreateAssistant() {
                   name="config.configurable.type"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel>Bot Type</FormLabel>
+                      <FormLabel>Architecture</FormLabel>
                       <FormControl>
                         <Select
                           onValueChange={field.onChange}
@@ -165,11 +175,11 @@ export function CreateAssistant() {
                             <SelectValue placeholder="Bot Type" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="chatbot">Chatbot</SelectItem>
-                            <SelectItem value="chat_retrieval">
-                              Chat Retrieval
-                            </SelectItem>
-                            <SelectItem value="agent">Agent</SelectItem>
+                            {architectureType.map((item) => (
+                              <SelectItem value={item.value}>
+                                {item.display}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       </FormControl>
