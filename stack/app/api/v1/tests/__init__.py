@@ -24,5 +24,4 @@ api_router.include_router(files.router, prefix="/files")
 
 @api_router.get("/health_check", tags=["Health Check"])
 def health_check():
-    raise Exception('asdf 123')
-    return Response(content="BAD", status_code=500)
+    return Response(content="OK", status_code=200)
