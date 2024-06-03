@@ -43,6 +43,8 @@ import {
   RetrievalDescription,
   SelectRetrievalDescription,
 } from "./build/RetrievalDescription";
+import SelectTools from "./build/SelectTools";
+import SelectCapabilities from "./build/SelectCapabilities";
 
 const formSchema = z.object({
   public: z.boolean(),
@@ -78,16 +80,6 @@ const defaultValues = {
   },
   file_ids: [],
 };
-
-const tools = [
-  "DDG Search",
-  "Search (Tavily)",
-  "Search (short answer, Tavily)",
-  "Retrieval",
-  "Arxiv",
-  "PubMed",
-  "Wikipedia",
-];
 
 const architectureTypes = [
   { display: "Chat", value: "chatbot" },
@@ -193,7 +185,13 @@ export function CreateAssistant() {
                 <SelectLLM form={form} />
               )}
               <SystemMessage form={form} />
-              <RetrievalDescription form={form} />
+              {form.getValues().config.configurable.type !== "chatbot" && (
+                <>
+                  <SelectCapabilities form={form} />
+                  <RetrievalDescription form={form} />
+                </>
+              )}
+              <SelectTools form={form} />
               <Button type="submit" className="w-1/4 self-center">
                 Save
               </Button>
