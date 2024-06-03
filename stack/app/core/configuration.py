@@ -56,8 +56,8 @@ class Settings(BaseSettings):
         else LogLevelEnum.ERROR
     )
 
-    BASE_DIR: Path = Path(__file__).parents[1]
-    APP_DIR: Path = BASE_DIR.joinpath("app")
+    BASE_DIR: Path = Path(__file__).parents[2]
+    APP_DIR: Path = BASE_DIR.joinpath("stack")
     FILE_DATA_DIRECTORY: Path = BASE_DIR.parent.joinpath("file_data")
     PATCH_DIR: Path = BASE_DIR.parent.joinpath("patches")
 
