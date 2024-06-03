@@ -60,7 +60,7 @@ const defaultValues = {
   config: {
     configurable: {
       interrupt_before_action: false,
-      type: "agent",
+      type: null,
       agent_type: "GPT 3.5 Turbo",
       llm_type: "GPT 3.5 Turbo",
       retrieval_description:
@@ -167,12 +167,9 @@ export function CreateAssistant() {
                     <FormItem className="flex flex-col">
                       <FormLabel>Architecture</FormLabel>
                       <FormControl>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
+                        <Select onValueChange={field.onChange}>
                           <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="Bot Type" />
+                            <SelectValue placeholder="Select architecture" />
                           </SelectTrigger>
                           <SelectContent>
                             {architectureType.map((item) => (
@@ -186,6 +183,7 @@ export function CreateAssistant() {
                     </FormItem>
                   )}
                 />
+
                 {form.getValues().config.configurable.type === "agent" && (
                   <FormField
                     control={form.control}
