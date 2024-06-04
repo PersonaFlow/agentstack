@@ -54,10 +54,10 @@ class PgCheckpointSaver(BaseCheckpointSaver):
             ),
             ConfigurableFieldSpec(
                 id="thread_id",
-                annotation=str,
+                annotation=Optional[str],
                 name="Thread ID",
                 description=None,
-                default="",
+                default=None,
                 is_shared=True,
             ),
         ]

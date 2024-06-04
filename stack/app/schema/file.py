@@ -48,7 +48,7 @@ class FileSchema(BaseModel):
     )
     mime_type: str = Field(..., description="The mime type of the file.")
     source: str = Field(
-        None,
+        ...,
         description="The source of the file. For local files, this will be the local file path plus filename and extension.",
     )
     kwargs: dict = Field(..., description="Any additional kwargs for the file.")
