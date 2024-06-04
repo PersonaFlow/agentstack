@@ -31,7 +31,7 @@ import {
 } from "@/data-provider/query-service";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 import { mockFiles } from "@/mockFiles";
 import { Button } from "@/components/ui/button";
@@ -41,6 +41,7 @@ import { SelectLLM } from "./build/SelectLLM";
 import { SelectSystemMessage, SystemMessage } from "./build/SystemMessage";
 import {
   RetrievalDescription,
+  RetrievalInstructions,
   SelectRetrievalDescription,
 } from "./build/RetrievalDescription";
 import SelectTools from "./build/SelectTools";
@@ -52,7 +53,7 @@ const formSchema = z.object({
   config: z.object({
     configurable: z.object({
       interrupt_before_action: z.boolean(),
-      type: z.string(),
+      type: z.string().nullable(),
       agent_type: z.string().optional(),
       llm_type: z.string(),
       retrieval_description: z.string(),
@@ -98,6 +99,7 @@ export function CreateAssistant() {
   });
 
   const architectureType = form.watch("config.configurable.type");
+  form.watch("config.configurable.tools");
 
   useEffect(() => {
     if (architectureType !== "agent") {
@@ -188,7 +190,7 @@ export function CreateAssistant() {
               {form.getValues().config.configurable.type !== "chatbot" && (
                 <>
                   <SelectCapabilities form={form} />
-                  <RetrievalDescription form={form} />
+                  <RetrievalInstructions form={form} />
                 </>
               )}
               <SelectTools form={form} />
