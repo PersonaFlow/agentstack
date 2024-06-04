@@ -198,14 +198,14 @@ export function CreateAssistant() {
                 <>
                   <SelectCapabilities form={form} />
                   <RetrievalInstructions form={form} />
+                  <SelectTools form={form} />
+                  <SelectOptions form={form} />
+                  <div className="flex my-3">
+                    <FilesDialog form={form} />
+                  </div>
+                  <SelectActions form={form} />
                 </>
               )}
-              <SelectTools form={form} />
-              <SelectOptions form={form} />
-              <div className="flex my-3">
-                <FilesDialog form={form} />
-              </div>
-              <SelectActions form={form} />
               <Button type="submit" className="w-1/4 self-center">
                 Save
               </Button>
