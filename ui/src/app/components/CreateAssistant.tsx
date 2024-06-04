@@ -35,7 +35,7 @@ import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 import { mockFiles } from "@/mockFiles";
 import { Button } from "@/components/ui/button";
-import UploadFiles from "./UploadFiles";
+import UploadFiles from "./FilesDialog";
 import SelectModel from "./build/SelectModel";
 import { SelectLLM } from "./build/SelectLLM";
 import { SelectSystemMessage, SystemMessage } from "./build/SystemMessage";
@@ -46,6 +46,7 @@ import {
 } from "./build/RetrievalDescription";
 import SelectTools from "./build/SelectTools";
 import SelectCapabilities from "./build/SelectCapabilities";
+import FilesDialog from "./FilesDialog";
 
 const formSchema = z.object({
   public: z.boolean(),
@@ -194,6 +195,9 @@ export function CreateAssistant() {
                 </>
               )}
               <SelectTools form={form} />
+              <div className="flex my-3">
+                <FilesDialog form={form} />
+              </div>
               <Button type="submit" className="w-1/4 self-center">
                 Save
               </Button>

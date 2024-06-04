@@ -35,7 +35,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import UploadFiles from "./UploadFiles";
+import UploadFiles from "./FilesDialog";
 import { TAssistant, TCreateAssistant } from "@/data-provider/types";
 import SelectModel from "./build/SelectModel";
 import { SelectLLM } from "./build/SelectLLM";
