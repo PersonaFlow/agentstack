@@ -43,6 +43,7 @@ import { SystemMessage } from "./build/SystemMessage";
 import SelectCapabilities from "./build/SelectCapabilities";
 import { RetrievalInstructions } from "./build/RetrievalDescription";
 import SelectTools from "./build/SelectTools";
+import PublicSwitch from "./build/PublicSwitch";
 
 const formSchema = z.object({
   public: z.boolean(),
@@ -140,20 +141,7 @@ export function EditAssistant({ selectedAssistant }: TEditAssistantProps) {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="public"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Public</FormLabel>
-                  <FormControl>
-                    <Switch
-                      onCheckedChange={(checked) => field.onChange(checked)}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+            <PublicSwitch form={form} />
           </div>
 
           <FormField
