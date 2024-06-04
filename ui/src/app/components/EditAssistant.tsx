@@ -34,11 +34,15 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { mockFiles } from "@/mockFiles";
-import { AssistantSelector } from "./AssistantSelector";
 import { Button } from "@/components/ui/button";
 import UploadFiles from "./UploadFiles";
 import { TAssistant, TCreateAssistant } from "@/data-provider/types";
+import SelectModel from "./build/SelectModel";
+import { SelectLLM } from "./build/SelectLLM";
+import { SystemMessage } from "./build/SystemMessage";
+import SelectCapabilities from "./build/SelectCapabilities";
+import { RetrievalInstructions } from "./build/RetrievalDescription";
+import SelectTools from "./build/SelectTools";
 
 const formSchema = z.object({
   public: z.boolean(),
@@ -67,12 +71,17 @@ const tools = [
   "Wikipedia",
 ];
 
+const architectureTypes = [
+  { display: "Chat", value: "chatbot" },
+  { display: "Chat with Retrieval", value: "chat_retrieval" },
+  { display: "Agent", value: "agent" },
+];
+
 type TEditAssistantProps = {
   selectedAssistant: TAssistant;
 };
 
 export function EditAssistant({ selectedAssistant }: TEditAssistantProps) {
-  // Note: we prob want to retrieve assistants by userId
   const { data: assistantsData, isLoading } = useAssistants();
 
   const updateAssistant = useUpdateAssistant(selectedAssistant.id);
@@ -103,8 +112,6 @@ export function EditAssistant({ selectedAssistant }: TEditAssistantProps) {
     // createAssistant.mutate(values);
   }
 
-  console.log("edit");
-
   if (isLoading || !assistantsData) return <div>is loading</div>;
 
   return (
@@ -113,281 +120,89 @@ export function EditAssistant({ selectedAssistant }: TEditAssistantProps) {
         onSubmit={form.handleSubmit(onSubmit)}
         className="overflow-y-scroll hide-scrollbar"
       >
-        <Accordion type="multiple">
-          <AccordionItem value="Assistant Builder">
-            <AccordionTrigger className="p-2">
-              Build Assistants
-            </AccordionTrigger>
-            <AccordionContent className="p-2 flex flex-col gap-5 my-3">
-              <div className="flex gap-6">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Input
-                          placeholder="Assistant Name"
-                          type="text"
-                          {...field}
-                          className="w-[400px]"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="public"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Public</FormLabel>
-                      <FormControl>
-                        <Switch
-                          onCheckedChange={(checked) => field.onChange(checked)}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div className="flex gap-6">
-                <FormField
-                  control={form.control}
-                  name="config.configurable.type"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Bot Type</FormLabel>
-                      <FormControl>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="Bot Type" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="chatbot">Chatbot</SelectItem>
-                            <SelectItem value="chat_retrieval">
-                              Chat Retrieval
-                            </SelectItem>
-                            <SelectItem value="agent">Agent</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                {form.getValues().config.configurable.type === "agent" && (
-                  <FormField
-                    control={form.control}
-                    name="config.configurable.agent_type"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel>Agent Type</FormLabel>
-                        <FormControl>
-                          <Select
-                            // value={form.getValues().config.configurable.type !== "agent" && undefined}
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                          >
-                            <SelectTrigger className="w-[180px]">
-                              <SelectValue placeholder="Select Agent Type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="GPT 3.5 Turbo">
-                                GPT 3.5 Turbo
-                              </SelectItem>
-                              <SelectItem value="GPT 4 Turbo">
-                                GPT 4 Turbo
-                              </SelectItem>
-                              <SelectItem value="GPT 4 (Azure OpenAI)">
-                                GPT 4 (Azure OpenAI)
-                              </SelectItem>
-                              <SelectItem value="Claude 2">Claude 2</SelectItem>
-                              <SelectItem value="Claude 2 (Amazon Bedrock)">
-                                Claude 2 (Amazon Bedrock)
-                              </SelectItem>
-                              <SelectItem value="GEMINI">GEMINI</SelectItem>
-                              <SelectItem value="Ollama">Ollama</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                )}
-              </div>
-              <FormField
-                control={form.control}
-                name="config.configurable.llm_type"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>LLM Type</FormLabel>
-                    <FormControl>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <SelectTrigger className="w-[180px]">
-                          <SelectValue placeholder="LLM Type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="GPT 3.5 Turbo">
-                            GPT 3.5 Turbo
-                          </SelectItem>
-                          <SelectItem value="GPT 4">GPT 4</SelectItem>
-                          <SelectItem value="GPT 4 (Azure OpenAI)">
-                            GPT 4 (Azure OpenAI)
-                          </SelectItem>
-                          <SelectItem value="Claude 2">Claude 2</SelectItem>
-                          <SelectItem value="Claude 2 (Amazon Bedrock)">
-                            Claude 2 (Amazon Bedrock)
-                          </SelectItem>
-                          <SelectItem value="GEMINI">GEMINI</SelectItem>
-                          <SelectItem value="Ollama">Ollama</SelectItem>
-                          <SelectItem value="Mixtral">Mixtral</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="config.configurable.system_message"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>System Message</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        {...field}
-                        className="w-[400px]"
-                        placeholder="Instructions for the assistant. ex: 'You are a helpful assistant'"
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              <Accordion type="multiple">
-                <AccordionItem value="Assistant Builder">
-                  <AccordionTrigger className="p-2">Tools</AccordionTrigger>
-                  <AccordionContent className="overflow-y-scroll p-2 flex flex-col gap-3">
-                    {tools.map((tool) => (
-                      <FormField
-                        key={tool}
-                        control={form.control}
-                        name="config.configurable.tools"
-                        render={({ field }) => {
-                          return (
-                            <FormItem
-                              key={tool}
-                              className="flex flex-row items-start space-x-3 space-y-0"
-                            >
-                              <FormControl>
-                                <Checkbox
-                                  checked={field.value?.includes(tool)}
-                                  onCheckedChange={(checked) => {
-                                    return checked
-                                      ? field.onChange([...field.value, tool])
-                                      : field.onChange(
-                                          field.value?.filter(
-                                            (value) => value !== tool,
-                                          ),
-                                        );
-                                  }}
-                                />
-                              </FormControl>
-                              <FormLabel className="text-sm font-normal">
-                                {tool}
-                              </FormLabel>
-                            </FormItem>
-                          );
-                        }}
-                      />
-                    ))}
-                    <FormField
-                      control={form.control}
-                      name="config.configurable.interrupt_before_action"
-                      render={({ field }) => {
-                        return (
-                          <FormItem className="flex items-center gap-2">
-                            <FormLabel>Interrupt before action?</FormLabel>
-                            <Switch
-                              className="m-0"
-                              onCheckedChange={(checked) =>
-                                field.onChange(checked)
-                              }
-                            />
-                          </FormItem>
-                        );
-                      }}
+        <div className="flex flex-col gap-6">
+          <div className="flex gap-6">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input
+                      placeholder="Assistant Name"
+                      type="text"
+                      {...field}
+                      className="w-[400px]"
                     />
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-              <FormField
-                control={form.control}
-                name="config.configurable.retrieval_description"
-                render={({ field }) => {
-                  return (
-                    <FormItem className="flex flex-col gap-2">
-                      <FormLabel>Retrieval Description</FormLabel>
-                      <Textarea {...field} />
-                    </FormItem>
-                  );
-                }}
-              />
-              <Button type="submit" className="w-1/4 self-center">
-                Save
-              </Button>
-            </AccordionContent>
-          </AccordionItem>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <AccordionItem value="files">
-            <AccordionTrigger className="p-2">Upload Files</AccordionTrigger>
-            <AccordionContent className="overflow-y-scroll p-2 gap-3 flex flex-col">
-              {mockFiles.map((file) => (
-                <FormField
-                  key={file.id}
-                  control={form.control}
-                  name="file_ids"
-                  render={({ field }) => {
-                    return (
-                      <FormItem
-                        key={file.id}
-                        className="flex flex-row items-start space-x-3 space-y-0"
-                      >
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value?.includes(file.id)}
-                            onCheckedChange={(checked) => {
-                              return checked
-                                ? field.onChange([...field.value, file.id])
-                                : field.onChange(
-                                    field.value?.filter(
-                                      (value) => value !== file.id,
-                                    ),
-                                  );
-                            }}
-                          />
-                        </FormControl>
-                        <FormLabel className="text-sm font-normal">
-                          {file.filename}
-                        </FormLabel>
-                      </FormItem>
-                    );
-                  }}
-                />
-              ))}
-              <div className="flex my-3">
-                <UploadFiles />
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
+            <FormField
+              control={form.control}
+              name="public"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Public</FormLabel>
+                  <FormControl>
+                    <Switch
+                      onCheckedChange={(checked) => field.onChange(checked)}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <FormField
+            control={form.control}
+            name="config.configurable.type"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>Architecture</FormLabel>
+                <FormControl>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Select architecture" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {architectureTypes.map((item) => (
+                        <SelectItem value={item.value}>
+                          {item.display}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+              </FormItem>
+            )}
+          />
+          {form.getValues().config.configurable.type && (
+            <>
+              {form.getValues().config.configurable.type === "agent" ? (
+                <SelectModel form={form} />
+              ) : (
+                <SelectLLM form={form} />
+              )}
+              <SystemMessage form={form} />
+              {form.getValues().config.configurable.type !== "chatbot" && (
+                <>
+                  <SelectCapabilities form={form} />
+                  <RetrievalInstructions form={form} />
+                </>
+              )}
+              <SelectTools form={form} />
+              <Button type="submit" className="w-1/4 self-center">
+                Upload
+              </Button>
+            </>
+          )}
+        </div>
       </form>
     </Form>
   );
