@@ -38,7 +38,11 @@ import { Button } from "@/components/ui/button";
 import UploadFiles from "./FilesDialog";
 import SelectModel from "./build/SelectModel";
 import { SelectLLM } from "./build/SelectLLM";
-import { SelectSystemMessage, SystemMessage } from "./build/SystemMessage";
+import {
+  SelectSystemMessage,
+  SystemMessage,
+  SystemPrompt,
+} from "./build/SystemPrompt";
 import {
   RetrievalDescription,
   RetrievalInstructions,
@@ -187,7 +191,7 @@ export function CreateAssistant() {
               ) : (
                 <SelectLLM form={form} />
               )}
-              <SystemMessage form={form} />
+              <SystemPrompt form={form} />
               {form.getValues().config.configurable.type !== "chatbot" && (
                 <>
                   <SelectCapabilities form={form} />

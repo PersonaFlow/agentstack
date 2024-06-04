@@ -39,7 +39,7 @@ import UploadFiles from "./FilesDialog";
 import { TAssistant, TCreateAssistant } from "@/data-provider/types";
 import SelectModel from "./build/SelectModel";
 import { SelectLLM } from "./build/SelectLLM";
-import { SystemMessage } from "./build/SystemMessage";
+import { SystemMessage } from "./build/SystemPrompt";
 import SelectCapabilities from "./build/SelectCapabilities";
 import { RetrievalInstructions } from "./build/RetrievalDescription";
 import SelectTools from "./build/SelectTools";
