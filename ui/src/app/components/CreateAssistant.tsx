@@ -51,6 +51,7 @@ import {
 import SelectTools from "./build/SelectTools";
 import SelectCapabilities from "./build/SelectCapabilities";
 import FilesDialog from "./FilesDialog";
+import SelectOptions from "./build/SelectOptions";
 
 const formSchema = z.object({
   public: z.boolean(),
@@ -199,6 +200,7 @@ export function CreateAssistant() {
                 </>
               )}
               <SelectTools form={form} />
+              <SelectOptions form={form} />
               <div className="flex my-3">
                 <FilesDialog form={form} />
               </div>
