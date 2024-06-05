@@ -113,6 +113,10 @@ export function CreateAssistant() {
       // Set undefined agent_type if bot is not an agent
       form.setValue("config.configurable.agent_type", undefined);
     }
+
+    if (architectureType === "chatbot") {
+      form.setValue("config.configurable.tools", []);
+    }
   }, [architectureType]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
