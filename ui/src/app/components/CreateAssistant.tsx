@@ -1,13 +1,6 @@
 "use client";
 
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
   Form,
   FormControl,
   FormField,
@@ -24,30 +17,21 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
 import {
   useAssistants,
   useCreateAssistant,
 } from "@/data-provider/query-service";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useMemo, useState } from "react";
-import { useFieldArray, useForm } from "react-hook-form";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { mockFiles } from "@/mockFiles";
 import { Button } from "@/components/ui/button";
 import UploadFiles from "./FilesDialog";
 import SelectModel from "./build/SelectModel";
 import { SelectLLM } from "./build/SelectLLM";
-import {
-  SelectSystemMessage,
-  SystemMessage,
-  SystemPrompt,
-} from "./build/SystemPrompt";
-import {
-  RetrievalDescription,
-  RetrievalInstructions,
-  SelectRetrievalDescription,
-} from "./build/RetrievalDescription";
+import { SystemPrompt } from "./build/SystemPrompt";
+import { RetrievalInstructions } from "./build/RetrievalDescription";
 import SelectTools from "./build/SelectTools";
 import SelectCapabilities from "./build/SelectCapabilities";
 import FilesDialog from "./FilesDialog";
@@ -117,6 +101,15 @@ export function CreateAssistant() {
     if (architectureType === "chatbot") {
       form.setValue("config.configurable.tools", []);
     }
+
+    if (architectureType === "chat_retrieval") {
+      const retrievalTools = ["Retrieval"];
+      const containsCodeInterpreter = form
+        .getValues()
+        .config.configurable.tools.includes("Code interpretor");
+      if (containsCodeInterpreter) retrievalTools.push("Code interpreter");
+      form.setValue("config.configurable.tools", retrievalTools);
+    }
   }, [architectureType]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
@@ -181,7 +174,7 @@ export function CreateAssistant() {
                     </SelectTrigger>
                     <SelectContent>
                       {architectureTypes.map((item) => (
-                        <SelectItem value={item.value}>
+                        <SelectItem key={item.value} value={item.value}>
                           {item.display}
                         </SelectItem>
                       ))}
