@@ -13,8 +13,9 @@ interface TSelectedAssistant extends TCreateAssistant {
 }
 
 export function AssistentBuilder() {
-  const [selectedAssistant, setSelectedAssistant] =
-    useState<TSelectedAssistant | null>(null);
+  const [selectedAssistant, setSelectedAssistant] = useState<
+    TSelectedAssistant | undefined
+  >(undefined);
 
   return (
     <>
@@ -22,7 +23,7 @@ export function AssistentBuilder() {
         <AssistantSelector setSelectedAssistant={setSelectedAssistant} />
         <Button
           className="flex gap-2"
-          onClick={() => setSelectedAssistant(null)}
+          onClick={() => setSelectedAssistant(undefined)}
         >
           <SquareIcon />
           Create Assistant

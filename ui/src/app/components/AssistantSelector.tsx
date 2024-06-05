@@ -7,10 +7,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import Spinner from "@/components/ui/spinner";
 import { useAssistants } from "@/data-provider/query-service";
-import { TCreateAssistant } from "@/data-provider/types";
+import { TAssistant, TCreateAssistant } from "@/data-provider/types";
 import { LoaderCircle } from "lucide-react";
-import { useEffect } from "react";
 
 interface TSelectedAssistant extends TCreateAssistant {
   id?: string;
@@ -18,9 +18,13 @@ interface TSelectedAssistant extends TCreateAssistant {
 
 type TAssistantProps = {
   setSelectedAssistant: (arg: TSelectedAssistant | null) => void;
+  selectedAssistant?: TAssistant;
 };
 
-export function AssistantSelector({ setSelectedAssistant }: TAssistantProps) {
+export function AssistantSelector({
+  setSelectedAssistant,
+  selectedAssistant,
+}: TAssistantProps) {
   const { data: assistantsData, isLoading } = useAssistants();
 
   const handleValueChange = (assistantId: string) => {
@@ -36,18 +40,16 @@ export function AssistantSelector({ setSelectedAssistant }: TAssistantProps) {
     }
   };
 
-  if (isLoading) return <LoaderCircle />;
+  if (isLoading) return <Spinner />;
 
   return (
     <div className="px-2">
       <Select
         onValueChange={handleValueChange}
-        defaultValue={
-          assistantsData ? assistantsData[0].name : "create-assistant"
-        }
+        value={selectedAssistant ? selectedAssistant.name : undefined}
       >
         <SelectTrigger className="w-[180px]">
-          <SelectValue />
+          <SelectValue placeholder="Select assistant.." />
         </SelectTrigger>
         <SelectContent>
           {assistantsData &&
