@@ -116,6 +116,7 @@ export function CreateAssistant() {
   }, [architectureType]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
+    console.log(values);
     createAssistant.mutate(values);
   }
 
