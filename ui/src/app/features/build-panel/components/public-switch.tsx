@@ -16,17 +16,20 @@ export default function PublicSwitch({ form }: TPublicSwitchProps) {
     <FormField
       control={form.control}
       name="public"
-      render={({ field }) => (
-        <FormItem className="flex flex-col">
-          <FormLabel>Public</FormLabel>
-          <FormControl>
-            <Switch
-              defaultChecked={field.value}
-              onCheckedChange={(checked) => field.onChange(checked)}
-            />
-          </FormControl>
-        </FormItem>
-      )}
+      render={({ field }) => {
+        console.log(field.value);
+        return (
+          <FormItem className="flex flex-col">
+            <FormLabel>Public</FormLabel>
+            <FormControl>
+              <Switch
+                defaultChecked={field.value}
+                onCheckedChange={(checked) => field.onChange(checked)}
+              />
+            </FormControl>
+          </FormItem>
+        );
+      }}
     />
   );
 }

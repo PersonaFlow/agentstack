@@ -72,7 +72,6 @@ export function EditAssistant({ selectedAssistant }: TEditAssistantProps) {
   }, [architectureType]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
     updateAssistant.mutate(values);
   }
 

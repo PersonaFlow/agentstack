@@ -23,10 +23,6 @@ export function AssistantSelector({
 }: TAssistantProps) {
   const { data: assistantsData, isLoading } = useAssistants();
 
-  useEffect(() => {
-    console.log("rerendered");
-  }, [selectedAssistant]);
-
   const handleValueChange = (assistantId: string) => {
     const _selectedAssistant = assistantsData?.find(
       (assistant) => assistant.id === assistantId,
@@ -45,6 +41,7 @@ export function AssistantSelector({
         key={selectedAssistant?.name}
         onValueChange={handleValueChange}
         value={selectedAssistant?.name}
+        defaultValue={selectedAssistant?.name}
       >
         <SelectTrigger className="w-[180px]">
           <SelectValue placeholder="Select assistant.." />

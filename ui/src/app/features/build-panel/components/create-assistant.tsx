@@ -67,8 +67,8 @@ export function CreateAssistant({
 
   useEffect(() => {
     if (architectureType !== "agent") {
-      // Set undefined agent_type if bot is not an agent
-      form.setValue("config.configurable.agent_type", "");
+      // Unregister agent_type
+      form.unregister("config.configurable.agent_type");
     }
 
     if (architectureType === "chatbot") {
@@ -86,7 +86,6 @@ export function CreateAssistant({
   }, [architectureType]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    // console.log(values);
     createAssistant.mutate(values, {
       onSuccess: (response) => {
         console.log(response);

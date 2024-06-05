@@ -28,6 +28,7 @@ import SelectCapabilities from "./select-capabilities";
 import SelectOptions from "./select-options";
 import SelectActions from "./select-actions";
 import FilesDialog from "./files-dialog";
+import PublicSwitch from "./public-switch";
 
 const architectureTypes = [
   { display: "Chat", value: "chatbot" },
@@ -41,7 +42,6 @@ type TAssistantFormProps = {
 };
 
 export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
-  console.log(form);
   return (
     <Form {...form}>
       <form
@@ -68,20 +68,7 @@ export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="public"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Public</FormLabel>
-                  <FormControl>
-                    <Switch
-                      onCheckedChange={(checked) => field.onChange(checked)}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+            <PublicSwitch form={form} />
           </div>
 
           <FormField
