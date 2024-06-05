@@ -5,18 +5,9 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { UseFormReturn } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import SelectModel from "./select-model";
@@ -30,12 +21,6 @@ import SelectActions from "./select-actions";
 import FilesDialog from "./files-dialog";
 import PublicSwitch from "./public-switch";
 import SelectArchitecture from "./select-architecture";
-
-const architectureTypes = [
-  { display: "Chat", value: "chatbot" },
-  { display: "Chat with Retrieval", value: "chat_retrieval" },
-  { display: "Agent", value: "agent" },
-];
 
 type TAssistantFormProps = {
   form: UseFormReturn<any>;
