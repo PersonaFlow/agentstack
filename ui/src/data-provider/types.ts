@@ -17,6 +17,8 @@ export type TAgentType =
   | "Ollama";
 
 export type TConfigurableTool =
+  | "Retrieval"
+  | "Code interpretor"
   | "DDG Search"
   | "Search (Tavily)"
   | "Search (short answer, Tavily)"

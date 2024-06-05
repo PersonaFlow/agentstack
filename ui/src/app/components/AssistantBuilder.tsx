@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { AssistantSelector } from "./AssistantSelector";
 import { Button } from "@/components/ui/button";
-import { TAssistant, TCreateAssistant } from "@/data-provider/types";
+import { TCreateAssistant } from "@/data-provider/types";
 import { SquareIcon } from "@radix-ui/react-icons";
 import { EditAssistant } from "./EditAssistant";
 import { CreateAssistant } from "./CreateAssistant";
@@ -12,7 +12,7 @@ interface TSelectedAssistant extends TCreateAssistant {
   id?: string;
 }
 
-export function OpenedPanel() {
+export function AssistentBuilder() {
   const [selectedAssistant, setSelectedAssistant] =
     useState<TSelectedAssistant | null>(null);
 

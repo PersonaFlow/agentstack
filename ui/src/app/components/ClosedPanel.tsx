@@ -1,3 +1,0 @@
-export function ClosedPanel() {
-  return <></>;
-}
