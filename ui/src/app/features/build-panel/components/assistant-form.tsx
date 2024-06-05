@@ -29,6 +29,7 @@ import SelectOptions from "./select-options";
 import SelectActions from "./select-actions";
 import FilesDialog from "./files-dialog";
 import PublicSwitch from "./public-switch";
+import SelectArchitecture from "./select-architecture";
 
 const architectureTypes = [
   { display: "Chat", value: "chatbot" },
@@ -71,29 +72,8 @@ export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
             <PublicSwitch form={form} />
           </div>
 
-          <FormField
-            control={form.control}
-            name="config.configurable.type"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel>Architecture</FormLabel>
-                <FormControl>
-                  <Select onValueChange={field.onChange}>
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Select architecture" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {architectureTypes.map((item) => (
-                        <SelectItem key={item.value} value={item.value}>
-                          {item.display}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </FormControl>
-              </FormItem>
-            )}
-          />
+          <SelectArchitecture form={form} />
+
           {form.getValues().config.configurable.type && (
             <>
               {form.getValues().config.configurable.type === "agent" ? (
