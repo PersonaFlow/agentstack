@@ -13,3 +13,8 @@ target(
       "//:reqs#pytest-asyncio"
     ]
 )
+
+python_requirements(
+    name="reqs0",
+    source="pytest-requirements.txt",
+)
