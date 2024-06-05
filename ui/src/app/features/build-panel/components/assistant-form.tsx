@@ -41,6 +41,7 @@ type TAssistantFormProps = {
 };
 
 export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
+  console.log(form);
   return (
     <Form {...form}>
       <form

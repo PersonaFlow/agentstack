@@ -10,6 +10,7 @@ import {
 import Spinner from "@/components/ui/spinner";
 import { useAssistants } from "@/data-provider/query-service";
 import { TAssistant } from "@/data-provider/types";
+import { useEffect } from "react";
 
 type TAssistantProps = {
   setSelectedAssistant: (arg: TAssistant | null) => void;
@@ -21,6 +22,10 @@ export function AssistantSelector({
   selectedAssistant,
 }: TAssistantProps) {
   const { data: assistantsData, isLoading } = useAssistants();
+
+  useEffect(() => {
+    console.log("rerendered");
+  }, [selectedAssistant]);
 
   const handleValueChange = (assistantId: string) => {
     const _selectedAssistant = assistantsData?.find(

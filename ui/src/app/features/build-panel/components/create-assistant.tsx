@@ -30,11 +30,11 @@ const formSchema = z.object({
 
 const defaultValues = {
   public: false,
-  name: undefined,
+  name: "",
   config: {
     configurable: {
       interrupt_before_action: false,
-      type: null,
+      type: "",
       agent_type: "GPT 3.5 Turbo",
       llm_type: "GPT 3.5 Turbo",
       retrieval_description:
@@ -68,7 +68,7 @@ export function CreateAssistant({
   useEffect(() => {
     if (architectureType !== "agent") {
       // Set undefined agent_type if bot is not an agent
-      form.setValue("config.configurable.agent_type", undefined);
+      form.setValue("config.configurable.agent_type", "");
     }
 
     if (architectureType === "chatbot") {
