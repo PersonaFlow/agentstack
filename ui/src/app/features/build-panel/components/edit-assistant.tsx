@@ -66,7 +66,7 @@ export function EditAssistant({ selectedAssistant }: TEditAssistantProps) {
       const containsCodeInterpreter = form
         .getValues()
         .config.configurable.tools.includes("Code interpretor");
-      if (containsCodeInterpreter) retrievalTools.push("Code interpreter");
+      // if (containsCodeInterpreter) retrievalTools.push("Code interpreter");
       form.setValue("config.configurable.tools", retrievalTools);
     }
   }, [architectureType]);

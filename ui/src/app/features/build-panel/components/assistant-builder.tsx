@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AssistantSelector } from "./assistant-selector";
 import { Button } from "@/components/ui/button";
 import { TAssistant } from "@/data-provider/types";
@@ -28,7 +28,7 @@ export function AssistentBuilder() {
       {selectedAssistant ? (
         <EditAssistant selectedAssistant={selectedAssistant} />
       ) : (
-        <CreateAssistant />
+        <CreateAssistant setSelectedAssistant={setSelectedAssistant} />
       )}
     </>
   );

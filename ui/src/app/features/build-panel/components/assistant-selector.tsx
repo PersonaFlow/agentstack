@@ -32,7 +32,7 @@ export function AssistantSelector({
     }
   };
 
-  if (isLoading) return <Spinner />;
+  if (isLoading || !assistantsData) return <Spinner />;
 
   return (
     <div className="px-2">
@@ -45,12 +45,11 @@ export function AssistantSelector({
           <SelectValue placeholder="Select assistant.." />
         </SelectTrigger>
         <SelectContent>
-          {assistantsData &&
-            assistantsData.map((assistant) => (
-              <SelectItem key={assistant.id} value={assistant.id}>
-                {assistant.name}
-              </SelectItem>
-            ))}
+          {assistantsData.map((assistant) => (
+            <SelectItem key={assistant.id} value={assistant.id}>
+              {assistant.name}
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
     </div>

@@ -9,6 +9,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { AssistantForm } from "./assistant-form";
+import { TAssistant } from "@/data-provider/types";
 
 const formSchema = z.object({
   public: z.boolean(),
@@ -45,7 +46,13 @@ const defaultValues = {
   file_ids: [],
 };
 
-export function CreateAssistant() {
+type TCreateAssistantProps = {
+  setSelectedAssistant: (arg: TAssistant) => void;
+};
+
+export function CreateAssistant({
+  setSelectedAssistant,
+}: TCreateAssistantProps) {
   const { data: assistantsData, isLoading } = useAssistants();
 
   const createAssistant = useCreateAssistant();
@@ -73,14 +80,19 @@ export function CreateAssistant() {
       const containsCodeInterpreter = form
         .getValues()
         .config.configurable.tools.includes("Code interpretor");
-      if (containsCodeInterpreter) retrievalTools.push("Code interpreter");
+      // if (containsCodeInterpreter) retrievalTools.push("Code interpreter");
       form.setValue("config.configurable.tools", retrievalTools);
     }
   }, [architectureType]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
-    createAssistant.mutate(values);
+    // console.log(values);
+    createAssistant.mutate(values, {
+      onSuccess: (response) => {
+        console.log(response);
+        setSelectedAssistant(response);
+      },
+    });
   }
 
   if (isLoading || !assistantsData) return <div>is loading</div>;
