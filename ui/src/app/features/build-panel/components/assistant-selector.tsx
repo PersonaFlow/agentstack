@@ -9,16 +9,10 @@ import {
 } from "@/components/ui/select";
 import Spinner from "@/components/ui/spinner";
 import { useAssistants } from "@/data-provider/query-service";
-import { TAssistant, TCreateAssistant } from "@/data-provider/types";
-import { LoaderCircle } from "lucide-react";
-import { useEffect } from "react";
-
-interface TSelectedAssistant extends TCreateAssistant {
-  id?: string;
-}
+import { TAssistant } from "@/data-provider/types";
 
 type TAssistantProps = {
-  setSelectedAssistant: (arg: TSelectedAssistant | null) => void;
+  setSelectedAssistant: (arg: TAssistant | null) => void;
   selectedAssistant?: TAssistant;
 };
 
@@ -34,14 +28,9 @@ export function AssistantSelector({
     );
 
     if (_selectedAssistant) {
-      delete _selectedAssistant.updated_at;
-      delete _selectedAssistant.user_id;
-
       setSelectedAssistant(_selectedAssistant);
     }
   };
-
-  useEffect(() => console.log(selectedAssistant), []);
 
   if (isLoading) return <Spinner />;
 

@@ -148,7 +148,21 @@ export type TUpdateMessageRequest = {
   additional_kwargs: {};
 };
 
-export type TCreateAssistant = {
+// export type TCreateAssistant = {
+//   user_id: string;
+//   name: string;
+//   config: {
+//     configurable: TConfigurable;
+//   };
+//   kwargs: {};
+//   file_ids: string[];
+//   public: boolean;
+// };
+
+export interface TAssistant {
+  id?: string;
+  created_at?: string;
+  updated_at?: string;
   user_id: string;
   name: string;
   config: {
@@ -157,12 +171,6 @@ export type TCreateAssistant = {
   kwargs: {};
   file_ids: string[];
   public: boolean;
-};
-
-export interface TAssistant extends TCreateAssistant {
-  id: string;
-  created_at: string;
-  updated_at: string;
 }
 
 export type TCreateAssistantFileRequest = {

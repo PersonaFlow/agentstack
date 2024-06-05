@@ -259,7 +259,7 @@ export const useAssistants = () => {
 export const useCreateAssistant = () => {
   const queryClient = useQueryClient();
   return useMutation<t.TAssistant, Error>({
-    mutationFn: async (payload: t.TCreateAssistant): Promise<t.TAssistant> =>
+    mutationFn: async (payload: t.TAssistant): Promise<t.TAssistant> =>
       await dataService.createAssistant(payload),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: [QueryKeys.assistants] }),
@@ -281,7 +281,7 @@ export const useAssistant = (
 export const useUpdateAssistant = (assistantId: string) => {
   const queryClient = useQueryClient();
   return useMutation<t.TAssistant, Error>({
-    mutationFn: async (payload: t.TCreateAssistant): Promise<t.TAssistant> =>
+    mutationFn: async (payload: t.TAssistant): Promise<t.TAssistant> =>
       await dataService.updateAssistant(assistantId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKeys.assistants] });

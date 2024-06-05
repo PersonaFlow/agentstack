@@ -3,18 +3,14 @@
 import { useState } from "react";
 import { AssistantSelector } from "./assistant-selector";
 import { Button } from "@/components/ui/button";
-import { TCreateAssistant } from "@/data-provider/types";
+import { TAssistant } from "@/data-provider/types";
 import { SquareIcon } from "@radix-ui/react-icons";
 import { EditAssistant } from "./edit-assistant";
 import { CreateAssistant } from "./create-assistant";
 
-interface TSelectedAssistant extends TCreateAssistant {
-  id?: string;
-}
-
 export function AssistentBuilder() {
   const [selectedAssistant, setSelectedAssistant] = useState<
-    TSelectedAssistant | undefined
+    TAssistant | undefined
   >(undefined);
 
   return (
