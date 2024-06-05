@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { AssistantSelector } from "./AssistantSelector";
+import { AssistantSelector } from "./assistant-selector";
 import { Button } from "@/components/ui/button";
 import { TCreateAssistant } from "@/data-provider/types";
 import { SquareIcon } from "@radix-ui/react-icons";
-import { EditAssistant } from "./EditAssistant";
-import { CreateAssistant } from "./CreateAssistant";
+import { EditAssistant } from "./edit-assistant";
+import { CreateAssistant } from "./create-assistant";
 
 interface TSelectedAssistant extends TCreateAssistant {
   id?: string;

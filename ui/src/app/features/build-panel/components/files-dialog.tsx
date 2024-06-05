@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { UseFormReturn } from "react-hook-form";
 import { SquarePlus } from "lucide-react";
-import SelectFiles from "./build/SelectFiles";
+import SelectFiles from "./select-files";
 
 type TFilesDialog = {
   form: UseFormReturn<any>;

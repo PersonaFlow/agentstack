@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { AssistentBuilder } from "./AssistantBuilder";
+import { AssistentBuilder } from "./assistant-builder";
 
 export default function BuildPanel() {
   const [isOpen, setIsOpen] = useState(true);

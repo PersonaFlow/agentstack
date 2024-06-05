@@ -2,13 +2,14 @@
 
 import {
   useAssistants,
-  useCreateAssistant,
+  useUpdateAssistant,
 } from "@/data-provider/query-service";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { AssistantForm } from "./build/AssistantForm";
+import { TAssistant, TConfigurableTool } from "@/data-provider/types";
+import { AssistantForm } from "./assistant-form";
 
 const formSchema = z.object({
   public: z.boolean(),
@@ -16,7 +17,7 @@ const formSchema = z.object({
   config: z.object({
     configurable: z.object({
       interrupt_before_action: z.boolean(),
-      type: z.string().nullable(),
+      type: z.string(),
       agent_type: z.string().optional(),
       llm_type: z.string(),
       retrieval_description: z.string(),
@@ -27,33 +28,25 @@ const formSchema = z.object({
   file_ids: z.array(z.string()),
 });
 
-const defaultValues = {
-  public: false,
-  name: undefined,
-  config: {
-    configurable: {
-      interrupt_before_action: false,
-      type: null,
-      agent_type: "GPT 3.5 Turbo",
-      llm_type: "GPT 3.5 Turbo",
-      retrieval_description:
-        "Can be used to look up information that was uploaded for this assistant.",
-      system_message: "You are a helpful assistant.",
-      tools: [],
-    },
-  },
-  file_ids: [],
+type TEditAssistantProps = {
+  selectedAssistant: TAssistant;
 };
 
-export function CreateAssistant() {
+export function EditAssistant({ selectedAssistant }: TEditAssistantProps) {
   const { data: assistantsData, isLoading } = useAssistants();
 
-  const createAssistant = useCreateAssistant();
+  const updateAssistant = useUpdateAssistant(selectedAssistant.id);
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<TAssistant>({
     resolver: zodResolver(formSchema),
-    defaultValues: defaultValues,
+    defaultValues: useMemo(() => {
+      return selectedAssistant;
+    }, [selectedAssistant]),
   });
+
+  useEffect(() => {
+    form.reset(selectedAssistant);
+  }, [selectedAssistant]);
 
   const architectureType = form.watch("config.configurable.type");
   form.watch("config.configurable.tools");
@@ -69,7 +62,7 @@ export function CreateAssistant() {
     }
 
     if (architectureType === "chat_retrieval") {
-      const retrievalTools = ["Retrieval"];
+      const retrievalTools: TConfigurableTool[] = ["Retrieval"];
       const containsCodeInterpreter = form
         .getValues()
         .config.configurable.tools.includes("Code interpretor");
@@ -80,7 +73,7 @@ export function CreateAssistant() {
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values);
-    createAssistant.mutate(values);
+    updateAssistant.mutate(values);
   }
 
   if (isLoading || !assistantsData) return <div>is loading</div>;
