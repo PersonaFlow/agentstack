@@ -26,11 +26,9 @@ export default function FilesDialog({ form }: TFilesDialog) {
 
   return (
     <Dialog>
-      <DialogTrigger>
-        <Button className="flex gap-2">
-          <SquarePlus />
-          Add Files
-        </Button>
+      <DialogTrigger className="flex gap-2 border-2 rounded-md p-2 border-black">
+        <SquarePlus />
+        Add Files
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>

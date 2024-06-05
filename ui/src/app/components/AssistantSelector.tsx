@@ -11,6 +11,7 @@ import Spinner from "@/components/ui/spinner";
 import { useAssistants } from "@/data-provider/query-service";
 import { TAssistant, TCreateAssistant } from "@/data-provider/types";
 import { LoaderCircle } from "lucide-react";
+import { useEffect } from "react";
 
 interface TSelectedAssistant extends TCreateAssistant {
   id?: string;
@@ -40,13 +41,16 @@ export function AssistantSelector({
     }
   };
 
+  useEffect(() => console.log(selectedAssistant), []);
+
   if (isLoading) return <Spinner />;
 
   return (
     <div className="px-2">
       <Select
+        key={selectedAssistant?.name}
         onValueChange={handleValueChange}
-        value={selectedAssistant ? selectedAssistant.name : undefined}
+        value={selectedAssistant?.name}
       >
         <SelectTrigger className="w-[180px]">
           <SelectValue placeholder="Select assistant.." />
