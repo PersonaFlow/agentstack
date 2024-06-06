@@ -62,6 +62,8 @@ export function CreateAssistant({
     defaultValues: defaultValues,
   });
 
+  const { tools } = form.getValues().config.configurable;
+
   const architectureType = form.watch("config.configurable.type");
   form.watch("config.configurable.tools");
 
@@ -77,9 +79,7 @@ export function CreateAssistant({
 
     if (architectureType === "chat_retrieval") {
       const retrievalTools = ["Retrieval"];
-      const containsCodeInterpreter = form
-        .getValues()
-        .config.configurable.tools.includes("Code interpretor");
+      const containsCodeInterpreter = tools.includes("Code interpretor");
       // if (containsCodeInterpreter) retrievalTools.push("Code interpreter");
       form.setValue("config.configurable.tools", retrievalTools);
     }

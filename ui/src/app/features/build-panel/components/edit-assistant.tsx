@@ -44,6 +44,8 @@ export function EditAssistant({ selectedAssistant }: TEditAssistantProps) {
     }, [selectedAssistant]),
   });
 
+  const { tools } = form.getValues().config.configurable;
+
   useEffect(() => {
     form.reset(selectedAssistant);
   }, [selectedAssistant]);
@@ -63,9 +65,7 @@ export function EditAssistant({ selectedAssistant }: TEditAssistantProps) {
 
     if (architectureType === "chat_retrieval") {
       const retrievalTools: TConfigurableTool[] = ["Retrieval"];
-      const containsCodeInterpreter = form
-        .getValues()
-        .config.configurable.tools.includes("Code interpretor");
+      const containsCodeInterpreter = tools.includes("Code interpretor");
       // if (containsCodeInterpreter) retrievalTools.push("Code interpreter");
       form.setValue("config.configurable.tools", retrievalTools);
     }

@@ -24,9 +24,10 @@ const capabilities = [
 ];
 
 export default function SelectCapabilities({ form }: TSelectCapabilitiesProps) {
+  const { type: architectureType } = form.getValues().config.configurable;
+
   const isChatRetrieval = (checkboxValue: string) =>
-    form.getValues().config.configurable.type === "chat_retrieval" &&
-    checkboxValue === "Retrieval";
+    architectureType === "chat_retrieval" && checkboxValue === "Retrieval";
 
   return (
     <Accordion type="multiple">

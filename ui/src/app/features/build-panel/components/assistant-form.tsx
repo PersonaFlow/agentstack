@@ -28,6 +28,8 @@ type TAssistantFormProps = {
 };
 
 export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
+  const { type: architectureType } = form.getValues().config.configurable;
+
   return (
     <Form {...form}>
       <form
@@ -59,26 +61,28 @@ export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
 
           <SelectArchitecture form={form} />
 
-          {form.getValues().config.configurable.type && (
+          {architectureType && (
             <>
-              {form.getValues().config.configurable.type === "agent" ? (
+              {architectureType === "agent" ? (
                 <SelectModel form={form} />
               ) : (
                 <SelectLLM form={form} />
               )}
               <SystemPrompt form={form} />
-              {form.getValues().config.configurable.type !== "chatbot" && (
+              {architectureType !== "chatbot" && (
                 <>
                   <SelectCapabilities form={form} />
                   <RetrievalInstructions form={form} />
                   <div className="flex my-3">
                     <FilesDialog form={form} />
                   </div>
-                  {form.getValues().config.configurable.type !==
-                    "chat_retrieval" && <SelectTools form={form} />}
+                  {architectureType !== "chat_retrieval" && (
+                    <SelectTools form={form} />
+                  )}
                   <SelectOptions form={form} />
-                  {form.getValues().config.configurable.type !==
-                    "chat_retrieval" && <SelectActions form={form} />}
+                  {architectureType !== "chat_retrieval" && (
+                    <SelectActions form={form} />
+                  )}
                 </>
               )}
               <Button type="submit" className="w-1/4 self-center">
