@@ -1,7 +1,11 @@
-export default function Home() {
+"use client";
+
+import { ChatForm } from "./features/chat/components/chat-form";
+
+export default function Page() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <h1>hello</h1>
-    </main>
+    <div className="border-solid border-2 w-full gap-4 flex flex-col">
+      <ChatForm />
+    </div>
   );
 }

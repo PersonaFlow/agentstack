@@ -1,6 +1,7 @@
 import {
   Query,
   QueryObserverResult,
+  QueryOptions,
   useMutation,
   useQuery,
   useQueryClient,
@@ -255,31 +256,32 @@ export const useAssistants = () => {
   });
 };
 
-export const useCreateAssistant = (payload: t.TAssistantRequest) => {
+export const useCreateAssistant = () => {
   const queryClient = useQueryClient();
   return useMutation<t.TAssistant, Error>({
-    mutationFn: async (): Promise<t.TAssistant> =>
+    mutationFn: async (payload: t.TAssistant): Promise<t.TAssistant> =>
       await dataService.createAssistant(payload),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: [QueryKeys.assistants] }),
   });
 };
 
-export const useAssistant = (assistantId: string) => {
+export const useAssistant = (
+  assistantId: string,
+  enabled?: { enabled?: boolean },
+) => {
   return useQuery<t.TAssistant, Error>({
     queryKey: [QueryKeys.assistant, assistantId],
     queryFn: async (): Promise<t.TAssistant> =>
       await dataService.getAssistant(assistantId),
+    ...enabled,
   });
 };
 
-export const useUpdateAssistant = (
-  assistantId: string,
-  payload: t.TAssistantRequest,
-) => {
+export const useUpdateAssistant = (assistantId: string) => {
   const queryClient = useQueryClient();
   return useMutation<t.TAssistant, Error>({
-    mutationFn: async (): Promise<t.TAssistant> =>
+    mutationFn: async (payload: t.TAssistant): Promise<t.TAssistant> =>
       await dataService.updateAssistant(assistantId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKeys.assistants] });
@@ -366,10 +368,10 @@ export const useQueryLCRetriever = (payload: t.TQuery) => {
 };
 
 // --Files--
-export const useUploadFile = (payload: FormData) => {
+export const useUploadFile = () => {
   const queryClient = useQueryClient();
   return useMutation<t.TFile, Error>({
-    mutationFn: async (): Promise<t.TFile> =>
+    mutationFn: async (payload: FormData): Promise<t.TFile> =>
       await dataService.uploadFile(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKeys.files] });

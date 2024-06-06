@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "@/styles/main.css";
-import Header from "@/components/Header";
+import Header from "@/app/features/header/components/header";
 import Providers from "@/providers/Providers";
+import Sidebar from "@/app/features/sidebar/components/sidebar";
+import Builder from "./features/build-panel/components/build-panel";
+import BuildPanel from "./features/build-panel/components/build-panel";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,9 +21,19 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.className} h-screen w-screen p-6`}>
-        <Header />
-        <Providers>{children}</Providers>
+      <body>
+        <div
+          className={`${inter.className} h-screen w-screen flex flex-col p-2 gap-2`}
+        >
+          <Providers>
+            <Header />
+            <div className="flex flex-1 gap-2 overflow-y-hidden">
+              <Sidebar />
+              {children}
+              <BuildPanel />
+            </div>
+          </Providers>
+        </div>
       </body>
     </html>
   );

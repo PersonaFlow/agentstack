@@ -129,10 +129,10 @@ export function getAssistants(): Promise<t.TAssistant[]> {
   return request.get(endpoints.assistants());
 }
 
-export function createAssistant(
-  payload: t.TAssistantRequest,
-): Promise<t.TAssistant> {
-  return request.post(endpoints.assistants());
+export function createAssistant(payload: t.TAssistant): Promise<t.TAssistant> {
+  return request.post(endpoints.assistants(), {
+    ...payload,
+  });
 }
 
 export function getAssistant(assistantId: string): Promise<t.TAssistant> {
@@ -141,7 +141,7 @@ export function getAssistant(assistantId: string): Promise<t.TAssistant> {
 
 export function updateAssistant(
   assistantId: string,
-  payload: t.TAssistantRequest,
+  payload: t.TAssistant,
 ): Promise<t.TAssistant> {
   return request.patch(endpoints.assistants(assistantId), {
     ...payload,
@@ -203,18 +203,15 @@ export function queryLCRetriever(payload: t.TQuery): Promise<string> {
 
 // --Files--
 export function uploadFile(payload: FormData): Promise<t.TFile> {
-  return request.postMultiPart(endpoints.files(), payload);
+  return request.postMultiPart(endpoints.file(), payload);
 }
 
-export function getFiles(
-  userId: string,
-  purpose?: t.TPurpose,
-): Promise<t.TFile[]> {
+export function getFiles(userId: string, purpose?: string): Promise<t.TFile[]> {
   return request.get(endpoints.files(userId, purpose));
 }
 
 export function getFile(fileId: string): Promise<t.TFile> {
-  return request.get(endpoints.files("", fileId));
+  return request.get(endpoints.file("", fileId));
 }
 
 export function deleteFile(fileId: string): Promise<t.TDeleteFileResponse> {
