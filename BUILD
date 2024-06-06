@@ -1,10 +1,16 @@
 poetry_requirements(name="reqs")
 
 python_tests(
-    name="root",
+    name="tests",
+    dependencies=["//:test-reqs"]
 )
 
-python_requirements(
-    name="reqs0",
-    source="pytest-requirements.txt",
+
+target(
+    name="test-reqs",
+    dependencies=[
+      "//:reqs#asyncpg",
+      "//:reqs#python-multipart",
+      "//:reqs#pytest-asyncio"
+    ]
 )

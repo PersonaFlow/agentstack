@@ -1,10 +1,6 @@
 python_tests(
     name="tests",
-    dependencies=[
-    "//:reqs#asyncpg",
-    "//:reqs#python-multipart",
-    "//:reqs#pytest-asyncio",
-  ]
+    dependencies=["//:test-reqs"]
 )
 
 python_test_utils(
