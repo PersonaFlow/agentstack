@@ -41,7 +41,7 @@ class ThreadRepository(BaseRepository):
             return thread
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
-            await logger.exception(
+            logger.exception(
                 "Failed to create thread due to a database error",
                 exc_info=True,
                 thread_data=data,
@@ -73,7 +73,7 @@ class ThreadRepository(BaseRepository):
             records = await self.retrieve_all(model=Thread, filters=filters)
             return records
         except SQLAlchemyError as e:
-            await logger.exception(
+            logger.exception(
                 "Failed to retrieve threads due to a database error", exc_info=True
             )
             raise HTTPException(status_code=500, detail="Failed to retrieve threads.")
@@ -85,7 +85,7 @@ class ThreadRepository(BaseRepository):
             record = await self.retrieve_one(query=query, object_id=thread_id)
             return record
         except SQLAlchemyError as e:
-            await logger.exception(
+            logger.exception(
                 "Failed to retrieve thread due to a database error",
                 exc_info=True,
                 thread_id=thread_id,
@@ -100,7 +100,7 @@ class ThreadRepository(BaseRepository):
             record = result.fetchone()
             return record
         except SQLAlchemyError as e:
-            await logger.exception(
+            logger.exception(
                 "Failed to retrieve thread by thread_id due to a database error",
                 exc_info=True,
                 thread_id=thread_id,
@@ -117,7 +117,7 @@ class ThreadRepository(BaseRepository):
             return thread
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
-            await logger.exception(
+            logger.exception(
                 "Failed to update thread due to a database error",
                 exc_info=True,
                 thread_id=thread_id,
@@ -133,7 +133,7 @@ class ThreadRepository(BaseRepository):
             return thread
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
-            await logger.exception(
+            logger.exception(
                 "Failed to delete thread due to a database error",
                 exc_info=True,
                 thread_id=thread_id,
@@ -148,7 +148,7 @@ class ThreadRepository(BaseRepository):
             records = result.fetchall()
             return records
         except SQLAlchemyError as e:
-            await logger.exception(
+            logger.exception(
                 "Failed to retrieve threads for user_id due to a database error",
                 exc_info=True,
                 user_id=user_id,

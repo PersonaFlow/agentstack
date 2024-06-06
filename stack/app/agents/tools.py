@@ -78,11 +78,11 @@ class ActionServerConfig(ToolConfig):
 
 class ActionServer(BaseTool):
     type: AvailableTools = Field(AvailableTools.ACTION_SERVER, const=True)
-    name: str = Field("Action Server by Robocorp", const=True)
+    name: str = Field("Action Server by Sem4.ai", const=True)
     description: str = Field(
         (
             "Run AI actions with "
-            "[Robocorp Action Server](https://github.com/robocorp/robocorp)."
+            "[Sema4.ai Action Server](https://github.com/Sema4AI/actions)."
         ),
         const=True,
     )

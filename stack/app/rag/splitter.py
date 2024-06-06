@@ -177,7 +177,7 @@ class UnstructuredSemanticSplitter:
                     metadata.pop("text_as_html", None)
                     for table in splitted_tables:
                         if not table:
-                            await logger.warning("Empty table encountered")
+                            logger.warning("Empty table encountered")
                             continue
                         self._append_chunks(
                             chunks_with_title,

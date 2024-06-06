@@ -52,7 +52,7 @@ class MessageRepository(BaseRepository):
             return message
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
-            await logger.exception(
+            logger.exception(
                 "Failed to create message due to a database error",
                 exc_info=True,
                 message_data=data,
@@ -85,7 +85,7 @@ class MessageRepository(BaseRepository):
             records = result.fetchall()
             return records
         except SQLAlchemyError as e:
-            await logger.exception(
+            logger.exception(
                 "Failed to retrieve messages by thread_id due to a database error",
                 exc_info=True,
                 thread_id=thread_id,
@@ -104,7 +104,7 @@ class MessageRepository(BaseRepository):
             return message
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
-            await logger.exception(
+            logger.exception(
                 "Failed to update message due to a database error",
                 exc_info=True,
                 message_id=message_id,
@@ -120,7 +120,7 @@ class MessageRepository(BaseRepository):
             return message
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
-            await logger.exception(
+            logger.exception(
                 "Failed to delete message due to a database error",
                 exc_info=True,
                 message_id=message_id,

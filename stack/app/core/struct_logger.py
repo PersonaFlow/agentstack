@@ -79,13 +79,13 @@ def init_structlogger(settings: Settings):
         structlog.contextvars.merge_contextvars,
         structlog.processors.CallsiteParameterAdder(
             {
-                structlog.processors.CallsiteParameter.PATHNAME,
+                # structlog.processors.CallsiteParameter.PATHNAME,
                 structlog.processors.CallsiteParameter.FILENAME,
                 structlog.processors.CallsiteParameter.MODULE,
                 structlog.processors.CallsiteParameter.FUNC_NAME,
                 structlog.processors.CallsiteParameter.THREAD,
-                structlog.processors.CallsiteParameter.THREAD_NAME,
-                structlog.processors.CallsiteParameter.PROCESS,
+                # structlog.processors.CallsiteParameter.THREAD_NAME,
+                # structlog.processors.CallsiteParameter.PROCESS,
                 structlog.processors.CallsiteParameter.PROCESS_NAME,
             }
         ),
@@ -94,22 +94,22 @@ def init_structlogger(settings: Settings):
         drop_color_message_key,
     ]
 
-    structlog.configure(
-        processors=shared_processors
-        + [structlog.stdlib.ProcessorFormatter.wrap_for_formatter],
-        logger_factory=structlog.stdlib.LoggerFactory(),
-        # call log with await syntax in thread pool executor
-        wrapper_class=structlog.stdlib.AsyncBoundLogger,
-        cache_logger_on_first_use=True,
-    )
-
-    # Use this configuration instead when refactoring the logs to remove async requirement
     # structlog.configure(
     #     processors=shared_processors
     #     + [structlog.stdlib.ProcessorFormatter.wrap_for_formatter],
     #     logger_factory=structlog.stdlib.LoggerFactory(),
+    #     # call log with await syntax in thread pool executor
+    #     wrapper_class=structlog.stdlib.AsyncBoundLogger,
     #     cache_logger_on_first_use=True,
     # )
+
+    # Use this configuration instead when refactoring the logs to remove async requirement
+    structlog.configure(
+        processors=shared_processors
+        + [structlog.stdlib.ProcessorFormatter.wrap_for_formatter],
+        logger_factory=structlog.stdlib.LoggerFactory(),
+        cache_logger_on_first_use=True,
+    )
 
     log_renderer: structlog.types.Processor
 

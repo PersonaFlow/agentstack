@@ -97,8 +97,8 @@ def upgrade() -> None:
         sa.Column(
             "source",
             sa.String(),
-            nullable=False,
-            comment="The source of the file. For local files, this will be the local file path plus filename and extension.",
+            nullable=True,
+            comment="The source of the file. For local files, this will be the local file path plus filename and extension. Otherwise a URL.",
         ),
         sa.Column(
             "bytes",

@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 @lru_cache(maxsize=4)
-def get_openai_llm(gpt_4: bool = False, azure: bool = False):
+def get_openai_llm(model: str = "gpt-3.5-turbo", azure: bool = False):
     proxy_url = settings.OPENAI_PROXY_URL
     http_client = None
     if proxy_url:
@@ -28,9 +28,7 @@ def get_openai_llm(gpt_4: bool = False, azure: bool = False):
     if not azure:
         try:
             llm = ChatOpenAI(
-                model=settings.GPT_4_MODEL_NAME
-                if gpt_4
-                else settings.GPT_35_MODEL_NAME,
+                model=model,
                 http_client=http_client,
                 temperature=0,
             )

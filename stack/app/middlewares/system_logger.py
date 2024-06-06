@@ -52,7 +52,7 @@ class SystemLoggerMiddleware(BaseHTTPMiddleware):
         try:
             response = await call_next(request)
         except Exception:
-            await structlog.stdlib.get_logger("api.error").exception(
+            structlog.stdlib.get_logger("api.error").exception(
                 "Uncaught exception"
             )
             raise
@@ -67,7 +67,7 @@ class SystemLoggerMiddleware(BaseHTTPMiddleware):
             http_version = request.scope["http_version"]
             # Recreate the Uvicorn access log format, but add all parameters as structured information
             access_logger = structlog.stdlib.get_logger("api.access")
-            await access_logger.info(
+            access_logger.info(
                 f"""{client_host}:{client_port} - "{http_method} {url} HTTP/{http_version}" {status_code}""",
                 http={
                     "url": str(request.url),

@@ -100,13 +100,13 @@ class EmbeddingService:
 
         try:
             file_path = file.source
-            await logger.info(
+            logger.info(
                 f"Reading content from local file system. File path: {file_path}"
             )
             with open(file_path, "rb") as f:
                 file_content = f.read()
         except FileNotFoundError as e:
-            await logger.exception(
+            logger.exception(
                 f"Failed to retrieve file content from local file system.",
                 exc_info=True,
             )
@@ -131,7 +131,7 @@ class EmbeddingService:
             if unstructured_response.elements is not None:
                 return unstructured_response.elements
         except Exception as e:
-            await logger.exception(f"Error partitioning file: {e}")
+            logger.exception(f"Error partitioning file: {e}")
             raise
 
     def _create_base_document(
@@ -154,7 +154,7 @@ class EmbeddingService:
         self,
         config: DocumentProcessorConfig,
     ) -> list[BaseDocumentChunk]:
-        await logger.info(f"Generating chunks using method: {config.splitter.name}")
+        logger.info(f"Generating chunks using method: {config.splitter.name}")
         doc_chunks = []
         for file in tqdm(self.files, desc="Generating chunks"):
             try:
@@ -218,7 +218,7 @@ class EmbeddingService:
                 self._create_base_document(document_id, file, document_content)
 
             except Exception as e:
-                await logger.error(f"Error loading chunks: {e}")
+                logger.error(f"Error loading chunks: {e}")
                 raise
         return doc_chunks
 
@@ -242,7 +242,7 @@ class EmbeddingService:
                     if chunk and chunk.page_content
                 ]
                 if not chunk_texts:
-                    await logger.warning(f"No content to embed in batch {chunks_batch}")
+                    logger.warning(f"No content to embed in batch {chunks_batch}")
                     return []
                 embeddings = encoder(chunk_texts)
                 for chunk, embedding in zip(chunks_batch, embeddings):
@@ -250,7 +250,7 @@ class EmbeddingService:
                 pbar.update(len(chunks_batch))
                 return chunks_batch
             except Exception as e:
-                await logger.error(f"Error embedding a batch of documents: {e}")
+                logger.error(f"Error embedding a batch of documents: {e}")
                 raise
 
         # Create batches of chunks
@@ -279,7 +279,7 @@ class EmbeddingService:
 
         print(f"Attempting to upsert {len(chunks_with_embeddings)} chunks...")
         if not chunks_with_embeddings:
-            await logger.warn("No chunks to upsert. Aborting operation.")
+            logger.warn("No chunks to upsert. Aborting operation.")
             return []
 
         vector_service = get_vector_service(
@@ -291,7 +291,7 @@ class EmbeddingService:
         try:
             await vector_service.upsert(chunks=chunks_with_embeddings)
         except Exception as e:
-            await logger.error(f"Error upserting embeddings: {e}")
+            logger.error(f"Error upserting embeddings: {e}")
             raise
 
         return chunks_with_embeddings
@@ -317,7 +317,7 @@ class EmbeddingService:
                 document.page_content = await completion(document=document)
                 return document
             except Exception as e:
-                await logger.error(f"Error summarizing document {document.id}: {e}")
+                logger.error(f"Error summarizing document {document.id}: {e}")
                 return None
 
         pbar = tqdm(desc="Summarizing documents")

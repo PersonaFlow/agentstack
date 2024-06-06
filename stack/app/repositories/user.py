@@ -64,7 +64,7 @@ class UserRepository(BaseRepository):
             return user
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
-            await logger.exception(
+            logger.exception(
                 f"Failed to create user due to a database error: {str(e)}",
                 exc_info=True,
                 user_data=data.json(),
@@ -96,7 +96,7 @@ class UserRepository(BaseRepository):
             records = await self.retrieve_all(model=User, filters=filters)
             return records
         except SQLAlchemyError as e:
-            await logger.exception(
+            logger.exception(
                 f"Failed to retrieve users due to a database error: {str(e)}",
                 exc_info=True,
             )
@@ -109,7 +109,7 @@ class UserRepository(BaseRepository):
             record = await self.retrieve_one(query=query, object_id=object_id)
             return record
         except SQLAlchemyError as e:
-            await logger.exception(
+            logger.exception(
                 f"Failed to retrieve user due to a database error: {str(e)}",
                 exc_info=True,
                 object_id=object_id,
@@ -124,7 +124,7 @@ class UserRepository(BaseRepository):
             record = result.fetchone()
             return record
         except SQLAlchemyError as e:
-            await logger.exception(
+            logger.exception(
                 "Failed to retrieve user by user_id due to a database error",
                 exc_info=True,
                 object_id=user_id,
@@ -142,7 +142,7 @@ class UserRepository(BaseRepository):
             return user
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
-            await logger.exception(
+            logger.exception(
                 "Failed to update user due to a database error",
                 exc_info=True,
                 object_id=object_id,
@@ -161,7 +161,7 @@ class UserRepository(BaseRepository):
             return updated_user
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
-            await logger.exception(
+            logger.exception(
                 "Failed to update user by user_id due to a database error",
                 exc_info=True,
                 object_id=user_id,
@@ -179,7 +179,7 @@ class UserRepository(BaseRepository):
             return user
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
-            await logger.exception(
+            logger.exception(
                 "Failed to delete user due to a database error",
                 exc_info=True,
                 object_id=object_id,
@@ -196,7 +196,7 @@ class UserRepository(BaseRepository):
             return user
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
-            await logger.exception(
+            logger.exception(
                 "Failed to delete user by user_id due to a database error",
                 exc_info=True,
                 object_id=user_id,

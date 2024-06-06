@@ -77,7 +77,12 @@ def get_agent_executor(
             tools, llm, system_message, interrupt_before_action, CHECKPOINTER
         )
     elif agent == AgentType.GPT_4:
-        llm = get_openai_llm(gpt_4=True)
+        llm = get_openai_llm(model="gpt-4-turbo")
+        return get_tools_agent_executor(
+            tools, llm, system_message, interrupt_before_action, CHECKPOINTER
+        )
+    elif agent == AgentType.GPT_4O:
+        llm = get_openai_llm(model="gpt-4o")
         return get_tools_agent_executor(
             tools, llm, system_message, interrupt_before_action, CHECKPOINTER
         )
@@ -177,7 +182,9 @@ def get_chatbot(
     if llm_type == LLMType.GPT_35_TURBO:
         llm = get_openai_llm()
     elif llm_type == LLMType.GPT_4:
-        llm = get_openai_llm(gpt_4=True)
+        llm = get_openai_llm(model="gpt-4-turbo")
+    elif llm_type == LLMType.GPT_4O:
+        llm = get_openai_llm(model="gpt-4o")
     elif llm_type == LLMType.AZURE_OPENAI:
         llm = get_openai_llm(azure=True)
     elif llm_type == LLMType.CLAUDE2:
