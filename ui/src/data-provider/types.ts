@@ -5,7 +5,47 @@ export type TRunInput = {
   example: boolean;
 };
 
-export type TConfigurable = {};
+export type TBotType = "chatbot" | "chat_retrieval" | "agent";
+
+export type TAgentType =
+  | "GPT 3.5 Turbo"
+  | "GPT 4 Turbo"
+  | "GPT 4 (Azure OpenAI)"
+  | "Claude 2"
+  | "Claude 2 (Amazon Bedrock)"
+  | "GEMINI"
+  | "Ollama";
+
+export type TConfigurableTool =
+  | "Retrieval"
+  | "Code interpretor"
+  | "DDG Search"
+  | "Search (Tavily)"
+  | "Search (short answer, Tavily)"
+  | "Retrieval"
+  | "Arxiv"
+  | "PubMed"
+  | "Wikipedia";
+
+export type TLLMType =
+  | "GPT 3.5 Turbo"
+  | "GPT 4"
+  | "GPT 4 (Azure OpenAI)"
+  | "Claude 2"
+  | "Claude 2 (Amazon Bedrock)"
+  | "GEMINI"
+  | "Mixtral"
+  | "Ollama";
+
+export type TConfigurable = {
+  type: TBotType;
+  agent_type?: TAgentType;
+  interrupt_before_action: boolean;
+  retrieval_description: string;
+  system_message: string;
+  tools: TConfigurableTool[];
+  llm_type: TLLMType;
+};
 
 export type TRunConfig = {
   tags: string[];
@@ -108,19 +148,29 @@ export type TUpdateMessageRequest = {
   additional_kwargs: {};
 };
 
-export type TAssistantRequest = {
+// export type TCreateAssistant = {
+//   user_id: string;
+//   name: string;
+//   config: {
+//     configurable: TConfigurable;
+//   };
+//   kwargs: {};
+//   file_ids: string[];
+//   public: boolean;
+// };
+
+export interface TAssistant {
+  id: string;
+  created_at?: string;
+  updated_at?: string;
   user_id: string;
   name: string;
-  config: {};
+  config: {
+    configurable: TConfigurable;
+  };
   kwargs: {};
   file_ids: string[];
   public: boolean;
-};
-
-export interface TAssistant extends TAssistantRequest {
-  id: string;
-  created_at: string;
-  updated_at: string;
 }
 
 export type TCreateAssistantFileRequest = {
@@ -237,6 +287,11 @@ export type TDeleteFileResponse = {
   num_of_deleted_chunks: number;
   num_of_assistants: number;
   assistants: TAssistant[];
+};
+
+export type TGetFiles = {
+  user_id: string;
+  purpose?: string;
 };
 
 export type TGenerateTitle = {

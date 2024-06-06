@@ -23,7 +23,7 @@ async function _put<T>(url: string, data?: any): Promise<T> {
 }
 
 async function _patch<T>(url: string, data?: any): Promise<T> {
-  const response = await axios.put(url, JSON.stringify(data));
+  const response = await axios.patch(url, data);
   return response.data;
 }
 
@@ -32,24 +32,22 @@ async function _delete<T>(url: string, data?: any): Promise<T> {
   return response.data;
 }
 
-// axios.defaults.baseURL = config.url.API_URL;
+axios.defaults.baseURL = "http://localhost:9000";
 
 // Set token for requests
-// axios.interceptors.request.use(
-//   async (config) => {
-//     const token = await window.Clerk.session.getToken();
+axios.interceptors.request.use(
+  async (config) => {
+    // @ts-ignore
+    config.headers = {
+      "x-api-key": "personaflow-api-key",
+    };
 
-//     // @ts-ignore
-//     config.headers = {
-//       Authorization: `Bearer ${token}`,
-//     };
-
-//     return config;
-//   },
-//   (error) => {
-//     return Promise.reject(error);
-//   },
-// );
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  },
+);
 
 // Grabs new token if bearer token is stale
 // axios.interceptors.response.use(
