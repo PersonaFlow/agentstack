@@ -5,7 +5,6 @@ python_tests(
     dependencies=["//:test-reqs"]
 )
 
-
 target(
     name="test-reqs",
     dependencies=[
@@ -13,9 +12,4 @@ target(
       "//:reqs#python-multipart",
       "//:reqs#pytest-asyncio"
     ]
-)
-
-python_requirements(
-    name="reqs0",
-    source="pytest-requirements.txt",
 )
