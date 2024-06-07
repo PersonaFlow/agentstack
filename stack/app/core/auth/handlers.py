@@ -10,7 +10,7 @@ from stack.app.schema.user import User, CreateUserSchema
 
 from stack.app.repositories.user import UserRepository, get_user_repository
 
-from stack.app.core.auth.auth_settings import AuthType, settings
+from stack.app.core.auth.auth_settings import AuthType, auth_settings
 from stack.app.schema.user import User
 
 
@@ -40,6 +40,7 @@ class JWTAuthBase(AuthHandler):
             raise HTTPException(status_code=401, detail=str(e))
 
         # user, _ = await storage.get_or_create_user(payload["sub"])
+        # TODO: Implement get_or_create_user
         user_repo = get_user_repository()
         user = await user_repo.retrieve_by_user_id(user_id = payload["sub"])
         if not user:
@@ -63,14 +64,14 @@ class JWTAuthLocal(JWTAuthBase):
         return jwt.decode(
             token,
             decode_key,
-            issuer=settings.jwt_local.iss,
-            audience=settings.jwt_local.aud,
-            algorithms=[settings.jwt_local.alg.upper()],
+            issuer=auth_settings.jwt_local.iss,
+            audience=auth_settings.jwt_local.aud,
+            algorithms=[auth_settings.jwt_local.alg.upper()],
             options={"require": ["exp", "iss", "aud", "sub"]},
         )
 
     def get_decode_key(self, token: str) -> str:
-        return settings.jwt_local.decode_key
+        return auth_settings.jwt_local.decode_key
 
 
 class JWTAuthOIDC(JWTAuthBase):
@@ -81,8 +82,8 @@ class JWTAuthOIDC(JWTAuthBase):
         return jwt.decode(
             token,
             decode_key,
-            issuer=settings.jwt_oidc.iss,
-            audience=settings.jwt_oidc.aud,
+            issuer=auth_settings.jwt_oidc.iss,
+            audience=auth_settings.jwt_oidc.aud,
             algorithms=[alg.upper()],
             options={"require": ["exp", "iss", "aud", "sub"]},
         )
@@ -111,9 +112,9 @@ class JWTAuthOIDC(JWTAuthBase):
 
 @lru_cache(maxsize=1)
 def get_auth_handler() -> AuthHandler:
-    if settings.auth_type == AuthType.JWT_LOCAL:
+    if auth_settings.auth_type == AuthType.JWT_LOCAL:
         return JWTAuthLocal()
-    elif settings.auth_type == AuthType.JWT_OIDC:
+    elif auth_settings.auth_type == AuthType.JWT_OIDC:
         return JWTAuthOIDC()
     return NOOPAuth()
 

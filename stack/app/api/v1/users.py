@@ -15,6 +15,7 @@ from stack.app.schema.user import User, CreateUserSchema, UpdateUserSchema
 from stack.app.repositories.thread import ThreadRepository, get_thread_repository
 from stack.app.repositories.user import UserRepository, get_user_repository
 from stack.app.utils.group_threads import group_threads
+from stack.app.core.auth.handlers import AuthedUser
 
 router = APIRouter()
 DEFAULT_TAG = "Users"
@@ -52,7 +53,7 @@ async def create_user(
             """,
 )
 async def retrieve_users(
-    api_key: ApiKey, user_repo: UserRepository = Depends(get_user_repository)
+    user: AuthedUser, user_repo: UserRepository = Depends(get_user_repository)
 ) -> List[User]:
     records = await user_repo.retrieve_users()
     return records

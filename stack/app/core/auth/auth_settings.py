@@ -44,7 +44,7 @@ class JWTSettingsOIDC(JWTSettingsBase):
     ...
 
 
-class Settings(BaseSettings):
+class AuthSettings(BaseSettings):
     auth_type: AuthType
     jwt_local: Optional[JWTSettingsLocal] = None
     jwt_oidc: Optional[JWTSettingsOIDC] = None
@@ -69,4 +69,4 @@ if auth_type == AuthType.JWT_LOCAL:
     kwargs["jwt_local"] = JWTSettingsLocal()
 elif auth_type == AuthType.JWT_OIDC:
     kwargs["jwt_oidc"] = JWTSettingsOIDC()
-settings = Settings(**kwargs)
+auth_settings = AuthSettings(**kwargs)

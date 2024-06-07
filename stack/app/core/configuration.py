@@ -65,6 +65,14 @@ class Settings(BaseSettings):
     # WARNING: Auth disabled if not provided
     PERSONAFLOW_API_KEY: Optional[str] = os.getenv("PERSONAFLOW_API_KEY", None)
 
+    # Auth
+    # Note that the JTW_ variables are pulled in by jwks, not stack
+    AUTH_TYPE: Optional[str] = os.getenv("AUTH_TYPE", "NOOP")
+    JWT_ISS: Optional[str] = os.getenv("JWT_ISS", None)
+    JWT_AUD: Optional[str] = os.getenv("JWT_AUD", None)
+    JWT_ALG: Optional[str] = os.getenv("JWT_ALG", "HS256")
+    JWT_DECODE_KEY_B64: Optional[str] = os.getenv("JWT_DECODE_KEY_B64", None)
+
     # Required if you intend to use reranking functionality to query documents
     COHERE_API_KEY: Optional[str] = os.getenv("COHERE_API_KEY", None)
     MIXTRAL_FIREWORKS_API_KEY: Optional[str] = os.getenv(
