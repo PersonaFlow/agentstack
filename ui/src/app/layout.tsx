@@ -6,6 +6,7 @@ import Providers from "@/providers/Providers";
 import Sidebar from "@/app/features/sidebar/components/sidebar";
 import Builder from "./features/build-panel/components/build-panel";
 import BuildPanel from "./features/build-panel/components/build-panel";
+import { Toaster } from "@/components/ui/toaster";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -32,6 +33,7 @@ export default function RootLayout({
               {children}
               <BuildPanel />
             </div>
+            <Toaster />
           </Providers>
         </div>
       </body>

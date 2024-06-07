@@ -10,6 +10,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { TAssistant, TConfigurableTool } from "@/data-provider/types";
 import { AssistantForm } from "./assistant-form";
+import { useToast } from "@/components/ui/use-toast";
 
 const formSchema = z.object({
   public: z.boolean(),
@@ -36,6 +37,7 @@ export function EditAssistant({ selectedAssistant }: TEditAssistantProps) {
   const { data: assistantsData, isLoading } = useAssistants();
 
   const updateAssistant = useUpdateAssistant(selectedAssistant.id);
+  const { toast } = useToast();
 
   const form = useForm<TAssistant>({
     resolver: zodResolver(formSchema),
@@ -72,7 +74,21 @@ export function EditAssistant({ selectedAssistant }: TEditAssistantProps) {
   }, [architectureType]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    updateAssistant.mutate(values);
+    updateAssistant.mutate(values, {
+      onSuccess: (response) => {
+        toast({
+          description: `Sucecessfully created ${response.name}`,
+        });
+      },
+      onError: (error) => {
+        toast({
+          variant: "destructive",
+          title: "Uh oh! Something went wrong when creating your assistant.",
+          description:
+            "There was a problem with your request. Please try again.",
+        });
+      },
+    });
   }
 
   if (isLoading || !assistantsData) return <div>is loading</div>;

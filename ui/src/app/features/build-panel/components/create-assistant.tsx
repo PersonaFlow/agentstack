@@ -10,6 +10,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { AssistantForm } from "./assistant-form";
 import { TAssistant } from "@/data-provider/types";
+import { useToast } from "@/components/ui/use-toast";
 
 const formSchema = z.object({
   public: z.boolean(),
@@ -54,6 +55,7 @@ export function CreateAssistant({
   setSelectedAssistant,
 }: TCreateAssistantProps) {
   const { data: assistantsData, isLoading } = useAssistants();
+  const { toast } = useToast();
 
   const createAssistant = useCreateAssistant();
 
@@ -90,6 +92,17 @@ export function CreateAssistant({
       onSuccess: (response) => {
         console.log(response);
         setSelectedAssistant(response);
+        toast({
+          description: `Sucecessfully created ${response.name}`,
+        });
+      },
+      onError: (error) => {
+        toast({
+          variant: "destructive",
+          title: "Uh oh! Something went wrong when creating your assistant.",
+          description:
+            "There was a problem with your request. Please try again.",
+        });
       },
     });
   }
