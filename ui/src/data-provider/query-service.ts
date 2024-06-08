@@ -394,10 +394,10 @@ export const useFile = (fileId: string) => {
   });
 };
 
-export const useDeleteFile = (fileId: string) => {
+export const useDeleteFile = () => {
   const queryClient = useQueryClient();
   return useMutation<t.TDeleteFileResponse, Error>({
-    mutationFn: async (): Promise<t.TDeleteFileResponse> =>
+    mutationFn: async (fileId: string): Promise<t.TDeleteFileResponse> =>
       await dataService.deleteFile(fileId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [fileId] });

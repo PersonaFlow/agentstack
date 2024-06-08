@@ -215,7 +215,7 @@ export function getFile(fileId: string): Promise<t.TFile> {
 }
 
 export function deleteFile(fileId: string): Promise<t.TDeleteFileResponse> {
-  return request.delete(fileId);
+  return request.delete(endpoints.deleteFile(fileId));
 }
 
 export function getFileContent(fileId: string): Promise<File> {

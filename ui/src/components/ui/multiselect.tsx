@@ -14,57 +14,29 @@ import { Command as CommandPrimitive } from "cmdk";
 
 type Option = Record<"value" | "label", string>;
 
-const FRAMEWORKS = [
-  {
-    value: "next.js",
-    label: "Next.js",
-  },
-  {
-    value: "sveltekit",
-    label: "SvelteKit",
-  },
-  {
-    value: "nuxt.js",
-    label: "Nuxt.js",
-  },
-  {
-    value: "remix",
-    label: "Remix",
-  },
-  {
-    value: "astro",
-    label: "Astro",
-  },
-  {
-    value: "wordpress",
-    label: "WordPress",
-  },
-  {
-    value: "express.js",
-    label: "Express.js",
-  },
-  {
-    value: "nest.js",
-    label: "Nest.js",
-  },
-] satisfies Framework[];
-
 type MultiSelectProps = {
   options: Option[];
   placecholder?: string;
+  defaultOptions?: Option[];
+  onChange: (arg: Option) => void;
 };
 
 export default function MultiSelect({
   options,
   placecholder,
+  defaultOptions,
+  onChange,
 }: MultiSelectProps) {
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [open, setOpen] = React.useState(false);
-  const [selected, setSelected] = React.useState<Option[]>([options[1]]);
+  const [selected, setSelected] = React.useState<Option[]>(
+    defaultOptions || [],
+  );
   const [inputValue, setInputValue] = React.useState("");
 
   const handleUnselect = React.useCallback((option: Option) => {
     setSelected((prev) => prev.filter((s) => s.value !== option.value));
+    onChange(option);
   }, []);
 
   const handleKeyDown = React.useCallback(
@@ -148,6 +120,7 @@ export default function MultiSelect({
                       onSelect={(value) => {
                         setInputValue("");
                         setSelected((prev) => [...prev, option]);
+                        onChange(option);
                       }}
                       className={"cursor-pointer"}
                     >

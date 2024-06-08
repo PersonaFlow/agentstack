@@ -14,15 +14,71 @@ import {
 import { UseFormReturn } from "react-hook-form";
 import { SquarePlus } from "lucide-react";
 import SelectFiles from "./select-files";
+import MultiSelect from "@/components/ui/multiselect";
+import {
+  useDeleteFile,
+  useFiles,
+  useUploadFile,
+} from "@/data-provider/query-service";
+import Spinner from "@/components/ui/spinner";
+import { useEffect, useState } from "react";
 
 type TFilesDialog = {
   form: UseFormReturn<any>;
 };
 
+type TOption = {
+  label: string;
+  value: string;
+};
+
 export default function FilesDialog({ form }: TFilesDialog) {
-  //   const uploadFile = useUploadFile({
-  //     userId,
-  //   });
+  const [fileOptions, setFileOptions] = useState<TOption[]>([]);
+  const { data: files, isLoading } = useFiles("1234");
+
+  const uploadFile = useUploadFile();
+  const deleteFile = useDeleteFile();
+
+  useEffect(() => {
+    if (files) {
+      const multiSelectData = files.map((file) => ({
+        label: file.filename,
+        value: file.id,
+      }));
+
+      setFileOptions(multiSelectData);
+    }
+  }, [files]);
+
+  const handleChange = (selection: TOption) => {
+    const fileId = selection.value;
+    // const _selections = new Set(selections);
+    // const _fileOptions = new Set(fileOptions);
+
+    // const newSelections = [..._selections].filter(
+    //   (element) => !_fileOptions.has(element),
+    // );
+
+    // const deletedSelections = [..._fileOptions].filter(
+    //   (element) => !_selections.has(element),
+    // );
+
+    // if (newSelections.length > 0) {
+    //   uploadFile();
+    // }
+
+    const deletedSelection = fileOptions.includes(selection);
+    const newSelection = !deletedSelection;
+
+    console.log("newSelections");
+    console.log(newSelection);
+    console.log("deletedSelections");
+    console.log(deletedSelection);
+
+    deletedSelection ? deleteFile.mutate(fileId) : uploadFile(fileId);
+  };
+
+  if (isLoading) return <Spinner />;
 
   return (
     <Dialog>
@@ -34,6 +90,14 @@ export default function FilesDialog({ form }: TFilesDialog) {
         <DialogHeader>
           <DialogTitle className="mb-3">Add Files</DialogTitle>
           <DialogDescription>
+            <div>
+              <MultiSelect
+                options={fileOptions}
+                placecholder="Select a file..."
+                defaultOptions={fileOptions}
+                onChange={(selections) => handleChange(selections)}
+              />
+            </div>
             <Card>
               <CardContent className="p-6 space-y-4">
                 <SelectFiles form={form} />
