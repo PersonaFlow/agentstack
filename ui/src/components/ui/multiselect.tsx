@@ -15,28 +15,26 @@ import { Command as CommandPrimitive } from "cmdk";
 type Option = Record<"value" | "label", string>;
 
 type MultiSelectProps = {
-  options: Option[];
+  values: Option[];
   placecholder?: string;
-  defaultOptions?: Option[];
-  onChange: (arg: Option) => void;
+  defaultValues?: Option[];
+  onValueChange: (arg: Option) => void;
 };
 
 export default function MultiSelect({
-  options,
+  values,
   placecholder,
-  defaultOptions,
-  onChange,
+  defaultValues,
+  onValueChange,
 }: MultiSelectProps) {
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [open, setOpen] = React.useState(false);
-  const [selected, setSelected] = React.useState<Option[]>(
-    defaultOptions || [],
-  );
+  const [selected, setSelected] = React.useState<Option[]>(defaultValues || []);
   const [inputValue, setInputValue] = React.useState("");
 
   const handleUnselect = React.useCallback((option: Option) => {
     setSelected((prev) => prev.filter((s) => s.value !== option.value));
-    onChange(option);
+    onValueChange(option);
   }, []);
 
   const handleKeyDown = React.useCallback(
@@ -61,7 +59,7 @@ export default function MultiSelect({
     [],
   );
 
-  const selectables = options.filter((option) => !selected.includes(option));
+  const selectables = values.filter((value) => !selected.includes(value));
 
   return (
     <Command
@@ -120,7 +118,7 @@ export default function MultiSelect({
                       onSelect={(value) => {
                         setInputValue("");
                         setSelected((prev) => [...prev, option]);
-                        onChange(option);
+                        onValueChange(option);
                       }}
                       className={"cursor-pointer"}
                     >

@@ -16,12 +16,19 @@ import { SquarePlus } from "lucide-react";
 import SelectFiles from "./select-files";
 import MultiSelect from "@/components/ui/multiselect";
 import {
+  useDeleteAssistantFile,
   useDeleteFile,
   useFiles,
   useUploadFile,
 } from "@/data-provider/query-service";
 import Spinner from "@/components/ui/spinner";
 import { useEffect, useState } from "react";
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "@/components/ui/form";
 
 type TFilesDialog = {
   form: UseFormReturn<any>;
@@ -37,7 +44,8 @@ export default function FilesDialog({ form }: TFilesDialog) {
   const { data: files, isLoading } = useFiles("1234");
 
   const uploadFile = useUploadFile();
-  const deleteFile = useDeleteFile();
+  // const deleteFile = useDeleteFile();
+  const deleteAssistantFile = useDeleteAssistantFile();
 
   useEffect(() => {
     if (files) {
@@ -49,6 +57,8 @@ export default function FilesDialog({ form }: TFilesDialog) {
       setFileOptions(multiSelectData);
     }
   }, [files]);
+
+  // const {} = form.getValues().config.configurable;
 
   const handleChange = (selection: TOption) => {
     const fileId = selection.value;
@@ -75,7 +85,8 @@ export default function FilesDialog({ form }: TFilesDialog) {
     console.log("deletedSelections");
     console.log(deletedSelection);
 
-    deletedSelection ? deleteFile.mutate(fileId) : uploadFile(fileId);
+    console.log(deletedSelection);
+    deletedSelection ? deleteAssistantFile.mutate(fileId) : uploadFile(fileId);
   };
 
   if (isLoading) return <Spinner />;
@@ -90,17 +101,33 @@ export default function FilesDialog({ form }: TFilesDialog) {
         <DialogHeader>
           <DialogTitle className="mb-3">Add Files</DialogTitle>
           <DialogDescription>
-            <div>
-              <MultiSelect
-                options={fileOptions}
-                placecholder="Select a file..."
-                defaultOptions={fileOptions}
-                onChange={(selections) => handleChange(selections)}
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="file_ids"
+              render={({ field }) => {
+                return (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormControl>
+                      <div>
+                        <MultiSelect
+                          options={fileOptions}
+                          placecholder="Select a file..."
+                          defaultOptions={fileOptions}
+                          onValueChange={(selections) =>
+                            handleChange(selections)
+                          }
+                        />
+                      </div>
+                    </FormControl>
+                    <FormLabel className="text-sm font-normal">
+                      {file.filename}
+                    </FormLabel>
+                  </FormItem>
+                );
+              }}
+            />
             <Card>
               <CardContent className="p-6 space-y-4">
-                <SelectFiles form={form} />
                 <div className="border-2 border-dashed border-gray-200 rounded-lg flex flex-col gap-1 p-6 items-center">
                   <FileIcon className="w-12 h-12" />
                   <span className="text-sm font-medium text-gray-500">

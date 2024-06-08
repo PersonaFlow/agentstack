@@ -330,10 +330,13 @@ export const useAssistantFiles = (
   });
 };
 
-export const useDeleteAssistantFile = (assistantId: string, fileId: string) => {
+export const useDeleteAssistantFile = () => {
   const queryClient = useQueryClient();
   return useMutation<t.TAssistant>({
-    mutationFn: async (): Promise<t.TAssistant> =>
+    mutationFn: async (
+      assistantId: string,
+      fileId: string,
+    ): Promise<t.TAssistant> =>
       dataService.deleteAssistantFile(assistantId, fileId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKeys.assistantFiles] });
