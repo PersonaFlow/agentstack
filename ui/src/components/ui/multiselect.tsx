@@ -18,7 +18,7 @@ type MultiSelectProps = {
   values: Option[];
   placecholder?: string;
   defaultValues?: Option[];
-  onValueChange: (arg: Option) => void;
+  onValueChange: (arg: Option[]) => void;
 };
 
 export default function MultiSelect({
@@ -32,9 +32,12 @@ export default function MultiSelect({
   const [selected, setSelected] = React.useState<Option[]>(defaultValues || []);
   const [inputValue, setInputValue] = React.useState("");
 
+  React.useEffect(() => {
+    onValueChange(selected);
+  }, [selected]);
+
   const handleUnselect = React.useCallback((option: Option) => {
     setSelected((prev) => prev.filter((s) => s.value !== option.value));
-    onValueChange(option);
   }, []);
 
   const handleKeyDown = React.useCallback(
@@ -59,7 +62,9 @@ export default function MultiSelect({
     [],
   );
 
-  const selectables = values.filter((value) => !selected.includes(value));
+  const selectables = values.filter(
+    (option) => !selected.some((selection) => selection.value === option.value),
+  );
 
   return (
     <Command
@@ -118,7 +123,6 @@ export default function MultiSelect({
                       onSelect={(value) => {
                         setInputValue("");
                         setSelected((prev) => [...prev, option]);
-                        onValueChange(option);
                       }}
                       className={"cursor-pointer"}
                     >

@@ -40,54 +40,33 @@ type TOption = {
 };
 
 export default function FilesDialog({ form }: TFilesDialog) {
-  const [fileOptions, setFileOptions] = useState<TOption[]>([]);
+  const [values, setValues] = useState<TOption[]>([]);
   const { data: files, isLoading } = useFiles("1234");
 
   const uploadFile = useUploadFile();
-  // const deleteFile = useDeleteFile();
-  const deleteAssistantFile = useDeleteAssistantFile();
+
+  const { file_ids } = form.getValues();
+
+  const formattedAssistantFiles = files?.reduce((files, file) => {
+    if (file_ids.includes(file.id)) {
+      files.push({ label: file.filename, value: file.id });
+    }
+    return files;
+  }, [] as TOption[]);
 
   useEffect(() => {
     if (files) {
-      const multiSelectData = files.map((file) => ({
+      const formattedFileData = files.map((file) => ({
         label: file.filename,
         value: file.id,
       }));
 
-      setFileOptions(multiSelectData);
+      setValues(formattedFileData);
     }
   }, [files]);
 
-  // const {} = form.getValues().config.configurable;
-
-  const handleChange = (selection: TOption) => {
-    const fileId = selection.value;
-    // const _selections = new Set(selections);
-    // const _fileOptions = new Set(fileOptions);
-
-    // const newSelections = [..._selections].filter(
-    //   (element) => !_fileOptions.has(element),
-    // );
-
-    // const deletedSelections = [..._fileOptions].filter(
-    //   (element) => !_selections.has(element),
-    // );
-
-    // if (newSelections.length > 0) {
-    //   uploadFile();
-    // }
-
-    const deletedSelection = fileOptions.includes(selection);
-    const newSelection = !deletedSelection;
-
-    console.log("newSelections");
-    console.log(newSelection);
-    console.log("deletedSelections");
-    console.log(deletedSelection);
-
-    console.log(deletedSelection);
-    deletedSelection ? deleteAssistantFile.mutate(fileId) : uploadFile(fileId);
-  };
+  const getFileIds = (selections: TOption[]) =>
+    selections.map((selection) => selection.value);
 
   if (isLoading) return <Spinner />;
 
@@ -108,20 +87,16 @@ export default function FilesDialog({ form }: TFilesDialog) {
                 return (
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                     <FormControl>
-                      <div>
-                        <MultiSelect
-                          options={fileOptions}
-                          placecholder="Select a file..."
-                          defaultOptions={fileOptions}
-                          onValueChange={(selections) =>
-                            handleChange(selections)
-                          }
-                        />
-                      </div>
+                      <MultiSelect
+                        values={values}
+                        placecholder="Select a file..."
+                        defaultValues={formattedAssistantFiles}
+                        onValueChange={(selections) => {
+                          const fileIds = getFileIds(selections);
+                          field.onChange(fileIds);
+                        }}
+                      />
                     </FormControl>
-                    <FormLabel className="text-sm font-normal">
-                      {file.filename}
-                    </FormLabel>
                   </FormItem>
                 );
               }}
