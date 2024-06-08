@@ -4,6 +4,7 @@ import pytest
 from unittest.mock import patch, MagicMock
 
 from starlette.testclient import TestClient
+from fastapi import HTTPException
 
 from stack.app.app_factory import create_app
 from stack.app.core.configuration import Settings
@@ -31,7 +32,7 @@ def random_updated_thread(random_schema_thread):
     }
 
 
-async def test_create_thread_responds_correctly(random_model_thread, random_model_user, random_schema_assistant):
+async def test__create_thread_responds__correctly(random_model_thread, random_model_user, random_schema_assistant):
     # Arrange
     thread_repository = MagicMock(ThreadRepository)
     assistant_repository = MagicMock(AssistantRepository)
@@ -67,7 +68,7 @@ async def test_create_thread_responds_correctly(random_model_thread, random_mode
         assert data["id"] == random_model_thread.id
 
 
-async def test_retrieve_threads_responds_correctly(random_schema_thread):
+async def test__retrieve_threads__responds_correctly(random_schema_thread):
     # Arrange
     thread_repository = MagicMock(ThreadRepository)
     with patch.object(thread_repository, 'retrieve_threads', return_value=[random_schema_thread]) as method:
@@ -84,7 +85,7 @@ async def test_retrieve_threads_responds_correctly(random_schema_thread):
         assert data[0]["id"] == str(random_schema_thread.id)
 
 
-async def test_retrieve_thread_responds_correctly(random_schema_thread):
+async def test__retrieve_thread__responds_correctly(random_schema_thread):
     # Arrange
     thread_repository = MagicMock(ThreadRepository)
     with patch.object(thread_repository, 'retrieve_thread', return_value=random_schema_thread) as method:
@@ -100,7 +101,7 @@ async def test_retrieve_thread_responds_correctly(random_schema_thread):
         assert data["id"] == str(random_schema_thread.id)
 
 
-async def test_update_thread_responds_correctly(random_schema_thread, random_updated_thread):
+async def test__update_thread__responds_correctly(random_schema_thread, random_updated_thread):
     # Arrange
     thread_repository = MagicMock(ThreadRepository)
     with patch.object(thread_repository, 'update_thread', return_value=random_updated_thread) as method:
@@ -120,7 +121,7 @@ async def test_update_thread_responds_correctly(random_schema_thread, random_upd
         assert data["name"] == "Updated Thread"
 
 
-async def test_delete_thread_responds_correctly(random_schema_thread):
+async def test__delete_thread__responds_correctly(random_schema_thread):
     # Arrange
     thread_repository = MagicMock(ThreadRepository)
     with patch.object(thread_repository, 'delete_thread', return_value=None) as method:
@@ -134,7 +135,7 @@ async def test_delete_thread_responds_correctly(random_schema_thread):
         assert response.status_code == 204
 
 
-async def test_retrieve_checkpoint_messages_for_thread_responds_correctly(random_model_thread):
+async def test__retrieve_checkpoint_messages_for_thread__responds_correctly(random_model_thread):
     # Arrange
     thread_repository = MagicMock(ThreadRepository)
     checkpoints = [{"checkpoint_id": "123", "content": "Test checkpoint message"}]
@@ -150,3 +151,72 @@ async def test_retrieve_checkpoint_messages_for_thread_responds_correctly(random
         data = response.json()
         assert len(data) == 1
         assert data[0]["checkpoint_id"] == "123"
+
+
+async def test_retrieve_thread_responds_404():
+    thread_repository = MagicMock(ThreadRepository)
+    with patch.object(thread_repository, 'retrieve_thread', return_value=None) as method:
+        app.dependency_overrides[get_thread_repository] = lambda: thread_repository
+
+        # Act
+        non_existent_id = str(uuid.uuid4())
+        response = client.get(f"/api/v1/threads/{non_existent_id}")
+
+        # Assert
+        assert method.call_count == 1
+        assert response.status_code == 404
+
+async def test_update_thread_responds_404():
+    thread_repository = MagicMock(ThreadRepository)
+    with patch.object(thread_repository, 'update_thread', return_value=None) as method:
+        app.dependency_overrides[get_thread_repository] = lambda: thread_repository
+
+        # Act
+        non_existent_id = str(uuid.uuid4())
+        response = client.patch(
+            f"/api/v1/threads/{non_existent_id}",
+            json={"name": "Updated Thread"}
+        )
+
+        # Assert
+        assert method.call_count == 1
+        assert response.status_code == 404
+
+async def test_delete_thread_responds_404():
+    thread_repository = MagicMock(ThreadRepository)
+    with patch.object(thread_repository, 'delete_thread', side_effect=HTTPException(status_code=404, detail="Thread not found")) as method:
+        app.dependency_overrides[get_thread_repository] = lambda: thread_repository
+
+        # Act
+        non_existent_id = str(uuid.uuid4())
+        response = client.delete(f"/api/v1/threads/{non_existent_id}")
+
+        # Assert
+        assert method.call_count == 1
+        assert response.status_code == 404
+
+async def test_retrieve_messages_by_thread_id_responds_404():
+    message_repository = MagicMock(MessageRepository)
+    with patch.object(message_repository, 'retrieve_messages_by_thread_id', side_effect=HTTPException(status_code=404, detail="Thread not found")) as method:
+        app.dependency_overrides[get_message_repository] = lambda: message_repository
+
+        # Act
+        non_existent_thread_id = str(uuid.uuid4())
+        response = client.get(f"/api/v1/threads/{non_existent_thread_id}/messages")
+
+        # Assert
+        assert method.call_count == 1
+        assert response.status_code == 404
+
+async def test_retrieve_checkpoint_messages_for_thread_responds_404():
+    thread_repository = MagicMock(ThreadRepository)
+    with patch.object(thread_repository, 'get_thread_checkpoints', side_effect=HTTPException(status_code=404, detail="Thread not found")) as method:
+        app.dependency_overrides[get_thread_repository] = lambda: thread_repository
+
+        # Act
+        non_existent_thread_id = str(uuid.uuid4())
+        response = client.get(f"/api/v1/threads/{non_existent_thread_id}/checkpoints")
+
+        # Assert
+        assert method.call_count == 1
+        assert response.status_code == 404
