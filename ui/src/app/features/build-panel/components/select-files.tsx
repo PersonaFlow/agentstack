@@ -4,7 +4,7 @@ import { file } from "@/data-provider/endpoints";
 import { useFiles } from "@/data-provider/query-service";
 import { CircleX } from "lucide-react";
 import { useEffect, useState } from "react";
-import { UseFormReturn } from "react-hook-form";
+import { UseFormReturn, useFieldArray } from "react-hook-form";
 
 type TSelectFilesProps = {
   form: UseFormReturn<any>;
@@ -21,6 +21,11 @@ export default function SelectFiles({ form }: TSelectFilesProps) {
   const { data: files } = useFiles("1234");
 
   const fileIds = form.watch("file_ids");
+
+  const { remove } = useFieldArray({
+    name: "file_ids",
+    control: form.control,
+  });
 
   useEffect(() => {
     const _badgeValues = fileIds.map((id: string) => {
@@ -45,7 +50,7 @@ export default function SelectFiles({ form }: TSelectFilesProps) {
                   <FormControl>
                     <Badge
                       className="rounded-full flex cursor-pointer text-xs gap-2"
-                      //   onClick={() => remove(index)}
+                      onClick={() => remove(index)}
                     >
                       <p>{badgeValue.label}</p>
                       <CircleX className="w-4" />
