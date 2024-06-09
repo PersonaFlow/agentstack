@@ -41,7 +41,7 @@ export default function SelectTools({ form }: TSelectToolsProps) {
     control: form.control,
   });
 
-  const { config } = form.getValues();
+  const { tools } = form.getValues().configurable.config;
 
   return (
     <Accordion type="multiple">
@@ -49,7 +49,7 @@ export default function SelectTools({ form }: TSelectToolsProps) {
         <AccordionTrigger className="p-2">Tools</AccordionTrigger>
         <AccordionContent className="overflow-y-scroll p-2 flex flex-col gap-3">
           <div className="flex gap-2 flex-wrap">
-            {config.configurable.tools.map((tool: string, index: number) => {
+            {tools.map((tool: string, index: number) => {
               return (
                 <FormField
                   key={tool}
