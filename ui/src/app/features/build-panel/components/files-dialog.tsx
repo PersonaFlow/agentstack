@@ -5,13 +5,15 @@ import { Button } from "@/components/ui/button";
 import { FileIcon } from "@radix-ui/react-icons";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { UseFormReturn } from "react-hook-form";
+import { Form, UseFormReturn, useForm } from "react-hook-form";
 import { SquarePlus } from "lucide-react";
 import SelectFiles from "./select-files";
 import MultiSelect from "@/components/ui/multiselect";
@@ -28,7 +30,10 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 
 type TFilesDialog = {
   form: UseFormReturn<any>;
@@ -39,7 +44,20 @@ type TOption = {
   value: string;
 };
 
+// .optional()
+// .refine((file) => {
+//   return !file || file.size <= MAX_UPLOAD_SIZE;
+// }, 'File size must be less than 3MB')
+// .refine((file) => {
+//   return ACCEPTED_FILE_TYPES.includes(file.type);
+// }, 'File must be a PNG');
+
+const FormSchema = z.object({
+  file: z.instanceof(File),
+});
+
 export default function FilesDialog({ form }: TFilesDialog) {
+  const [fileUpload, setFileUpload] = useState<File>();
   const [values, setValues] = useState<TOption[]>([]);
   const { data: files, isLoading } = useFiles("1234");
 
@@ -65,8 +83,25 @@ export default function FilesDialog({ form }: TFilesDialog) {
     }
   }, [files]);
 
+  useEffect(() => {
+    console.log(fileUpload);
+  }, [fileUpload]);
+
   const getFileIds = (selections: TOption[]) =>
     selections.map((selection) => selection.value);
+
+  const handleUpload = () => {
+    if (fileUpload) {
+      const formData = new FormData();
+      formData.append("file", fileUpload);
+      formData.append("purpose", "assistants");
+      formData.append("user_id", "1234");
+      formData.append("filename", "fileName");
+      uploadFile.mutate(formData, {
+        onSuccess: () => console.log("success!"),
+      });
+    }
+  };
 
   if (isLoading) return <Spinner />;
 
@@ -85,7 +120,8 @@ export default function FilesDialog({ form }: TFilesDialog) {
               name="file_ids"
               render={({ field }) => {
                 return (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Add assistant files</FormLabel>
                     <FormControl>
                       <MultiSelect
                         values={values}
@@ -110,23 +146,39 @@ export default function FilesDialog({ form }: TFilesDialog) {
                   </span>
                 </div>
                 <div className="space-y-2 text-sm">
-                  <Label htmlFor="file" className="text-sm font-medium">
-                    File
-                  </Label>
+                  <Label>File upload</Label>
                   <Input
-                    id="file"
+                    placeholder="Picture"
                     type="file"
-                    placeholder="File"
-                    accept="pdf/*"
+                    accept="image/*, application/pdf"
+                    onChange={(event) => {
+                      if (event.target.files) {
+                        setFileUpload(event.target.files[0]);
+                      }
+                    }}
                   />
                 </div>
               </CardContent>
               <CardFooter>
-                <Button size="lg">Upload</Button>
+                <Button
+                  disabled={!fileUpload}
+                  size="lg"
+                  type="button"
+                  onClick={handleUpload}
+                >
+                  Upload file
+                </Button>
               </CardFooter>
             </Card>
           </DialogDescription>
         </DialogHeader>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button size="lg" type="button">
+              Close
+            </Button>
+          </DialogClose>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
