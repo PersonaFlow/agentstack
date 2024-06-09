@@ -36,7 +36,7 @@ type TOption = {
 };
 
 export default function FilesDialog({ form }: TFilesDialog) {
-  const [fileUpload, setFileUpload] = useState<File>();
+  const [fileUpload, setFileUpload] = useState<File | null>();
   const [values, setValues] = useState<TOption[]>([]);
   const { data: files, isLoading } = useFiles("1234");
 
@@ -71,9 +71,12 @@ export default function FilesDialog({ form }: TFilesDialog) {
       formData.append("file", fileUpload);
       formData.append("purpose", "assistants");
       formData.append("user_id", "1234");
-      formData.append("filename", "fileName");
+      // Note: Filename should be optional! Remove once bug is fixed.
+      formData.append("filename", fileUpload.name);
       uploadFile.mutate(formData, {
-        onSuccess: () => console.log("success!"),
+        onSuccess: () => {
+          setFileUpload(null);
+        },
       });
     }
   };
