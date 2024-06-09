@@ -20,15 +20,16 @@ export default function SelectFiles({ form }: TSelectFilesProps) {
 
   const { data: files } = useFiles("1234");
 
-  const { file_ids } = form.getValues();
+  const fileIds = form.watch("file_ids");
 
   useEffect(() => {
-    const _badgeValues = file_ids.map((id) => {
+    const _badgeValues = fileIds.map((id: string) => {
       const fileData = files?.find((file) => file.id === id);
       return { label: fileData?.filename, value: fileData?.id };
     });
+    console.log("ids changed");
     setBadgeValues(_badgeValues);
-  }, [file_ids]);
+  }, [fileIds]);
 
   return (
     <div className="flex gap-2 flex-wrap">

@@ -104,6 +104,7 @@ export default function FilesDialog({ form }: TFilesDialog) {
                         defaultValues={formattedAssistantFiles}
                         onValueChange={(selections) => {
                           const fileIds = getFileIds(selections);
+                          console.log(fileIds);
                           field.onChange(fileIds);
                         }}
                       />
