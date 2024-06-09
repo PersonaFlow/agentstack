@@ -111,7 +111,6 @@ async def _run_input_and_config(
                 """,
 )
 async def stream_run(
-    api_key: ApiKey,
     payload: CreateRunPayload,
     assistant_repository: AssistantRepository = Depends(get_assistant_repository),
     thread_repository: ThreadRepository = Depends(get_thread_repository),
@@ -136,7 +135,6 @@ async def stream_run(
     description="Create a run to be processed by the LLM.",
 )
 async def create_run(
-    api_key: ApiKey,
     payload: CreateRunPayload,
     background_tasks: BackgroundTasks,
     assistant_repository: AssistantRepository = Depends(get_assistant_repository),
@@ -203,7 +201,7 @@ Conversation:
     summary="Generate a title to name the thread.",
     description="Generates a title for the conversation by sending a list of interactions to the model.",
 )
-async def title_endpoint(api_key: ApiKey, request: TitleRequest) -> Thread:
+async def title_endpoint(request: TitleRequest) -> Thread:
     if not request.thread_id:
         raise ValueError("Thread ID is required")
 

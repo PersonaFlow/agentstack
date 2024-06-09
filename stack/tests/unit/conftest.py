@@ -52,7 +52,20 @@ def random_model_thread() -> ModelThread:
 def random_schema_assistant() -> Assistant:
     return Assistant(
         id=str(uuid.uuid4()),
-        config={"configurable": {}},
+        config={
+            "configurable": {
+                "thread_id": "",
+                "type": "chatbot",
+                "type==agent/agent_type": "GPT 3.5 Turbo",
+                "type==agent/retrieval_description": "Can be used to look up information",
+                "type==agent/system_message": "You are a helpful assistant.",
+                "type==agent/tools": [],
+                "type==chat_retrieval/llm_type": "GPT 3.5 Turbo",
+                "type==chat_retrieval/system_message": "You are a helpful assistant.",
+                "type==chatbot/llm_type": "GPT 3.5 Turbo",
+                "type==chatbot/system_message": "You are a helpful assistant."
+            }
+        },
         name="My Assistant",
         created_at=datetime.now(),
         updated_at=datetime.now()
