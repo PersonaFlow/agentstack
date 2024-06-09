@@ -5,35 +5,15 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { useState } from "react";
+import { FormControl, FormField, FormItem } from "@/components/ui/form";
 import { UseFormReturn, useFieldArray } from "react-hook-form";
 import { ToolDialog } from "./tool-dialog";
-import { Input } from "@/components/ui/input";
 import { CircleX } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 type TSelectToolsProps = {
   form: UseFormReturn<any>;
 };
-
-const tools = [
-  "DDG Search",
-  "Search (Tavily)",
-  "Search (short answer, Tavily)",
-  "Retrieval",
-  "Arxiv",
-  "PubMed",
-  "Wikipedia",
-];
 
 export default function SelectTools({ form }: TSelectToolsProps) {
   const { remove } = useFieldArray({
