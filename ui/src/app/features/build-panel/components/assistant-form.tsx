@@ -74,9 +74,11 @@ export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
                 <>
                   <SelectCapabilities form={form} />
                   <RetrievalInstructions form={form} />
-                  <div className="flex my-3">
+                  <div className="flex gap-6 flex-col">
                     <SelectFiles form={form} />
-                    <FilesDialog form={form} />
+                    <div className="w-50">
+                      <FilesDialog form={form} />
+                    </div>
                   </div>
                   {architectureType !== "chat_retrieval" && (
                     <SelectTools form={form} />
