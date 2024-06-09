@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
-import { file } from "@/data-provider/endpoints";
+import Spinner from "@/components/ui/spinner";
 import { useFiles } from "@/data-provider/query-service";
 import { CircleX } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -18,7 +18,7 @@ type TBadgeValue = {
 export default function SelectFiles({ form }: TSelectFilesProps) {
   const [badgeValues, setBadgeValues] = useState([]);
 
-  const { data: files } = useFiles("1234");
+  const { data: files, isLoading } = useFiles("1234");
 
   const fileIds = form.watch("file_ids");
 
@@ -28,13 +28,17 @@ export default function SelectFiles({ form }: TSelectFilesProps) {
   });
 
   useEffect(() => {
-    const _badgeValues = fileIds.map((id: string) => {
-      const fileData = files?.find((file) => file.id === id);
-      return { label: fileData?.filename, value: fileData?.id };
-    });
-    console.log("ids changed");
-    setBadgeValues(_badgeValues);
-  }, [fileIds]);
+    if (files && !isLoading) {
+      const _badgeValues = fileIds.map((id: string) => {
+        const fileData = files?.find((file) => file.id === id);
+        return { label: fileData?.filename, value: fileData?.id };
+      });
+
+      setBadgeValues(_badgeValues);
+    }
+  }, [fileIds, files]);
+
+  if (isLoading) return <Spinner />;
 
   return (
     <div className="flex gap-2 flex-wrap">
