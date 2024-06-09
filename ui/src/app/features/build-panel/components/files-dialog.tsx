@@ -13,16 +13,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Form, UseFormReturn, useForm } from "react-hook-form";
+import { UseFormReturn } from "react-hook-form";
 import { SquarePlus } from "lucide-react";
-import SelectFiles from "./select-files";
 import MultiSelect from "@/components/ui/multiselect";
-import {
-  useDeleteAssistantFile,
-  useDeleteFile,
-  useFiles,
-  useUploadFile,
-} from "@/data-provider/query-service";
+import { useFiles, useUploadFile } from "@/data-provider/query-service";
 import Spinner from "@/components/ui/spinner";
 import { useEffect, useState } from "react";
 import {
@@ -30,10 +24,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
 } from "@/components/ui/form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 
 type TFilesDialog = {
   form: UseFormReturn<any>;
@@ -43,18 +34,6 @@ type TOption = {
   label: string;
   value: string;
 };
-
-// .optional()
-// .refine((file) => {
-//   return !file || file.size <= MAX_UPLOAD_SIZE;
-// }, 'File size must be less than 3MB')
-// .refine((file) => {
-//   return ACCEPTED_FILE_TYPES.includes(file.type);
-// }, 'File must be a PNG');
-
-const FormSchema = z.object({
-  file: z.instanceof(File),
-});
 
 export default function FilesDialog({ form }: TFilesDialog) {
   const [fileUpload, setFileUpload] = useState<File>();
@@ -82,10 +61,6 @@ export default function FilesDialog({ form }: TFilesDialog) {
       setValues(formattedFileData);
     }
   }, [files]);
-
-  useEffect(() => {
-    console.log(fileUpload);
-  }, [fileUpload]);
 
   const getFileIds = (selections: TOption[]) =>
     selections.map((selection) => selection.value);
