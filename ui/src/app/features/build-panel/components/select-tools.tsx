@@ -21,7 +21,7 @@ export default function SelectTools({ form }: TSelectToolsProps) {
     control: form.control,
   });
 
-  const { tools } = form.getValues().configurable.config;
+  const { tools } = form.getValues().config.configurable;
 
   return (
     <Accordion type="multiple">

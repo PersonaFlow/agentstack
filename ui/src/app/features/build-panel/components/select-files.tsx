@@ -1,58 +1,61 @@
-"use client";
-
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-} from "@/components/ui/form";
+import { Badge } from "@/components/ui/badge";
+import { FormControl, FormField, FormItem } from "@/components/ui/form";
+import { file } from "@/data-provider/endpoints";
 import { useFiles } from "@/data-provider/query-service";
+import { CircleX } from "lucide-react";
+import { useEffect, useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 
 type TSelectFilesProps = {
   form: UseFormReturn<any>;
 };
-export default function SelectFiles({ form }: TSelectFilesProps) {
-  const { data: files, isLoading } = useFiles("1234");
 
-  if (isLoading || !files) return <div>loading...</div>;
+type TBadgeValue = {
+  label: string;
+  value: string;
+};
+
+export default function SelectFiles({ form }: TSelectFilesProps) {
+  const [badgeValues, setBadgeValues] = useState([]);
+
+  const { data: files } = useFiles("1234");
+
+  const { file_ids } = form.getValues();
+
+  useEffect(() => {
+    const _badgeValues = file_ids.map((id) => {
+      const fileData = files?.find((file) => file.id === id);
+      return { label: fileData?.filename, value: fileData?.id };
+    });
+    setBadgeValues(_badgeValues);
+  }, [file_ids]);
 
   return (
-    <div className="flex flex-col gap-2 mb-3">
-      <h1 className="text-lg font-semibold leading-none tracking-tight">
-        Add Assistant Files
-      </h1>
-      {files.map((file) => (
-        <FormField
-          key={file.id}
-          control={form.control}
-          name="file_ids"
-          render={({ field }) => {
-            return (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value?.includes(file.id)}
-                    onCheckedChange={(checked) => {
-                      return checked
-                        ? field.onChange([...field.value, file.id])
-                        : field.onChange(
-                            field.value?.filter(
-                              (value: string) => value !== file.id,
-                            ),
-                          );
-                    }}
-                  />
-                </FormControl>
-                <FormLabel className="text-sm font-normal">
-                  {file.filename}
-                </FormLabel>
-              </FormItem>
-            );
-          }}
-        />
-      ))}
+    <div className="flex gap-2 flex-wrap">
+      {badgeValues.map((badgeValue: TBadgeValue, index: number) => {
+        return (
+          <FormField
+            key={badgeValue.value}
+            control={form.control}
+            name="file_ids"
+            render={({ field }) => {
+              return (
+                <FormItem>
+                  <FormControl>
+                    <Badge
+                      className="rounded-full flex cursor-pointer text-xs gap-2"
+                      //   onClick={() => remove(index)}
+                    >
+                      <p>{badgeValue.label}</p>
+                      <CircleX className="w-4" />
+                    </Badge>
+                  </FormControl>
+                </FormItem>
+              );
+            }}
+          />
+        );
+      })}
     </div>
   );
 }
