@@ -38,7 +38,7 @@ type TOption = {
 export default function FilesDialog({ form }: TFilesDialog) {
   const [fileUpload, setFileUpload] = useState<File | null>();
   const [values, setValues] = useState<TOption[]>([]);
-  const { data: files, isLoading } = useFiles("1234");
+  const { data: files, isLoading } = useFiles("1234", "assistants");
 
   const uploadFile = useUploadFile();
 
