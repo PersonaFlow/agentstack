@@ -5,7 +5,10 @@ from starlette.testclient import TestClient
 
 from stack.app.app_factory import create_app
 from stack.app.core.configuration import Settings
-from stack.app.repositories.assistant import AssistantRepository, get_assistant_repository
+from stack.app.repositories.assistant import (
+    AssistantRepository,
+    get_assistant_repository,
+)
 from stack.app.repositories.file import FileRepository, get_file_repository
 from stack.tests.unit.conftest import passthrough
 from stack.app.schema.assistant import CreateAssistantSchema, UpdateAssistantSchema
@@ -21,7 +24,9 @@ async def test__create_assistant__responds_correctly(random_schema_assistant):
     with patch.object(
         assistant_repository, "create_assistant", return_value=random_schema_assistant
     ) as method:
-        app.dependency_overrides[get_assistant_repository] = passthrough(assistant_repository)
+        app.dependency_overrides[get_assistant_repository] = passthrough(
+            assistant_repository
+        )
 
         # Act
         response = client.post("/api/v1/assistants", json=create_data.model_dump())
@@ -37,9 +42,13 @@ async def test__retrieve_assistants__responds_correctly(random_schema_assistant)
     # Arrange
     assistant_repository = MagicMock(AssistantRepository)
     with patch.object(
-        assistant_repository, "retrieve_assistants", return_value=[random_schema_assistant]
+        assistant_repository,
+        "retrieve_assistants",
+        return_value=[random_schema_assistant],
     ) as method:
-        app.dependency_overrides[get_assistant_repository] = passthrough(assistant_repository)
+        app.dependency_overrides[get_assistant_repository] = passthrough(
+            assistant_repository
+        )
 
         # Act
         response = client.get("/api/v1/assistants")
@@ -58,7 +67,9 @@ async def test__retrieve_assistant__responds_correctly(random_schema_assistant):
     with patch.object(
         assistant_repository, "retrieve_assistant", return_value=random_schema_assistant
     ) as method:
-        app.dependency_overrides[get_assistant_repository] = passthrough(assistant_repository)
+        app.dependency_overrides[get_assistant_repository] = passthrough(
+            assistant_repository
+        )
 
         # Act
         response = client.get(f"/api/v1/assistants/{random_schema_assistant.id}")
@@ -76,7 +87,9 @@ async def test__retrieve_assistant__assistant_not_found_404():
     with patch.object(
         assistant_repository, "retrieve_assistant", return_value=None
     ) as method:
-        app.dependency_overrides[get_assistant_repository] = passthrough(assistant_repository)
+        app.dependency_overrides[get_assistant_repository] = passthrough(
+            assistant_repository
+        )
 
         # Act
         response = client.get(f"/api/v1/assistants/{uuid4()}")
@@ -93,10 +106,15 @@ async def test__update_assistant__responds_correctly(random_schema_assistant):
     with patch.object(
         assistant_repository, "update_assistant", return_value=random_schema_assistant
     ) as method:
-        app.dependency_overrides[get_assistant_repository] = passthrough(assistant_repository)
+        app.dependency_overrides[get_assistant_repository] = passthrough(
+            assistant_repository
+        )
 
         # Act
-        response = client.patch(f"/api/v1/assistants/{random_schema_assistant.id}", json=update_data.model_dump())
+        response = client.patch(
+            f"/api/v1/assistants/{random_schema_assistant.id}",
+            json=update_data.model_dump(),
+        )
 
         # Assert
         assert method.call_count == 1
@@ -111,10 +129,14 @@ async def test__update_assistant__assistant_not_found_404():
     with patch.object(
         assistant_repository, "update_assistant", return_value=None
     ) as method:
-        app.dependency_overrides[get_assistant_repository] = passthrough(assistant_repository)
+        app.dependency_overrides[get_assistant_repository] = passthrough(
+            assistant_repository
+        )
 
         # Act
-        response = client.patch(f"/api/v1/assistants/{uuid4()}", json={"name": "Updated Assistant"})
+        response = client.patch(
+            f"/api/v1/assistants/{uuid4()}", json={"name": "Updated Assistant"}
+        )
 
         # Assert
         assert method.call_count == 1
@@ -127,7 +149,9 @@ async def test__delete_assistant__responds_correctly(random_schema_assistant):
     with patch.object(
         assistant_repository, "delete_assistant", return_value=random_schema_assistant
     ) as method:
-        app.dependency_overrides[get_assistant_repository] = passthrough(assistant_repository)
+        app.dependency_overrides[get_assistant_repository] = passthrough(
+            assistant_repository
+        )
 
         # Act
         response = client.delete(f"/api/v1/assistants/{random_schema_assistant.id}")
@@ -135,6 +159,7 @@ async def test__delete_assistant__responds_correctly(random_schema_assistant):
         # Assert
         assert method.call_count == 1
         assert response.status_code == 204
+
 
 # TODO: Need to spend some more time with this one
 # async def test__create_assistant_file__responds_correctly(random_schema_file, random_schema_assistant):
@@ -176,7 +201,9 @@ async def test__create_assistant_file__assistant_not_found_404(random_schema_fil
     with patch.object(
         assistant_repository, "retrieve_assistant", return_value=None
     ) as method_a:
-        app.dependency_overrides[get_assistant_repository] = passthrough(assistant_repository)
+        app.dependency_overrides[get_assistant_repository] = passthrough(
+            assistant_repository
+        )
 
         # Act
         response = client.post(f"/api/v1/assistants/{uuid4()}/files", json=create_data)
@@ -184,6 +211,7 @@ async def test__create_assistant_file__assistant_not_found_404(random_schema_fil
         # Assert
         assert method_a.call_count == 1
         assert response.status_code == 404
+
 
 # TODO: Need to spend some more time with this one
 # async def test__delete_assistant_file__responds_correctly(random_schema_file, random_schema_assistant):
@@ -214,8 +242,9 @@ async def test__create_assistant_file__assistant_not_found_404(random_schema_fil
 #         assert data["id"] == str(random_schema_assistant.id)
 
 
-
-async def test__retrieve_assistant_files__responds_correctly(random_schema_file, random_schema_assistant):
+async def test__retrieve_assistant_files__responds_correctly(
+    random_schema_file, random_schema_assistant
+):
     # Arrange
     assistant_repository = MagicMock(AssistantRepository)
     file_repository = MagicMock(FileRepository)
@@ -224,7 +253,9 @@ async def test__retrieve_assistant_files__responds_correctly(random_schema_file,
     ) as method_a, patch.object(
         file_repository, "retrieve_files_by_ids", return_value=[random_schema_file]
     ) as method_f:
-        app.dependency_overrides[get_assistant_repository] = passthrough(assistant_repository)
+        app.dependency_overrides[get_assistant_repository] = passthrough(
+            assistant_repository
+        )
         app.dependency_overrides[get_file_repository] = passthrough(file_repository)
 
         # Act
