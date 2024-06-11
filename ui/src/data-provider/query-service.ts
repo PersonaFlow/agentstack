@@ -9,7 +9,7 @@ import {
 import * as dataService from "./data-service";
 import * as t from "./types";
 
-enum QueryKeys {
+export enum QueryKeys {
   stream = "stream",
   run = "run",
   inputSchema = "inputSchema",
@@ -129,14 +129,10 @@ export const useDeleteUser = (userId: string) => {
   });
 };
 
-export const useUserThreads = (
-  userId: string,
-  grouped?: boolean,
-  timezoneOffset?: number,
-) => {
+export const useUserThreads = (params: t.TUserThreadsParams) => {
   return useQuery<t.TThread[], Error>({
-    queryKey: [QueryKeys.userThreads, userId],
-    queryFn: async () => await dataService.getUserThreads(userId),
+    queryKey: [QueryKeys.userThreads, params.userId],
+    queryFn: async () => await dataService.getUserThreads(params),
   });
 };
 

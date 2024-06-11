@@ -106,6 +106,12 @@ export type TUser = {
   updated_at?: string;
 };
 
+export type TUserThreadsParams = {
+  userId: string;
+  grouped?: boolean;
+  timezoneOffset?: number;
+};
+
 export type TThread = {
   id: string;
   user_id: string;

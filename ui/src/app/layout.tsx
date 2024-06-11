@@ -6,7 +6,7 @@ import Providers from "@/providers/Providers";
 import Sidebar from "@/app/features/sidebar/components/sidebar";
 import Builder from "./features/build-panel/components/build-panel";
 import BuildPanel from "./features/build-panel/components/build-panel";
-import { ChatForm } from "./features/chat/components/chat-form";
+import { ChatForm } from "./features/conversation/components/chat-form";
 
 const inter = Inter({ subsets: ["latin"] });
 

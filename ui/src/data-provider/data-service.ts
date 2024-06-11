@@ -57,13 +57,12 @@ export function updateUser(payload: t.TUser): Promise<t.TUser> {
 export function deleteUser(userId: string): Promise<void> {
   return request.delete(userId);
 }
-
 export function getUserThreads(
-  userId: string,
-  grouped?: boolean,
-  timezoneOffset?: number,
+  params: t.TUserThreadsParams,
 ): Promise<t.TThread[]> {
-  return request.get(endpoints.userThreads(userId, grouped, timezoneOffset));
+  return request.get(
+    endpoints.userThreads(params.userId, params.grouped, params.timezoneOffset),
+  );
 }
 
 export function getUserStartup(userId: string): Promise<t.TUser> {
