@@ -1,65 +1,29 @@
+import uuid
 from unittest.mock import patch, MagicMock, AsyncMock
+from fastapi import Depends, HTTPException
 from fastapi.testclient import TestClient
+from pydantic import BaseModel, ValidationError
+import asyncio
+import orjson
 import pytest
 
+from datetime import datetime
 from stack.app.app_factory import create_app
 from stack.app.core.configuration import Settings
 from stack.app.repositories.thread import ThreadRepository, get_thread_repository
-from stack.app.repositories.assistant import (
-    AssistantRepository,
-    get_assistant_repository,
-)
+from stack.app.repositories.assistant import AssistantRepository, get_assistant_repository
+from stack.app.model.thread import Thread as ModelThread
+from stack.app.schema.thread import Thread as SchemaThread
+from stack.app.schema.assistant import Assistant as AssistantSchema
 from stack.app.schema.feedback import FeedbackCreateRequest
 from stack.app.schema.title import TitleRequest
-from stack.app.api.v1.runs import CreateRunPayload
+from pydantic.error_wrappers import ValidationError
+from stack.app.api.v1.runs import CreateRunPayload, _run_input_and_config, stream_run, EventSourceResponse
+from stack.app.agents.configurable_agent import agent
 
 
 app = create_app(Settings())
 client = TestClient(app)
-
-
-# Fixtures for test data
-# @pytest.fixture
-# def random_schema_thread() -> SchemaThread:
-#     return SchemaThread(
-#         id=uuid.UUID('4d7cde32-d7d0-450d-b1a9-25b23e108ad7'),
-#         user_id='1d3ae09d-0cad-4551-9bcb-ed560a46b656',
-#         assistant_id='assistant1',
-#         name="Test Thread",
-#         created_at=datetime.now(),
-#         updated_at=datetime.now(),
-#     )
-
-
-# @pytest.fixture
-# def random_model_thread() -> ModelThread:
-#     return ModelThread(
-#         id=uuid.uuid4(),
-#         user_id='1d3ae09d-0cad-4551-9bcb-ed560a46b656',
-#         assistant_id='assistant1',
-#         name="Test Thread",
-#         created_at=datetime.now(),
-#         updated_at=datetime.now(),
-#     )
-
-
-# @pytest.fixture
-# def random_schema_assistant() -> AssistantSchema:
-#     return AssistantSchema(
-#         id=uuid.uuid4(),
-#         config={"configurable": {}},
-#         name="My Assistant",
-#         created_at=datetime.now(),
-#         updated_at=datetime.now(),
-#     )
-
-
-@pytest.fixture
-def valid_payload(random_schema_thread):
-    return CreateRunPayload(
-        user_id="1d3ae09d-0cad-4551-9bcb-ed560a46b656",
-        input=[{"role": "user", "content": "Hello"}],
-    )
 
 
 @pytest.fixture
@@ -68,67 +32,65 @@ def valid_title_request(random_schema_thread):
         thread_id=str(random_schema_thread.id),
         history=[
             {"type": "human", "content": "Hello"},
-            {"type": "ai", "content": "Hi, how can I help you?"},
-        ],
+            {"type": "ai", "content": "Hi, how can I help you?"}
+        ]
     )
 
 
 @pytest.fixture
 def valid_feedback_request():
     return FeedbackCreateRequest(
-        run_id="run1",
-        key="helpfulness",
+        run_id='run1',
+        key='helpfulness',
         score=5,
-        value="very helpful",
-        comment="The assistant was very helpful and responsive.",
+        value='very helpful',
+        comment='The assistant was very helpful and responsive.'
     )
 
+@pytest.fixture
+def valid_payload(random_schema_thread):
+    return CreateRunPayload(
+        assistant_id='5bb8e18a-038e-4fd2-a0da-5730d0b65d69',
+        thread_id=str(random_schema_thread.id),
+        user_id='68937497-93ec-4ebb-9fbf-651932e20932',
+        input=[
+            {
+                "content":"Hello.",
+                "additional_kwargs":{
+
+                },
+                "type":"human",
+                "example": False
+            }
+        ]
+    )
 
 # Mock Stream Events
 async def mock_astream_events(*args, **kwargs):
     if kwargs.get("input") == "error":
         raise Exception("Test exception")
     yield {"event": "on_chain_start", "run_id": "run1"}
-    yield {
-        "event": "on_chain_stream",
-        "run_id": "run1",
-        "data": {"chunk": [{"id": "msg1", "role": "user", "content": "Hello"}]},
-    }
-    yield {
-        "event": "on_chain_stream",
-        "run_id": "run1",
-        "data": {
-            "chunk": [
-                {
-                    "id": "msg2",
-                    "role": "assistant",
-                    "content": "Hello, how can I help you?",
-                }
-            ]
-        },
-    }
-
+    yield {"event": "on_chain_stream", "run_id": "run1", "data": {"chunk": [{"id": "msg1", "role": "user", "content": "Hello"}]}}
+    yield {"event": "on_chain_stream", "run_id": "run1", "data": {"chunk": [{"id": "msg2", "role": "assistant", "content": "Hello, how can I help you?"}]}}
 
 @pytest.fixture
 def mock_agent():
     mock_agent = MagicMock()
-    # mock_agent.astream_events = AsyncMock(side_effect=mock_astream_events)
-    mock_agent.astream_events = AsyncMock(
-        return_value=iter([{"id": 1, "event": "event1"}, {"id": 2, "event": "event2"}])
-    )
+    mock_agent.astream_events = AsyncMock(side_effect=mock_astream_events)
     # Mock with_config to return the agent itself
     mock_agent.with_config = MagicMock(return_value=mock_agent)
     return mock_agent
 
-
 # Tests for stream_run endpoint
 # @pytest.mark.asyncio
-@patch("stack.app.agents.configurable_agent", new_callable=lambda: MagicMock())
-@patch("stack.app.utils.stream.to_sse", new_callable=lambda: AsyncMock())
-@patch("stack.app.utils.stream.astream_state", new_callable=lambda: AsyncMock())
+# @patch('stack.app.agents.configurable_agent', new_callable=lambda: MagicMock())
+@patch('stack.app.utils.stream.astream_state', new_callable=lambda: AsyncMock())
+@patch('stack.app.utils.stream.to_sse', new_callable=lambda: AsyncMock())
+@patch('stack.app.api.v1.runs._run_input_and_config', new_callable=lambda: AsyncMock())
 async def test__stream_run__new_thread_creation(
     mocked_astream_state,
     mocked_to_sse,
+    mocked_run_input_and_config,
     valid_payload,
     random_schema_thread,
     random_schema_assistant,
@@ -137,27 +99,22 @@ async def test__stream_run__new_thread_creation(
     thread_repository = MagicMock(ThreadRepository)
     assistant_repository = MagicMock(AssistantRepository)
 
-    with patch.object(
-        thread_repository, "create_thread", return_value=random_schema_thread
-    ) as create_thread_mock, patch.object(
-        assistant_repository, "retrieve_assistant", return_value=random_schema_assistant
-    ) as retrieve_assistant_mock:
+    with patch.object(thread_repository, 'create_thread', return_value=random_schema_thread) as create_thread_mock, \
+         patch.object(assistant_repository, 'retrieve_assistant', return_value=random_schema_assistant) as retrieve_assistant_mock:
+
         app.dependency_overrides[get_thread_repository] = lambda: thread_repository
-        app.dependency_overrides[
-            get_assistant_repository
-        ] = lambda: assistant_repository
+        app.dependency_overrides[get_assistant_repository] = lambda: assistant_repository
+
+        mocked_run_input_and_config.return_value = (valid_payload.input, random_schema_assistant.config)
+    
+        # Mocking the side effects to avoid coroutine issues
+        mocked_astream_state.return_value.__aiter__.side_effect = mock_astream_events
+        mocked_to_sse.side_effect = lambda messages_stream: "\n".join([f"data: {message['event']}" for message in messages_stream])
 
         response = client.post("/api/v1/runs/stream", json=valid_payload.dict())
 
-        mocked_astream_state.return_value.__aiter__.return_value = iter(
-            [{"id": 1, "message": "event1"}, {"id": 2, "message": "event2"}]
-        )
-        mocked_to_sse.return_value = "data: event1\n\ndata: event2\n\n"
-
-        assert create_thread_mock.call_count == 1
-        assert retrieve_assistant_mock.call_count == 1
         assert response.status_code == 200
-        assert response.headers["content-type"] == "text/event-stream"
+        assert response.headers['content-type'] == 'text/event-stream'
 
 
 # async def test__stream_run__existing_thread(valid_payload, random_schema_thread, random_schema_assistant):

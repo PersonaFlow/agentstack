@@ -50,13 +50,24 @@ def random_model_thread() -> ModelThread:
 
 
 @pytest.fixture
+def random_schema_thread() -> ThreadSchema:
+    return ThreadSchema(
+        id=str(uuid.uuid4()),
+        user_id=str(uuid.uuid4()),
+        assistant_id="assistant1",
+        name="Test Thread",
+        created_at=datetime.now(),
+        updated_at=datetime.now(),
+    )
+
+
+@pytest.fixture
 def random_schema_assistant() -> Assistant:
     return Assistant(
         id=str(uuid.uuid4()),
         config={
             "configurable": {
-                "thread_id": "",
-                "type": "chatbot",
+                "type": "agent",
                 "type==agent/agent_type": "GPT 3.5 Turbo",
                 "type==agent/retrieval_description": "Can be used to look up information",
                 "type==agent/system_message": "You are a helpful assistant.",
@@ -84,18 +95,6 @@ def random_schema_file() -> FileSchema:
         mime_type="application/pdf",
         source="files/my_file.pdf",
         kwargs={},
-        created_at=datetime.now(),
-        updated_at=datetime.now(),
-    )
-
-
-@pytest.fixture
-def random_schema_thread() -> ThreadSchema:
-    return ThreadSchema(
-        id=str(uuid.uuid4()),
-        user_id=str(uuid.uuid4()),
-        assistant_id="assistant1",
-        name="Test Thread",
         created_at=datetime.now(),
         updated_at=datetime.now(),
     )
