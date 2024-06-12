@@ -21,6 +21,7 @@ import SelectActions from "./select-actions";
 import FilesDialog from "./files-dialog";
 import PublicSwitch from "./public-switch";
 import SelectArchitecture from "./select-architecture";
+import SelectFiles from "./select-files";
 
 type TAssistantFormProps = {
   form: UseFormReturn<any>;
@@ -73,8 +74,11 @@ export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
                 <>
                   <SelectCapabilities form={form} />
                   <RetrievalInstructions form={form} />
-                  <div className="flex my-3">
-                    <FilesDialog form={form} />
+                  <div className="flex gap-6 flex-col">
+                    <SelectFiles form={form} />
+                    <div className="w-50">
+                      <FilesDialog form={form} />
+                    </div>
                   </div>
                   {architectureType !== "chat_retrieval" && (
                     <SelectTools form={form} />
