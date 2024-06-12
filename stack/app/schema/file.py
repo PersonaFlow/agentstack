@@ -5,6 +5,11 @@ from typing import Optional, Any
 from datetime import datetime
 from stack.app.schema.rag import ContextType
 
+class FilePurpose(Enum):
+    PERSONAS = "personas"
+    ASSISTANTS = "assistants"
+    THREADS = "threads"
+    RAG = "rag"
 
 class FileType(Enum):
     pdf = "PDF"
@@ -96,8 +101,8 @@ class UploadFileSchema(BaseModel):
 
 class DeleteFileResponse(BaseModel):
     file_id: uuid.UUID = Field(..., description="The ID of the file that was deleted.")
-    num_of_deleted_chunks: int = Field(
-        ...,
+    num_of_deleted_chunks: Optional[int] = Field(
+        None,
         description="The number of chunks deleted from the vector store for this file.",
     )
     num_of_assistants: int = Field(

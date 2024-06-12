@@ -284,7 +284,7 @@ export type TUploadFileRequest = {
 
 export type TDeleteFileResponse = {
   file_id: string;
-  num_of_deleted_chunks: number;
+  num_of_deleted_chunks?: number;
   num_of_assistants: number;
   assistants: TAssistant[];
 };

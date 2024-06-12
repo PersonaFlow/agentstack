@@ -14,7 +14,7 @@ import uuid
 from stack.app.repositories.file import get_file_repository, FileRepository
 
 # from stack.app.repositories.api_key import get_api_key_repository, ApiKeyRepository
-from stack.app.schema.file import FileSchema, UploadFileSchema, DeleteFileResponse
+from stack.app.schema.file import FileSchema, UploadFileSchema, DeleteFileResponse, FilePurpose
 from stack.app.api.annotations import ApiKey
 from stack.app.core.configuration import settings
 from typing import Optional
@@ -171,17 +171,17 @@ async def delete_file(
         file: FileSchema = await files_repository.retrieve_file(file_id=file_id)
         if not file:
             raise HTTPException(status_code=404, detail="File not found")
-        if file.purpose == "assistants" or file.purpose == "threads":
+        if file.purpose in [FilePurpose.ASSISTANTS, FilePurpose.THREADS, FilePurpose.RAG]:
             # delete any embeddings associated with the file from the vector db
             service = QdrantService()
             deleted_chunks = await service.delete(str(file_id))
             # If this is an assistants file, delete the file from any assistants that may be using it
             assistants = await assistant_repository.remove_all_file_references(file_id)
             num_of_assistants = len(assistants)
-            if num_of_assistants > 0:
-                logger.info(f"Deleted file from {num_of_assistants} assistants")
-            else:
-                logger.info(f"Deleted file from 0 assistants")
+            logger.info(f"Deleted file from {num_of_assistants} assistants")
+        else:
+            deleted_chunks = []
+            num_of_assistants = 0
 
         # delete the file from the filesystem
         ext = guess_file_extension(file.mime_type)

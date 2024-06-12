@@ -118,10 +118,6 @@ class FileRepository(BaseRepository):
             file = await self.delete(model=File, object_id=file_id)
             await self.postgresql_session.commit()
 
-            # Delete the file content from the local file system
-            file_path = os.path.join(settings.FILE_DATA_DIRECTORY, str(file_id))
-            os.remove(file_path)
-
             return file
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
@@ -129,15 +125,6 @@ class FileRepository(BaseRepository):
                 f"Failed to delete file due to a database error: ", exc_info=True
             )
             raise HTTPException(status_code=400, detail="Failed to delete file.")
-        except FileNotFoundError as e:
-            logger.exception(
-                f"Failed to delete file content from local file system: ",
-                exc_info=True,
-                file_id=file_id,
-            )
-            raise HTTPException(
-                status_code=400, detail="Failed to delete file content."
-            )
 
     async def retrieve_file_content(self, file_id: str) -> Any:
         """Fetches the content of a file by ID from the local file system."""
