@@ -5,19 +5,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { useState } from "react";
+import { FormControl, FormField, FormItem } from "@/components/ui/form";
 import { UseFormReturn, useFieldArray } from "react-hook-form";
 import { ToolDialog } from "./tool-dialog";
-import { Input } from "@/components/ui/input";
 import { CircleX } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -25,23 +15,13 @@ type TSelectToolsProps = {
   form: UseFormReturn<any>;
 };
 
-const tools = [
-  "DDG Search",
-  "Search (Tavily)",
-  "Search (short answer, Tavily)",
-  "Retrieval",
-  "Arxiv",
-  "PubMed",
-  "Wikipedia",
-];
-
 export default function SelectTools({ form }: TSelectToolsProps) {
   const { remove } = useFieldArray({
     name: "config.configurable.tools",
     control: form.control,
   });
 
-  const { config } = form.getValues();
+  const { tools } = form.getValues().config.configurable;
 
   return (
     <Accordion type="multiple">
@@ -49,7 +29,7 @@ export default function SelectTools({ form }: TSelectToolsProps) {
         <AccordionTrigger className="p-2">Tools</AccordionTrigger>
         <AccordionContent className="overflow-y-scroll p-2 flex flex-col gap-3">
           <div className="flex gap-2 flex-wrap">
-            {config.configurable.tools.map((tool: string, index: number) => {
+            {tools.map((tool: string, index: number) => {
               return (
                 <FormField
                   key={tool}

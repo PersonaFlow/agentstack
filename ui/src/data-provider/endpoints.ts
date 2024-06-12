@@ -62,5 +62,7 @@ export const file = (fileId?: string, userId?: string, purpose?: string) =>
 export const fileContent = (fileId: string) =>
   `/api/v1/files/${fileId}/content`;
 
+export const deleteFile = (fileId: string) => `api/v1/files/${fileId}`;
+
 // --Health Check--
 export const healthCheck = () => "/api/v1/health_check";
