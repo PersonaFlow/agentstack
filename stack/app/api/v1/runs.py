@@ -4,7 +4,7 @@ from operator import itemgetter
 import structlog
 from langchain.pydantic_v1 import ValidationError
 
-from fastapi import APIRouter, BackgroundTasks, Depends
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from fastapi.exceptions import RequestValidationError
 
 from langchain_core.runnables import RunnableConfig
@@ -14,7 +14,7 @@ from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.schema import AIMessage, HumanMessage, StrOutputParser
 from langchain.schema.runnable import RunnableMap
 
-from stack.app.agents.configurable_agent import agent
+from stack.app.agents.configurable_agent import agent, get_llm
 from stack.app.api.annotations import ApiKey
 from stack.app.schema.thread import Thread
 from stack.app.repositories.assistant import AssistantRepository, get_assistant_repository
@@ -203,15 +203,12 @@ Conversation:
     summary="Generate a title to name the thread.",
     description="Generates a title for the conversation by sending a list of interactions to the model.",
 )
-async def title_endpoint(api_key: ApiKey, request: TitleRequest) -> Thread:
-    if not request.thread_id:
-        raise ValueError("Thread ID is required")
-
-    if not request.history:
-        raise ValueError("History is required")
-
-    global trace_url
-    trace_url = None
+async def title_endpoint(
+    api_key: ApiKey,
+    request: TitleRequest,
+    thread_repository: ThreadRepository = Depends(get_thread_repository),
+    assistant_repo: AssistantRepository = Depends(get_assistant_repository),
+) -> Thread:
 
     converted_chat_history = []
     for message in request.history:
@@ -219,12 +216,14 @@ async def title_endpoint(api_key: ApiKey, request: TitleRequest) -> Thread:
             converted_chat_history.append(HumanMessage(content=message.content))
         elif message.type == "ai":
             converted_chat_history.append(AIMessage(content=message.content))
-    # TODO extract this out to be a shared llm config
-    llm = ChatOpenAI(
-        model="gpt-3.5-turbo-1106",
-        streaming=False,
-        temperature=0,
-    )
+
+    thread = await thread_repository.retrieve_thread(request.thread_id)
+    assistant = await assistant_repo.retrieve_assistant(thread.assistant_id)
+    llm_type = assistant.config["configurable"]["llm_type"]
+    agent_type = assistant.config["configurable"]["agent_type"]
+    type = assistant.config["configurable"]["type"]
+    model = agent_type if type == "agent" else llm_type
+    llm = get_llm(model)
 
     _context = RunnableMap({"chat_history": itemgetter("chat_history")})
 
@@ -235,13 +234,9 @@ async def title_endpoint(api_key: ApiKey, request: TitleRequest) -> Thread:
         ]
     )
 
-    response_synthesizer = (prompt | llm | StrOutputParser()).with_config(
-        run_name="GenerateThreadTitle",
-    )
+    response_synthesizer = (prompt | llm | StrOutputParser())
 
     chain = _context | response_synthesizer
-
-    thread_service = ThreadRepository()
 
     try:
         title = chain.invoke(
@@ -250,18 +245,14 @@ async def title_endpoint(api_key: ApiKey, request: TitleRequest) -> Thread:
             },
             config={"callbacks": [tracer] if settings.ENABLE_LANGSMITH_TRACING else []},
         )
-        try:
-            thread = await thread_service.update_thread(
-                request.thread_id, {"name": title}
-            )
-            return thread
-        except Exception as e:
-            logger.debug(f"Failure calling update thread service: {e}")
-            raise
+        thread = await thread_repository.update_thread(
+            request.thread_id, {"name": title}
+        )
+        return thread
 
     except Exception as e:
         logger.debug(f"API Endpoint Exception - Failed to generate title: {e}")
-        raise
+        raise HTTPException(status_code=500, detail="Failed to generate title.")
 
 
 if settings.ENABLE_LANGSMITH_TRACING and tracing_is_enabled():

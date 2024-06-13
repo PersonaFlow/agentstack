@@ -88,7 +88,6 @@ class ThreadRepository(BaseRepository):
             logger.exception(
                 "Failed to retrieve thread due to a database error",
                 exc_info=True,
-                thread_id=thread_id,
             )
             raise HTTPException(status_code=500, detail="Failed to retrieve thread.")
 
@@ -103,7 +102,6 @@ class ThreadRepository(BaseRepository):
             logger.exception(
                 "Failed to retrieve thread by thread_id due to a database error",
                 exc_info=True,
-                thread_id=thread_id,
             )
             raise HTTPException(
                 status_code=500, detail="Failed to retrieve thread by thread_id."
@@ -112,7 +110,8 @@ class ThreadRepository(BaseRepository):
     async def update_thread(self, thread_id: str, data: dict) -> Thread:
         """Updates an existing thread."""
         try:
-            thread = await self.update(model=Thread, values=data, object_id=thread_id)
+            filtered_data = {k: v for k, v in data.items() if v is not None}
+            thread = await self.update(model=Thread, values=filtered_data, object_id=thread_id)
             await self.postgresql_session.commit()
             return thread
         except SQLAlchemyError as e:
@@ -120,8 +119,6 @@ class ThreadRepository(BaseRepository):
             logger.exception(
                 "Failed to update thread due to a database error",
                 exc_info=True,
-                thread_id=thread_id,
-                thread_data=data,
             )
             raise HTTPException(status_code=400, detail="Failed to update thread.")
 
@@ -136,7 +133,6 @@ class ThreadRepository(BaseRepository):
             logger.exception(
                 "Failed to delete thread due to a database error",
                 exc_info=True,
-                thread_id=thread_id,
             )
             raise HTTPException(status_code=400, detail="Failed to delete thread.")
 
@@ -151,7 +147,6 @@ class ThreadRepository(BaseRepository):
             logger.exception(
                 "Failed to retrieve threads for user_id due to a database error",
                 exc_info=True,
-                user_id=user_id,
             )
             raise HTTPException(
                 status_code=500,
