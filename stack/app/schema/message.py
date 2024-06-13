@@ -6,7 +6,7 @@ This module provides Pydantic models for message data serialization, validation,
 
 """
 import enum
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 import uuid
 from datetime import datetime
@@ -77,7 +77,7 @@ class CreateMessageSchema(BaseModel):
         ..., description="A boolean flag indicating whether the message is an example."
     )
 
-    @validator("thread_id", "user_id", "content", "type")
+    @field_validator("thread_id", "user_id", "content", "type")
     def must_not_be_empty(cls, v):
         if not v:
             raise ValueError("This field must not be empty")
