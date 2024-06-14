@@ -79,7 +79,7 @@ class User(Base):
         back_populates="user"
     )
 
-    # we don't cascade delete assistants or users because we want to keep the assistant data even if the user is deleted
+    # don't cascade assistants when user is deleted
     assistant = relationship(
         "Assistant",
         back_populates="user"
