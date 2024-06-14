@@ -1,8 +1,8 @@
 from datetime import datetime
 import uuid
-from sqlalchemy import String, text, DateTime, Integer
+from sqlalchemy import String, text, DateTime, Integer, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID, JSONB
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 from stack.app.core.configuration import settings
 from stack.app.model.base import Base
@@ -20,6 +20,7 @@ class File(Base):
     )
     user_id: Mapped[str] = mapped_column(
         String(),
+        ForeignKey(f"{settings.INTERNAL_DATABASE_SCHEMA}.users.user_id"),
         nullable=False,
         index=True,
         comment="The ID of the user who created the file.",
@@ -63,4 +64,9 @@ class File(Base):
         onupdate=func.now(),
         nullable=False,
         comment="Last updated date",
+    )
+
+    user = relationship(
+        "User",
+        back_populates="file"
     )
