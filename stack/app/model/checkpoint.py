@@ -1,8 +1,8 @@
 from datetime import datetime
 import uuid
-from sqlalchemy import DateTime, LargeBinary, String, text
+from sqlalchemy import DateTime, LargeBinary, String, text, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 from stack.app.core.configuration import settings
 from stack.app.model.base import Base
@@ -20,11 +20,13 @@ class PostgresCheckpoint(Base):
     )
     user_id: Mapped[str] = mapped_column(
         String(),
+        ForeignKey(f"{settings.INTERNAL_DATABASE_SCHEMA}.users.user_id"),
         nullable=False,
         comment="The ID of the user to whom the checkpoint belongs.",
     )
-    thread_id: Mapped[str] = mapped_column(
-        String(),
+    thread_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey(f"{settings.INTERNAL_DATABASE_SCHEMA}.threads.id"),
         nullable=False,
         index=True,
         comment="The ID of the thread to which the checkpoint belongs.",
@@ -44,4 +46,14 @@ class PostgresCheckpoint(Base):
         onupdate=func.now(),
         nullable=False,
         comment="The timestamp when the checkpoint was last updated.",
+    )
+
+    thread = relationship(
+        "Thread",
+        back_populates="checkpoint"
+    )
+
+    user = relationship(
+        "User",
+        back_populates="checkpoint"
     )
