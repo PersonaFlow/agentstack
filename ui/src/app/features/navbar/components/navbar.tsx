@@ -2,7 +2,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAssistants } from "@/data-provider/query-service";
 
-export default function Sidebar() {
+export default function Navbar() {
   const { data } = useAssistants();
 
   return (
