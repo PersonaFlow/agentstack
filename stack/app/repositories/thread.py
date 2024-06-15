@@ -42,7 +42,7 @@ class ThreadRepository(BaseRepository):
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
             logger.exception(
-                "Failed to create thread due to a database error",
+                f"Failed to create thread due to a database error: {e}",
                 exc_info=True,
                 thread_data=data,
             )
