@@ -136,7 +136,8 @@ export const useUserThreads = (
 ) => {
   return useQuery<t.TThread[], Error>({
     queryKey: [QueryKeys.userThreads, userId],
-    queryFn: async () => await dataService.getUserThreads(userId),
+    queryFn: async () =>
+      await dataService.getUserThreads(userId, grouped, timezoneOffset),
   });
 };
 
