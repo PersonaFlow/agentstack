@@ -87,8 +87,13 @@ export function getThread(threadId: string): Promise<t.TThread> {
   return request.get(endpoints.threads(threadId));
 }
 
-export function updateThread(threadId: string): Promise<t.TThread> {
-  return request.patch(endpoints.threads(threadId));
+export function updateThread(
+  threadId: string,
+  payload: t.TUpdateThread,
+): Promise<t.TThread> {
+  return request.patch(endpoints.threads(threadId), {
+    ...payload,
+  });
 }
 
 export function deleteThread(threadId: string): Promise<void> {

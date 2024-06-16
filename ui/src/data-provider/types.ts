@@ -298,3 +298,9 @@ export type TGenerateTitle = {
   thread_id: string;
   history: THistory[];
 };
+
+export type TUpdateThread = {
+  assistant_id: string;
+  name: string;
+  kwargs?: {};
+};

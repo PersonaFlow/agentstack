@@ -176,7 +176,8 @@ export const useThread = (threadId: string) => {
 export const useUpdateThread = (threadId: string) => {
   const queryClient = useQueryClient();
   return useMutation<t.TThread, Error>({
-    mutationFn: async () => await dataService.updateThread(threadId),
+    mutationFn: async (payload: t.TUpdateThread) =>
+      await dataService.updateThread(threadId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKeys.threads] });
       queryClient.invalidateQueries({ queryKey: [threadId] });

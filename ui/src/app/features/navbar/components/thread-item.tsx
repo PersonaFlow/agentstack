@@ -1,10 +1,11 @@
 import { Input } from "@/components/ui/input";
 import Spinner from "@/components/ui/spinner";
+import { useUpdateThread } from "@/data-provider/query-service";
 import { TThread } from "@/data-provider/types";
 import { cn } from "@/lib/utils";
 import { Brain, EditIcon, Trash } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { ChangeEvent, ChangeEventHandler, useEffect, useState } from "react";
 
 type TThreadItemProps = {
   thread: TThread;
@@ -16,7 +17,14 @@ export default function ThreadItem({ thread }: TThreadItemProps) {
   const [isSelected, setIsSelected] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const updateThread = useUpdateThread(thread.id);
+
   const router = useRouter();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    setIsSelected(pathname.includes(thread.id));
+  }, [pathname, thread.id]);
 
   // const threadItemStyle = 'relative h-12 overflow-hidden flex justify-start items-center p-2'
 
@@ -25,9 +33,17 @@ export default function ThreadItem({ thread }: TThreadItemProps) {
     router.push(`/c/${thread.id}`);
   };
 
-  const submitUpdatedName = () => {};
+  const submitUpdatedName = () => {
+    updateThread.mutate({
+      assistant_id: thread.assistant_id,
+      name: editedName,
+    });
+    setIsEditing((prev) => !prev);
+  };
 
-  const handleUpdateName = () => {};
+  const handleUpdateName = (e: ChangeEvent<HTMLInputElement>) => {
+    setEditedname(e.target.value);
+  };
 
   return (
     <a
@@ -35,7 +51,7 @@ export default function ThreadItem({ thread }: TThreadItemProps) {
       className={cn(
         // isSelected ? threadItemSelected : threadItemStyle,
         isDeleting ? "fade-out" : "",
-        "fade-in grid grid-cols=[auto_1fr_auto] gap-2 items-center cursor-pointer",
+        "fade-in flex m-3 gap-2 items-center cursor-pointer",
       )}
     >
       <Brain />
@@ -50,12 +66,14 @@ export default function ThreadItem({ thread }: TThreadItemProps) {
         />
       )}
       {/* {isFetching && <Spinner />} */}
-      {isSelected && (
-        <div className="flex text-white ml-auto">
-          <EditIcon onClick={() => setIsEditing((prev) => !prev)} />
-          <Trash />
-        </div>
-      )}
+
+      <div className="flex ml-auto gap-2">
+        <EditIcon
+          onClick={() => setIsEditing((prev) => !prev)}
+          className="cursor-pointer"
+        />
+        <Trash className="cursor-pointer" />
+      </div>
     </a>
   );
 }
