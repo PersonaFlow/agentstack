@@ -8,24 +8,14 @@ import { Brain, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import NewThreadBtn from "./new-thread-btn";
 import { useRouter } from "next/navigation";
-
-const threads = [
-  { name: "thread one" },
-  { name: "thread two" },
-  { name: "thread three" },
-  { name: "thread four" },
-];
-
-const ThreadSession = () => <div>New thread</div>;
+import ThreadItem from "./thread-item";
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
-  // const { data: threads } = useUserThreads("1234");
+  const { data: threads, isLoading: threadsLoading } = useUserThreads("1234");
   const { data } = useAssistants();
 
   const router = useRouter();
-
-  const threadsLoading = false;
 
   const onNewThreadClick = () => {
     const threadId = "1234";
@@ -59,8 +49,8 @@ export default function Navbar() {
             // return (
             <div>
               <h2 className="m-3 text-gray-400">Group</h2>
-              {threads.map((thread) => (
-                <ThreadSession />
+              {threads?.map((thread) => (
+                <ThreadItem key={thread.id} thread={thread} />
               ))}
             </div>
             // );
