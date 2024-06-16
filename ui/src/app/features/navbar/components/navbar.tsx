@@ -22,7 +22,6 @@ export default function Navbar() {
 
     router.push(`/c/${threadId}`);
   };
-  // console.log(threads);
 
   return (
     <div className="flex h-full border-2">

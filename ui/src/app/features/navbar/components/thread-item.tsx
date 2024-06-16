@@ -1,6 +1,10 @@
 import { Input } from "@/components/ui/input";
 import Spinner from "@/components/ui/spinner";
-import { useUpdateThread } from "@/data-provider/query-service";
+import { useToast } from "@/components/ui/use-toast";
+import {
+  useDeleteThread,
+  useUpdateThread,
+} from "@/data-provider/query-service";
 import { TThread } from "@/data-provider/types";
 import { cn } from "@/lib/utils";
 import { Brain, EditIcon, Trash } from "lucide-react";
@@ -13,20 +17,20 @@ type TThreadItemProps = {
 
 export default function ThreadItem({ thread }: TThreadItemProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [editedName, setEditedname] = useState(thread.name || "");
+  const [editedName, setEditedname] = useState(thread.name || "New thread");
   const [isSelected, setIsSelected] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const updateThread = useUpdateThread(thread.id);
+  const deleteThread = useDeleteThread(thread.id);
 
   const router = useRouter();
   const pathname = usePathname();
+  const { toast } = useToast();
 
   useEffect(() => {
     setIsSelected(pathname.includes(thread.id));
   }, [pathname, thread.id]);
-
-  // const threadItemStyle = 'relative h-12 overflow-hidden flex justify-start items-center p-2'
 
   const handleItemClick = () => {
     if (isSelected) return;
@@ -43,6 +47,16 @@ export default function ThreadItem({ thread }: TThreadItemProps) {
 
   const handleUpdateName = (e: ChangeEvent<HTMLInputElement>) => {
     setEditedname(e.target.value);
+  };
+
+  const handleDeleteThread = () => {
+    setIsDeleting(true);
+    deleteThread.mutate({
+      onSuccess: () =>
+        toast({
+          title: "Successfully deleted thread",
+        }),
+    });
   };
 
   return (
@@ -72,7 +86,7 @@ export default function ThreadItem({ thread }: TThreadItemProps) {
           onClick={() => setIsEditing((prev) => !prev)}
           className="cursor-pointer"
         />
-        <Trash className="cursor-pointer" />
+        <Trash className="cursor-pointer" onClick={handleDeleteThread} />
       </div>
     </a>
   );

@@ -193,6 +193,7 @@ export const useDeleteThread = (threadId: string) => {
       await dataService.deleteThread(threadId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKeys.threads] });
+      queryClient.invalidateQueries({ queryKey: [QueryKeys.userThreads] });
       queryClient.invalidateQueries({ queryKey: [threadId] });
     },
   });
@@ -376,8 +377,8 @@ export const useQueryLCRetriever = (payload: t.TQuery) => {
 // --Files--
 export const useUploadFile = () => {
   const queryClient = useQueryClient();
-  return useMutation<t.TFile, Error>({
-    mutationFn: async (payload: FormData): Promise<t.TFile> =>
+  return useMutation<t.TFile, Error, FormData>({
+    mutationFn: async (payload: FormData) =>
       await dataService.uploadFile(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKeys.files] });

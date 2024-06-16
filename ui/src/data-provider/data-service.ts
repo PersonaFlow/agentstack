@@ -207,7 +207,7 @@ export function queryLCRetriever(payload: t.TQuery): Promise<string> {
 }
 
 // --Files--
-export function uploadFile(payload: FormData): Promise<t.TFile> {
+export function uploadFile(payload: FormData): Promise<FormData> {
   return request.postMultiPart(endpoints.file(), payload);
 }
 
