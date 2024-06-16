@@ -175,7 +175,7 @@ export const useThread = (threadId: string) => {
 
 export const useUpdateThread = (threadId: string) => {
   const queryClient = useQueryClient();
-  return useMutation<t.TThread, Error>({
+  return useMutation<t.TThread, Error, t.TUpdateThread>({
     mutationFn: async (payload: t.TUpdateThread) =>
       await dataService.updateThread(threadId, payload),
     onSuccess: () => {
