@@ -180,6 +180,7 @@ export const useUpdateThread = (threadId: string) => {
       await dataService.updateThread(threadId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKeys.threads] });
+      queryClient.invalidateQueries({ queryKey: [QueryKeys.userThreads] });
       queryClient.invalidateQueries({ queryKey: [threadId] });
     },
   });
