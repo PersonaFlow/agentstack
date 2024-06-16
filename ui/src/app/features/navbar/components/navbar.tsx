@@ -6,10 +6,8 @@ import { useAssistants, useUserThreads } from "@/data-provider/query-service";
 import { cn } from "@/lib/utils";
 import { Brain, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
-
-type TNewThreadBtn = {
-  handleClick: () => void;
-};
+import NewThreadBtn from "./new-thread-btn";
+import { useRouter } from "next/navigation";
 
 const threads = [
   { name: "thread one" },
@@ -18,10 +16,6 @@ const threads = [
   { name: "thread four" },
 ];
 
-const NewThreadBtn = ({ handleClick }: TNewThreadBtn) => (
-  <Button onClick={handleClick}>New thread</Button>
-);
-
 const ThreadSession = () => <div>New thread</div>;
 
 export default function Navbar() {
@@ -29,26 +23,27 @@ export default function Navbar() {
   // const { data: threads } = useUserThreads("1234");
   const { data } = useAssistants();
 
+  const router = useRouter();
+
   const threadsLoading = false;
 
   const onNewThreadClick = () => {
-    ("");
+    const threadId = "1234";
+
+    router.push(`/c/${threadId}`);
   };
   // console.log(threads);
 
   return (
-    <div className="flex h-full top-0 content-center">
+    <div className="flex h-full border-2">
       {/* Container */}
       <div
-        className={cn(
-          "flex flex-col items-center",
-          open ? "w-72" : "w-0 collapse",
-        )}
+        className={cn("flex flex-col m-3", open ? "w-72" : "w-0 collapse m-0")}
       >
         {/* Header */}
-        <div className="flex items-center justify-start-w-full p-2 ml-2 mr-2">
+        {/* <div className="flex items-center justify-start-w-full p-2 ml-2 mr-2">
           <Brain />
-        </div>
+        </div> */}
         {/* New Thread Link */}
         {!threadsLoading && <NewThreadBtn handleClick={onNewThreadClick} />}
         <nav className="overflow-y-auto">
@@ -76,11 +71,11 @@ export default function Navbar() {
         </nav>
       </div>
       {/* Toggle Sidebar */}
-      <div>
+      <div className="self-center hover:cursor-pointer p-1">
         {open ? (
           <ChevronLeft onClick={() => setOpen(false)} color="#000" />
         ) : (
-          <ChevronRight onClick={() => setOpen(false)} color="#000" />
+          <ChevronRight onClick={() => setOpen(true)} color="#000" />
         )}
       </div>
     </div>
