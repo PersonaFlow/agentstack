@@ -16,7 +16,7 @@ export const userThreads = (
   grouped?: boolean,
   timezoneOffset?: number,
 ) =>
-  `/api/v1/users/${userId}/threads/${formatParam(grouped) / formatParam(timezoneOffset)}`;
+  `/api/v1/users/${userId}/threads${grouped ? "?grouped=" + formatParam(grouped) : ""}${timezoneOffset ? "?timezoneOffset=" + formatParam(timezoneOffset) : ""}`;
 export const userStartup = (userId: string) =>
   `/api/v1/users/${userId}/startup`;
 
