@@ -62,6 +62,9 @@ class FileSchema(BaseModel):
 
     class Config:
         from_attributes = True
+        json_encoders = {
+            datetime: lambda v: v.replace(microsecond=0).isoformat(),
+        }
 
     @property
     def type(self) -> FileType | None:
