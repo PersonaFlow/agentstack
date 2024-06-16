@@ -111,6 +111,9 @@ class Assistant(BaseModel):
 
     class Config:
         from_attributes = True
+        json_encoders = {
+            datetime: lambda v: v.replace(microsecond=0).isoformat(),
+        }
 
 
 class CreateAssistantSchema(BaseModel):
