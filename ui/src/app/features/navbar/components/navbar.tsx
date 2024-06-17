@@ -2,15 +2,19 @@
 import { Button } from "@/components/ui/button";
 import Spinner from "@/components/ui/spinner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAssistants, useUserThreads } from "@/data-provider/query-service";
+import {
+  useAssistants,
+  useCreateThread,
+  useUserThreads,
+} from "@/data-provider/query-service";
 import { cn } from "@/lib/utils";
 import { Brain, ChevronLeft, ChevronRight } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import NewThreadBtn from "./new-thread-btn";
 import { useRouter } from "next/navigation";
 import ThreadItem from "./thread-item";
 import { AssistantSelector } from "../../build-panel/components/assistant-selector";
-import { TAssistant } from "@/data-provider/types";
+import { TAssistant, TThread } from "@/data-provider/types";
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
@@ -19,11 +23,24 @@ export default function Navbar() {
   const { data } = useAssistants();
 
   const router = useRouter();
+  const createNewThread = useCreateThread();
 
   const onNewThreadClick = () => {
-    const threadId = "1234";
-
-    router.push(`/c/${threadId}`);
+    console.log(selectedAssistant);
+    if (selectedAssistant) {
+      createNewThread.mutate(
+        {
+          assistant_id: selectedAssistant?.id,
+          name: "New thread",
+          user_id: "1234",
+        },
+        {
+          onSuccess: (thread: TThread) => {
+            router.push(`/c/${thread.id}`);
+          },
+        },
+      );
+    }
   };
 
   return (

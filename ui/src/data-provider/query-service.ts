@@ -155,14 +155,16 @@ export const useThreads = () => {
   });
 };
 
-export const useCreateThread = (payload: t.TCreateThreadRequest) => {
+export const useCreateThread = () => {
   const queryClient = useQueryClient();
-  return useMutation<t.TThread, Error>({
-    mutationFn: async (): Promise<t.TThread> => {
+  return useMutation<t.TThread, Error, t.TCreateThreadRequest>({
+    mutationFn: async (payload: t.TCreateThreadRequest): Promise<t.TThread> => {
       return await dataService.createThread(payload);
     },
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: [QueryKeys.threads] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QueryKeys.threads] });
+      queryClient.invalidateQueries({ queryKey: [QueryKeys.userThreads] });
+    },
   });
 };
 

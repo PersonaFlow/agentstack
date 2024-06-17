@@ -119,7 +119,7 @@ export type TThread = {
 export type TThreadRequest = {
   assistant_id: string;
   name: string;
-  kwargs: {};
+  kwargs?: {};
 };
 
 export interface TCreateThreadRequest extends TThreadRequest {
