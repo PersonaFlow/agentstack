@@ -6,15 +6,15 @@ This module provides the FastAPI endpoints related to user management functional
 
 """
 
-from typing import List, Optional
+from typing import List, Optional, Union
 from fastapi import APIRouter, status, Query, Depends
 from stack.app.api.annotations import ApiKey
 from stack.app.core.exception import NotFoundException
-from stack.app.schema.thread import Thread
+from stack.app.schema.thread import Thread, GroupedThreads
 from stack.app.schema.user import User, CreateUserSchema, UpdateUserSchema
 from stack.app.repositories.thread import ThreadRepository, get_thread_repository
 from stack.app.repositories.user import UserRepository, get_user_repository
-from stack.app.utils import group_threads
+from stack.app.utils.group_threads import group_threads
 
 router = APIRouter()
 DEFAULT_TAG = "Users"
@@ -48,11 +48,7 @@ async def create_user(
     operation_id="retrieve_all_users",
     summary="List all users ",
     description="""
-                GET endpoint at `/users` for listing all users. <br>
-                *This is meant for admin operation.* <br>
-                ** TODO: add access control.** <br>
-                ** TODO: add pagination.**
-                ** TODO: add order and filtering.**
+                GET endpoint at `/users` for listing all users.
             """,
 )
 async def retrieve_users(
@@ -108,10 +104,8 @@ async def update_user(
     operation_id="delete_user",
     summary="Delete a specific user ",
     description=(
-        """
-                   DELETE endpoint at `/users/{user_id}` for removing a specific user using its `user_id`. <br>
-                    *This is considered an admin operation.* <br>
-                    ** TODO: add access control.**
+                """
+                   DELETE endpoint at `/users/{user_id}` for removing a specific user using its `user_id`.
                 """
     ),
 )
@@ -129,13 +123,11 @@ async def delete_user(
 @router.get(
     "/{user_id}/threads",
     tags=[DEFAULT_TAG],
-    response_model=List[Thread],
+    response_model=Union[List[Thread], GroupedThreads],
     operation_id="retrieve_user_threads",
     summary="Retrieve threads by user ",
     description="""
                 GET endpoint at `/users/{user_id}/threads` for fetching all threads associated with a specific user using its id. <br>
-                *This is meant for admin operation.* <br>
-                ** TODO: add pagination.**
             """,
 )
 async def retrieve_user_threads(
