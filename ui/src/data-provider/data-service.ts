@@ -61,9 +61,8 @@ export function deleteUser(userId: string): Promise<void> {
 export function getUserThreads(
   userId: string,
   grouped?: boolean,
-  timezoneOffset?: number,
 ): Promise<t.TThread[]> {
-  return request.get(endpoints.userThreads(userId, grouped, timezoneOffset));
+  return request.get(endpoints.userThreads(userId, grouped));
 }
 
 export function getUserStartup(userId: string): Promise<t.TUser> {

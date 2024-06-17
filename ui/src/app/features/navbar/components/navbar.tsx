@@ -19,14 +19,15 @@ import { TAssistant, TThread } from "@/data-provider/types";
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [selectedAssistant, setSelectedAssistant] = useState<TAssistant>();
-  const { data: threads, isLoading: threadsLoading } = useUserThreads("1234");
-  const { data } = useAssistants();
+  const { data: threadsData, isLoading: threadsLoading } = useUserThreads(
+    "1234",
+    true,
+  );
 
   const router = useRouter();
   const createNewThread = useCreateThread();
 
   const onNewThreadClick = () => {
-    console.log(selectedAssistant);
     if (selectedAssistant) {
       createNewThread.mutate(
         {
@@ -62,19 +63,19 @@ export default function Navbar() {
               <p className="mt-3">Loading threads... </p>
             </div>
           ) : (
-            // Object.entries(groupedThreadsState).map(([groupName, threads]) => {
-            // if (threads && threads.length > 0) {
-            // return (
-            <div>
-              <h2 className="m-3 text-gray-400">Group</h2>
-              {threads?.map((thread) => (
-                <ThreadItem key={thread.id} thread={thread} />
-              ))}
-            </div>
-            // );
-            // }
-            // return false;
-            // })
+            Object.entries(threadsData).map(([groupName, threads]) => {
+              if (threads && threads.length > 0) {
+                return (
+                  <div key={groupName}>
+                    <h2 className="m-3 text-gray-400">{groupName}</h2>
+                    {threads?.map((thread) => (
+                      <ThreadItem key={thread.id} thread={thread} />
+                    ))}
+                  </div>
+                );
+              }
+              return false;
+            })
           )}
         </nav>
       </div>

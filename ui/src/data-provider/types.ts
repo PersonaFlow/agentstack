@@ -116,6 +116,15 @@ export type TThread = {
   updated_at?: string;
 };
 
+export type TGroupedThreads = {
+  Today: TThread[];
+  Yesterday: TThread[];
+  "Past 7 Days": TThread[];
+  "Past 30 Days": TThread[];
+  "This Year": TThread[];
+  "Previous Years": TThread[];
+};
+
 export type TThreadRequest = {
   assistant_id: string;
   name: string;

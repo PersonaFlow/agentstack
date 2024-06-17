@@ -129,15 +129,10 @@ export const useDeleteUser = (userId: string) => {
   });
 };
 
-export const useUserThreads = (
-  userId: string,
-  grouped?: boolean,
-  timezoneOffset?: number,
-) => {
-  return useQuery<t.TThread[], Error>({
+export const useUserThreads = (userId: string, grouped?: boolean) => {
+  return useQuery<t.TThread[] | t.TGroupedThreads, Error>({
     queryKey: [QueryKeys.userThreads, userId],
-    queryFn: async () =>
-      await dataService.getUserThreads(userId, grouped, timezoneOffset),
+    queryFn: async () => await dataService.getUserThreads(userId, grouped),
   });
 };
 

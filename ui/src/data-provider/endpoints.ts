@@ -11,12 +11,12 @@ export const title = "/api/v1/runs/title";
 // --Users--
 export const users = (userId?: string) =>
   `/api/v1/users/${formatParam(userId)}`;
-export const userThreads = (
-  userId: string,
-  grouped?: boolean,
-  timezoneOffset?: number,
-) =>
-  `/api/v1/users/${userId}/threads${grouped ? "?grouped=" + formatParam(grouped) : ""}${timezoneOffset ? "?timezoneOffset=" + formatParam(timezoneOffset) : ""}`;
+
+export const userThreads = (userId: string, grouped?: boolean) => {
+  const timezoneOffset = new Date().getTimezoneOffset();
+  return `/api/v1/users/${userId}/threads?grouped=${grouped}&timezoneOffset=${timezoneOffset}`;
+};
+
 export const userStartup = (userId: string) =>
   `/api/v1/users/${userId}/startup`;
 
