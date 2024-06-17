@@ -9,9 +9,12 @@ import { useState } from "react";
 import NewThreadBtn from "./new-thread-btn";
 import { useRouter } from "next/navigation";
 import ThreadItem from "./thread-item";
+import { AssistantSelector } from "../../build-panel/components/assistant-selector";
+import { TAssistant } from "@/data-provider/types";
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
+  const [selectedAssistant, setSelectedAssistant] = useState<TAssistant>();
   const { data: threads, isLoading: threadsLoading } = useUserThreads("1234");
   const { data } = useAssistants();
 
@@ -29,10 +32,9 @@ export default function Navbar() {
       <div
         className={cn("flex flex-col m-3", open ? "w-72" : "w-0 collapse m-0")}
       >
-        {/* Header */}
-        {/* <div className="flex items-center justify-start-w-full p-2 ml-2 mr-2">
-          <Brain />
-        </div> */}
+        <div className="py-3">
+          <AssistantSelector setSelectedAssistant={setSelectedAssistant} />
+        </div>
         {/* New Thread Link */}
         {!threadsLoading && <NewThreadBtn handleClick={onNewThreadClick} />}
         <nav className="overflow-y-auto">
@@ -67,23 +69,6 @@ export default function Navbar() {
           <ChevronRight onClick={() => setOpen(true)} color="#000" />
         )}
       </div>
-    </div>
-  );
-
-  return (
-    <div className="p-4 border-solid border-2 h-full justify-center">
-      <Tabs defaultValue="assistants">
-        <TabsList>
-          <TabsTrigger value="assistants">Assistants</TabsTrigger>
-          <TabsTrigger value="chats">Chat</TabsTrigger>
-        </TabsList>
-        <TabsContent value="account">
-          Make changes to your account here.
-        </TabsContent>
-        <TabsContent value="password">Change your password here.</TabsContent>
-      </Tabs>
-
-      <div>{data?.map((item) => <h1 key={item.name}>{item.name}</h1>)}</div>
     </div>
   );
 }

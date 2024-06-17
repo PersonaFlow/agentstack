@@ -21,7 +21,7 @@ export default function ThreadItem({ thread }: TThreadItemProps) {
   const [isSelected, setIsSelected] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const updateThread = useUpdateThread(thread.id);
+  const { mutate: updateThread } = useUpdateThread(thread.id);
   const deleteThread = useDeleteThread(thread.id);
 
   const router = useRouter();
