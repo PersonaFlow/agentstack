@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 import ThreadItem from "./thread-item";
 import { AssistantSelector } from "../../build-panel/components/assistant-selector";
 import { TAssistant, TThread } from "@/data-provider/types";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
@@ -27,21 +28,27 @@ export default function Navbar() {
   const router = useRouter();
   const createNewThread = useCreateThread();
 
+  const { toast } = useToast();
+
   const onNewThreadClick = () => {
-    if (selectedAssistant) {
-      createNewThread.mutate(
-        {
-          assistant_id: selectedAssistant?.id,
-          name: "New thread",
-          user_id: "1234",
+    if (!selectedAssistant)
+      return toast({
+        variant: "destructive",
+        title: "Please select an assistant before creating a new thread.",
+      });
+
+    createNewThread.mutate(
+      {
+        assistant_id: selectedAssistant?.id,
+        name: "New thread",
+        user_id: "1234",
+      },
+      {
+        onSuccess: (thread: TThread) => {
+          router.push(`/c/${thread.id}`);
         },
-        {
-          onSuccess: (thread: TThread) => {
-            router.push(`/c/${thread.id}`);
-          },
-        },
-      );
-    }
+      },
+    );
   };
 
   return (
