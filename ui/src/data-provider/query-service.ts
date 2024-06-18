@@ -130,7 +130,7 @@ export const useDeleteUser = (userId: string) => {
 };
 
 export const useUserThreads = (userId: string, grouped?: boolean) => {
-  return useQuery<t.TThread[] | t.TGroupedThreads, Error>({
+  return useQuery<t.TGroupedThreads, Error>({
     queryKey: [QueryKeys.userThreads, userId],
     queryFn: async () => await dataService.getUserThreads(userId, grouped),
   });

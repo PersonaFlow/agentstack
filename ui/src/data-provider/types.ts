@@ -107,22 +107,22 @@ export type TUser = {
 };
 
 export type TThread = {
-  id: string;
-  user_id: string;
-  assistant_id: string;
+  id?: string;
+  user_id?: string;
+  assistant_id?: string;
   name: string;
-  kwargs: {};
-  created_at: string;
+  kwargs?: {};
+  created_at?: string;
   updated_at?: string;
 };
 
 export type TGroupedThreads = {
-  Today: TThread[];
-  Yesterday: TThread[];
-  "Past 7 Days": TThread[];
-  "Past 30 Days": TThread[];
-  "This Year": TThread[];
-  "Previous Years": TThread[];
+  Today?: TThread[];
+  Yesterday?: TThread[];
+  "Past 7 Days"?: TThread[];
+  "Past 30 Days"?: TThread[];
+  "This Year"?: TThread[];
+  "Previous Years"?: TThread[];
 };
 
 export type TThreadRequest = {

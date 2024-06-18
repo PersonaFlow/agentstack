@@ -14,7 +14,7 @@ import NewThreadBtn from "./new-thread-btn";
 import { useRouter } from "next/navigation";
 import ThreadItem from "./thread-item";
 import { AssistantSelector } from "../../build-panel/components/assistant-selector";
-import { TAssistant, TThread } from "@/data-provider/types";
+import { TAssistant, TGroupedThreads, TThread } from "@/data-provider/types";
 import { useToast } from "@/components/ui/use-toast";
 
 export default function Navbar() {

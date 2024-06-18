@@ -61,7 +61,7 @@ export function deleteUser(userId: string): Promise<void> {
 export function getUserThreads(
   userId: string,
   grouped?: boolean,
-): Promise<t.TThread[]> {
+): Promise<t.TGroupedThreads> {
   return request.get(endpoints.userThreads(userId, grouped));
 }
 
