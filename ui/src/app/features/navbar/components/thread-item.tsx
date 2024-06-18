@@ -70,7 +70,6 @@ export default function ThreadItem({ thread }: TThreadItemProps) {
     <a
       onClick={handleItemClick}
       className={cn(
-        // isSelected ? threadItemSelected : threadItemStyle,
         isDeleting ? "fade-out" : "",
         "fade-in flex m-3 gap-2 items-center cursor-pointer",
       )}
@@ -86,8 +85,6 @@ export default function ThreadItem({ thread }: TThreadItemProps) {
           autoFocus
         />
       )}
-      {/* {isFetching && <Spinner />} */}
-
       <div className="flex ml-auto gap-2">
         <EditIcon
           onClick={() => setIsEditing((prev) => !prev)}
