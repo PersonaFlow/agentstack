@@ -9,7 +9,6 @@ from fastapi.exceptions import RequestValidationError
 
 from langchain_core.runnables import RunnableConfig
 from langsmith.utils import tracing_is_enabled
-from langchain_community.chat_models import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.schema import AIMessage, HumanMessage, StrOutputParser
 from langchain.schema.runnable import RunnableMap
@@ -40,7 +39,6 @@ router = APIRouter()
 
 class CreateRunPayload(BaseModel):
     """Payload for creating a run."""
-
     user_id: str
     assistant_id: Optional[str] = None
     thread_id: Optional[str] = None
@@ -82,7 +80,8 @@ async def _run_input_and_config(
             "user_id": payload.user_id,
             "thread_id": payload.thread_id,
             "assistant_id": payload.assistant_id,
-            "callbacks": [tracer] if settings.ENABLE_LANGSMITH_TRACING else [],
+            # "callbacks": [tracer] if settings.ENABLE_LANGSMITH_TRACING else [],
+            "callbacks": [settings.langfuse_tracer] if settings.ENABLE_LANGFUSE_TRACING else [],
         },
     }
 
