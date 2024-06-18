@@ -185,9 +185,8 @@ export const useUpdateThread = (threadId: string) => {
 
 export const useDeleteThread = (threadId: string) => {
   const queryClient = useQueryClient();
-  return useMutation<void, Error>({
-    mutationFn: async (): Promise<void> =>
-      await dataService.deleteThread(threadId),
+  return useMutation({
+    mutationFn: async () => await dataService.deleteThread(threadId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKeys.threads] });
       queryClient.invalidateQueries({ queryKey: [QueryKeys.userThreads] });

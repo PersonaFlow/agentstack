@@ -1,5 +1,4 @@
 import { Input } from "@/components/ui/input";
-import Spinner from "@/components/ui/spinner";
 import { useToast } from "@/components/ui/use-toast";
 import {
   useDeleteThread,
@@ -9,7 +8,7 @@ import { TThread } from "@/data-provider/types";
 import { cn } from "@/lib/utils";
 import { Brain, EditIcon, Trash } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { ChangeEvent, ChangeEventHandler, useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 
 type TThreadItemProps = {
   thread: TThread;
@@ -21,15 +20,15 @@ export default function ThreadItem({ thread }: TThreadItemProps) {
   const [isSelected, setIsSelected] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const updateThread = useUpdateThread(thread.id);
-  const deleteThread = useDeleteThread(thread.id);
+  const updateThread = useUpdateThread(thread.id!);
+  const deleteThread = useDeleteThread(thread.id!);
 
   const router = useRouter();
   const pathname = usePathname();
   const { toast } = useToast();
 
   useEffect(() => {
-    setIsSelected(pathname.includes(thread.id));
+    setIsSelected(pathname.includes(thread.id!));
   }, [pathname, thread.id]);
 
   const handleItemClick = () => {
@@ -38,10 +37,18 @@ export default function ThreadItem({ thread }: TThreadItemProps) {
   };
 
   const submitUpdatedName = () => {
-    updateThread.mutate({
-      assistant_id: thread.assistant_id,
-      name: editedName,
-    });
+    updateThread.mutate(
+      {
+        assistant_id: thread.assistant_id!,
+        name: editedName,
+      },
+      {
+        onSuccess: () =>
+          toast({
+            title: "Thread has been updated.",
+          }),
+      },
+    );
     setIsEditing((prev) => !prev);
   };
 
@@ -51,10 +58,10 @@ export default function ThreadItem({ thread }: TThreadItemProps) {
 
   const handleDeleteThread = () => {
     setIsDeleting(true);
-    deleteThread.mutate({
+    deleteThread.mutate(undefined, {
       onSuccess: () =>
         toast({
-          title: "Successfully deleted thread",
+          title: "Thread has been deleted.",
         }),
     });
   };

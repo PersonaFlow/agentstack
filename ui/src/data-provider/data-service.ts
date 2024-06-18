@@ -95,7 +95,7 @@ export function updateThread(
   });
 }
 
-export function deleteThread(threadId: string): Promise<void> {
+export function deleteThread(threadId: string) {
   return request.delete(endpoints.threads(threadId));
 }
 
