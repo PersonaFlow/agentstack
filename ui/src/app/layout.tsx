@@ -3,9 +3,9 @@ import { Inter } from "next/font/google";
 import "@/styles/main.css";
 import Header from "@/app/features/header/components/header";
 import Providers from "@/providers/Providers";
-import Sidebar from "@/app/features/sidebar/components/sidebar";
-import Builder from "./features/build-panel/components/build-panel";
 import BuildPanel from "./features/build-panel/components/build-panel";
+import Navbar from "./features/navbar/components/navbar";
+import { Toaster } from "@/components/ui/toaster";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -28,10 +28,11 @@ export default function RootLayout({
           <Providers>
             <Header />
             <div className="flex flex-1 gap-2 overflow-y-hidden">
-              <Sidebar />
+              <Navbar />
               {children}
               <BuildPanel />
             </div>
+            <Toaster />
           </Providers>
         </div>
       </body>

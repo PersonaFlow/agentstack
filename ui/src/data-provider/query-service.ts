@@ -129,14 +129,10 @@ export const useDeleteUser = (userId: string) => {
   });
 };
 
-export const useUserThreads = (
-  userId: string,
-  grouped?: boolean,
-  timezoneOffset?: number,
-) => {
-  return useQuery<t.TThread[], Error>({
+export const useUserThreads = (userId: string, grouped?: boolean) => {
+  return useQuery<t.TGroupedThreads, Error>({
     queryKey: [QueryKeys.userThreads, userId],
-    queryFn: async () => await dataService.getUserThreads(userId),
+    queryFn: async () => await dataService.getUserThreads(userId, grouped),
   });
 };
 
@@ -154,14 +150,16 @@ export const useThreads = () => {
   });
 };
 
-export const useCreateThread = (payload: t.TCreateThreadRequest) => {
+export const useCreateThread = () => {
   const queryClient = useQueryClient();
-  return useMutation<t.TThread, Error>({
-    mutationFn: async (): Promise<t.TThread> => {
+  return useMutation<t.TThread, Error, t.TCreateThreadRequest>({
+    mutationFn: async (payload: t.TCreateThreadRequest): Promise<t.TThread> => {
       return await dataService.createThread(payload);
     },
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: [QueryKeys.threads] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QueryKeys.threads] });
+      queryClient.invalidateQueries({ queryKey: [QueryKeys.userThreads] });
+    },
   });
 };
 
@@ -174,10 +172,12 @@ export const useThread = (threadId: string) => {
 
 export const useUpdateThread = (threadId: string) => {
   const queryClient = useQueryClient();
-  return useMutation<t.TThread, Error>({
-    mutationFn: async () => await dataService.updateThread(threadId),
+  return useMutation<t.TThread, Error, t.TUpdateThread>({
+    mutationFn: async (payload: t.TUpdateThread) =>
+      await dataService.updateThread(threadId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKeys.threads] });
+      queryClient.invalidateQueries({ queryKey: [QueryKeys.userThreads] });
       queryClient.invalidateQueries({ queryKey: [threadId] });
     },
   });
@@ -185,11 +185,11 @@ export const useUpdateThread = (threadId: string) => {
 
 export const useDeleteThread = (threadId: string) => {
   const queryClient = useQueryClient();
-  return useMutation<void, Error>({
-    mutationFn: async (): Promise<void> =>
-      await dataService.deleteThread(threadId),
+  return useMutation({
+    mutationFn: async () => await dataService.deleteThread(threadId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKeys.threads] });
+      queryClient.invalidateQueries({ queryKey: [QueryKeys.userThreads] });
       queryClient.invalidateQueries({ queryKey: [threadId] });
     },
   });
@@ -373,8 +373,8 @@ export const useQueryLCRetriever = (payload: t.TQuery) => {
 // --Files--
 export const useUploadFile = () => {
   const queryClient = useQueryClient();
-  return useMutation<t.TFile, Error>({
-    mutationFn: async (payload: FormData): Promise<t.TFile> =>
+  return useMutation<t.TFile, Error, FormData>({
+    mutationFn: async (payload: FormData) =>
       await dataService.uploadFile(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKeys.files] });
