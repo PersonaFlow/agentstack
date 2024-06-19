@@ -61,9 +61,8 @@ export function deleteUser(userId: string): Promise<void> {
 export function getUserThreads(
   userId: string,
   grouped?: boolean,
-  timezoneOffset?: number,
-): Promise<t.TThread[]> {
-  return request.get(endpoints.userThreads(userId, grouped, timezoneOffset));
+): Promise<t.TGroupedThreads> {
+  return request.get(endpoints.userThreads(userId, grouped));
 }
 
 export function getUserStartup(userId: string): Promise<t.TUser> {
@@ -87,11 +86,16 @@ export function getThread(threadId: string): Promise<t.TThread> {
   return request.get(endpoints.threads(threadId));
 }
 
-export function updateThread(threadId: string): Promise<t.TThread> {
-  return request.patch(endpoints.threads(threadId));
+export function updateThread(
+  threadId: string,
+  payload: t.TUpdateThread,
+): Promise<t.TThread> {
+  return request.patch(endpoints.threads(threadId), {
+    ...payload,
+  });
 }
 
-export function deleteThread(threadId: string): Promise<void> {
+export function deleteThread(threadId: string) {
   return request.delete(endpoints.threads(threadId));
 }
 
@@ -202,7 +206,7 @@ export function queryLCRetriever(payload: t.TQuery): Promise<string> {
 }
 
 // --Files--
-export function uploadFile(payload: FormData): Promise<t.TFile> {
+export function uploadFile(payload: FormData): Promise<FormData> {
   return request.postMultiPart(endpoints.file(), payload);
 }
 
