@@ -91,6 +91,8 @@ async def upload_file(
             data=file_data, file_content=file_content
         )
         return file_obj
+    except HTTPException as e:
+        raise e
     except Exception as e:
         logger.error(f"Error uploading file: {str(e)}", exc_info=True)
         raise HTTPException(
@@ -109,7 +111,7 @@ async def upload_file(
 )
 async def retrieve_files(
     api_key: ApiKey,
-    user_id: str = Query(...),
+    user_id: Optional[str] = '',
     purpose: Optional[str] = Query(None),
     files_repository: FileRepository = Depends(get_file_repository),
     # api_key_repository: ApiKeyRepository = Depends(get_api_key_repository)
@@ -145,6 +147,8 @@ async def retrieve_file(
             logger.error(f"File not found for file id: {file_id}")
             raise HTTPException(status_code=404, detail="File not found")
         return file
+    except HTTPException as e:
+        raise e
     except Exception as e:
         logger.error(f"Error retrieving file: {str(e)}", exc_info=True)
         raise HTTPException(
