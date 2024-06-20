@@ -225,21 +225,11 @@ class Settings(BaseSettings):
     ENABLE_LANGFUSE_TRACING: bool = (
         True if os.getenv("ENABLE_LANGFUSE_TRACING", "false") == "true" else False
     )
-    LANGFUSE_SECRET_KEY: Optional[str] = os.getenv("LANGFUSE_API_KEY", "")
+    LANGFUSE_SECRET_KEY: Optional[str] = os.getenv("LANGFUSE_SECRET_KEY", "")
     LANGFUSE_PUBLIC_KEY: Optional[str] = os.getenv("LANGFUSE_PUBLIC_KEY", "")
     LANGFUSE_HOST: Optional[str] = os.getenv(
         "LANGFUSE_HOST", "http://localhost:3000"
     )
-
-    @property
-    def langfuse_tracer(self):
-        return CallbackHandler(
-            secret_key=self.LANGFUSE_SECRET_KEY,
-            public_key=self.LANGFUSE_PUBLIC_KEY,
-            host=self.LANGFUSE_HOST,
-        )
-        # ) if self.ENABLE_LANGFUSE_TRACING else None
-
 
 def get_settings() -> Settings:
     return Settings()
