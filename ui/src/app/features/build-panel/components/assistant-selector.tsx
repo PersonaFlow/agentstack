@@ -36,24 +36,22 @@ export function AssistantSelector({
   if (isLoading || !assistantsData) return <Spinner />;
 
   return (
-    <div className="px-2">
-      <Select
-        key={selectedAssistant?.name}
-        onValueChange={handleValueChange}
-        value={selectedAssistant?.name}
-        defaultValue={selectedAssistant?.name}
-      >
-        <SelectTrigger className="w-[180px]">
-          <SelectValue placeholder="Select assistant.." />
-        </SelectTrigger>
-        <SelectContent>
-          {assistantsData.map((assistant) => (
-            <SelectItem key={assistant.id} value={assistant.id}>
-              {assistant.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
+    <Select
+      key={selectedAssistant?.name}
+      onValueChange={handleValueChange}
+      value={selectedAssistant?.name}
+      defaultValue={selectedAssistant?.name}
+    >
+      <SelectTrigger className="w-[180px]">
+        <SelectValue placeholder="Select assistant.." />
+      </SelectTrigger>
+      <SelectContent>
+        {assistantsData.map((assistant) => (
+          <SelectItem key={assistant.id} value={assistant.id}>
+            {assistant.name}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }
