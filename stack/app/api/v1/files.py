@@ -72,7 +72,6 @@ async def upload_file(
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, detail="Unsupported file type."
             )
-        print(settings.MAX_FILE_UPLOAD_SIZE)
         if len(file_content) > settings.MAX_FILE_UPLOAD_SIZE:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -105,7 +104,7 @@ async def upload_file(
 @router.get(
     "",
     tags=[DEFAULT_TAG],
-    # response_model=list[FileSchema],
+    response_model=list[FileSchema],
     operation_id="retrieve_files_for_user",
     summary="Retrieve files",
     description="Retrieves a list of files.",
