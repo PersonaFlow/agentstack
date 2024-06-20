@@ -43,7 +43,7 @@ def random_model_thread() -> ModelThread:
     return ModelThread(
         id=str(uuid.uuid4()),
         user_id=str(uuid.uuid4()),
-        assistant_id="asdf",
+        assistant_id=str(uuid.uuid4()),
         created_at=datetime.now(),
         updated_at=datetime.now(),
     )
@@ -54,7 +54,7 @@ def random_schema_thread() -> ThreadSchema:
     return ThreadSchema(
         id=str(uuid.uuid4()),
         user_id=str(uuid.uuid4()),
-        assistant_id="assistant1",
+        assistant_id=str(uuid.uuid4()),
         name="Test Thread",
         created_at=datetime.now(),
         updated_at=datetime.now(),
@@ -65,6 +65,7 @@ def random_schema_thread() -> ThreadSchema:
 def random_schema_assistant() -> Assistant:
     return Assistant(
         id=str(uuid.uuid4()),
+        user_id=str(uuid.uuid4()),
         config={
             "configurable": {
                 "type": "agent",
