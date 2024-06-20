@@ -3,8 +3,10 @@ from uuid import uuid4
 
 from starlette.testclient import TestClient
 
+from stack.app import vectordbs, rag
 from stack.app.app_factory import create_app
 from stack.app.core.configuration import Settings
+# from stack.app.rag import ingest
 from stack.app.repositories.assistant import (
     AssistantRepository,
     get_assistant_repository,
@@ -162,35 +164,43 @@ async def test__delete_assistant__responds_correctly(random_schema_assistant):
 
 
 # TODO: Need to spend some more time with this one
-# async def test__create_assistant_file__responds_correctly(random_schema_file, random_schema_assistant):
-#     # Arrange
-#     assistant_repository = MagicMock(AssistantRepository)
-#     file_repository = MagicMock(FileRepository)
-#     create_data = {"file_id": str(random_schema_file.id)}
-#     with patch.object(
-#         assistant_repository, "retrieve_assistant", return_value=random_schema_assistant
-#     ) as method_a, patch.object(
-#         file_repository, "retrieve_file", return_value=random_schema_file
-#     ) as method_f, patch('stack.app.api.v1.assistants.get_vector_service') as mock_get_vector_service:
-#         # Mock the vector service's upsert method
-#         mock_service = MagicMock()
-#         mock_service.upsert = MagicMock(return_value=random_schema_file)
-#         mock_get_vector_service.return_value = mock_service
+async def test__create_assistant_file__responds_correctly(monkeypatch, random_schema_file, random_schema_assistant):
+    # Arrange
+    assistant_repository = MagicMock(AssistantRepository)
+    file_repository = MagicMock(FileRepository)
+    create_data = {"file_id": str(random_schema_file.id)}
+    mock_service = MagicMock()
+    mock_service.upsert = MagicMock(return_value=random_schema_file)
+    with (
+        patch.object(
+            assistant_repository, "retrieve_assistant", return_value=random_schema_assistant
+        ) as method_a,
+        patch.object(
+            assistant_repository, "add_file_to_assistant", return_value=random_schema_assistant
+        ) as method_b,
+        patch.object(
+        file_repository, "retrieve_file", return_value=random_schema_file
+    ) as method_f, patch.object(vectordbs, 'get_vector_service', return_value=mock_service)
+    as mock_get_vector_service,
+        patch("stack.app.rag.ingest.get_ingest_tasks_from_config", return_value=[])
+    ):
+        # monkeypatch.setattr(ingest, "get_ingest_tasks_from_config", lambda: [])
+        # Mock the vector service's upsert method
+        app.dependency_overrides[get_assistant_repository] = passthrough(assistant_repository)
+        app.dependency_overrides[get_file_repository] = passthrough(file_repository)
 
-#         app.dependency_overrides[get_assistant_repository] = passthrough(assistant_repository)
-#         app.dependency_overrides[get_file_repository] = passthrough(file_repository)
+        # Act
+        response = client.post(f"/api/v1/assistants/{random_schema_assistant.id}/files", json=create_data)
 
-#         # Act
-#         response = client.post(f"/api/v1/assistants/{random_schema_assistant.id}/files", json=create_data)
-
-#         # Assert
-#         assert method_a.call_count == 1
-#         assert method_f.call_count == 1
-#         assert mock_get_vector_service.call_count == 1
-#         assert mock_service.upsert.call_count == 1
-#         assert response.status_code == 200
-#         data = response.json()
-#         assert data["file_id"] == str(random_schema_file.id)
+        # Assert
+        assert method_a.call_count == 1
+        assert method_f.call_count == 1
+        # assert method_i.call_count == 1
+        # assert mock_get_vector_service.call_count == 1
+        # assert mock_service.upsert.call_count == 1
+        assert response.status_code == 200
+        data = response.json()
+        assert data["file_id"] == str(random_schema_file.id)
 
 
 async def test__create_assistant_file__assistant_not_found_404(random_schema_file):
