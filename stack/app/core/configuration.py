@@ -231,6 +231,10 @@ class Settings(BaseSettings):
         "LANGFUSE_HOST", "http://localhost:3000"
     )
 
+    ENABLE_PHOENIX_TRACING: bool = (
+        True if os.getenv("ENABLE_PHOENIX_TRACING", "false") == "true" else False
+    )
+
 def get_settings() -> Settings:
     return Settings()
 

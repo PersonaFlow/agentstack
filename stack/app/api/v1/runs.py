@@ -40,6 +40,10 @@ if settings.ENABLE_LANGFUSE_TRACING:
         host=settings.LANGFUSE_HOST,
     )
 
+if settings.ENABLE_PHOENIX_TRACING:
+    from phoenix.trace.langchain import LangChainInstrumentor
+    LangChainInstrumentor().instrument()
+
 DEFAULT_TAG = "Runs"
 logger = structlog.get_logger()
 router = APIRouter()
