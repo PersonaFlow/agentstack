@@ -9,7 +9,6 @@ from fastapi.exceptions import RequestValidationError
 
 from langchain_core.runnables import RunnableConfig
 from langsmith.utils import tracing_is_enabled
-from langchain_community.chat_models import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.schema import AIMessage, HumanMessage, StrOutputParser
 from langchain.schema.runnable import RunnableMap
@@ -25,22 +24,32 @@ from stack.app.utils.stream import astream_state, to_sse
 from sse_starlette import EventSourceResponse
 from stack.app.core.configuration import get_settings
 
+
 settings = get_settings()
 if settings.ENABLE_LANGSMITH_TRACING:
     from langsmith import Client
     from langchain.callbacks.tracers import LangChainTracer
-
-    tracer = LangChainTracer(project_name=settings.LANGSMITH_PROJECT_NAME)
+    langsmith_tracer = LangChainTracer(project_name=settings.LANGSMITH_PROJECT_NAME)
     langsmith_client = Client()
+
+if settings.ENABLE_LANGFUSE_TRACING:
+    from langfuse.callback import CallbackHandler
+    langfuse_tracer = CallbackHandler(
+        secret_key=settings.LANGFUSE_SECRET_KEY,
+        public_key=settings.LANGFUSE_PUBLIC_KEY,
+        host=settings.LANGFUSE_HOST,
+    )
+
+if settings.ENABLE_PHOENIX_TRACING:
+    from phoenix.trace.langchain import LangChainInstrumentor
+    LangChainInstrumentor().instrument()
 
 DEFAULT_TAG = "Runs"
 logger = structlog.get_logger()
 router = APIRouter()
 
-
 class CreateRunPayload(BaseModel):
     """Payload for creating a run."""
-
     user_id: str
     assistant_id: Optional[str] = None
     thread_id: Optional[str] = None
@@ -82,9 +91,14 @@ async def _run_input_and_config(
             "user_id": payload.user_id,
             "thread_id": payload.thread_id,
             "assistant_id": payload.assistant_id,
-            "callbacks": [tracer] if settings.ENABLE_LANGSMITH_TRACING else [],
         },
+        "callbacks": []
     }
+    if settings.ENABLE_LANGSMITH_TRACING:
+        config["callbacks"].append(langsmith_tracer)
+
+    if settings.ENABLE_LANGFUSE_TRACING:
+        config["callbacks"].append(langfuse_tracer)
 
     try:
         if payload.input is not None:
@@ -219,8 +233,8 @@ async def title_endpoint(
 
     thread = await thread_repository.retrieve_thread(request.thread_id)
     assistant = await assistant_repo.retrieve_assistant(thread.assistant_id)
-    llm_type = assistant.config["configurable"]["llm_type"]
-    agent_type = assistant.config["configurable"]["agent_type"]
+    llm_type = assistant.config["configurable"]["type==chatbot/llm_type"]
+    agent_type = assistant.config["configurable"]["type==agent/agent_type"]
     type = assistant.config["configurable"]["type"]
     model = agent_type if type == "agent" else llm_type
     llm = get_llm(model)
@@ -238,13 +252,20 @@ async def title_endpoint(
 
     chain = _context | response_synthesizer
 
+    callbacks = []
     try:
         title = chain.invoke(
             {
                 "chat_history": converted_chat_history,
             },
-            config={"callbacks": [tracer] if settings.ENABLE_LANGSMITH_TRACING else []},
+            config={"callbacks": callbacks},
         )
+        if settings.ENABLE_LANGSMITH_TRACING:
+            callbacks.append(langsmith_tracer)
+
+        if settings.ENABLE_LANGFUSE_TRACING:
+            callbacks.append(langfuse_tracer)
+
         thread = await thread_repository.update_thread(
             request.thread_id, {"name": title}
         )
