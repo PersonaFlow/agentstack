@@ -16,6 +16,8 @@ export function AssistentBuilder() {
   return (
     <>
       <div className="flex gap-3">
+        {/* <AssistantSelector setSelectedAssistant={setSelectedAssistant} />
+         */}
         <AssistantSelector setSelectedAssistant={setSelectedAssistant} />
         <Button
           className="flex gap-2"
