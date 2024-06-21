@@ -7,7 +7,6 @@ import { useState } from "react";
 import NewThreadBtn from "./new-thread-btn";
 import { useRouter } from "next/navigation";
 import ThreadItem from "./thread-item";
-import { AssistantSelector } from "../../build-panel/components/assistant-selector";
 import { TAssistant, TThread } from "@/data-provider/types";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -51,9 +50,6 @@ export default function Navbar() {
       <div
         className={cn("flex flex-col m-3", open ? "w-72" : "w-0 collapse m-0")}
       >
-        <div className="py-3">
-          <AssistantSelector setSelectedAssistant={setSelectedAssistant} />
-        </div>
         {/* New Thread Link */}
         {!threadsLoading && <NewThreadBtn handleClick={onNewThreadClick} />}
         <nav className="overflow-y-auto">
