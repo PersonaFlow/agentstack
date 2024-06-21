@@ -1,3 +1,3 @@
 import { atom } from "jotai";
 
-const assistantAtom = atom(undefined);
+export const assistantAtom = atom(localStorage.getItem('personaflow_defaultAssistant') || null);
