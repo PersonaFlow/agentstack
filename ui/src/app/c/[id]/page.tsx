@@ -1,4 +1,4 @@
-import { ChatForm } from "@/components/features/chat/components/chat-form";
+import { ChatForm } from "@/components/features/chat-panel/components/chat-form";
 
 export default function ConversationPage() {
   return (
