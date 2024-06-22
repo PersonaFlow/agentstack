@@ -111,7 +111,7 @@ export function getMessagesByCheckpoint(
 }
 
 // --Messages--
-export function createMessage(payload: t.TMessageRequest): Promise<t.TMessage> {
+export function createMessage(payload: t.TMessage): Promise<t.TMessage> {
   return request.post(endpoints.messages());
 }
 

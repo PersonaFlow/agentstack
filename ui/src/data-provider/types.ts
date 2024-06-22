@@ -135,13 +135,7 @@ export interface TCreateThreadRequest extends TThreadRequest {
   user_id: string;
 }
 
-export interface TMessage extends TMessageRequest {
-  id: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export type TMessageRequest = {
+export type TMessage = {
   thread_id: string;
   user_id: string;
   assistant_id: string;
@@ -149,6 +143,9 @@ export type TMessageRequest = {
   type: string;
   additional_kwargs: {};
   example: boolean;
+  id?: string;
+  created_at?: string;
+  updated_at?: string;
 };
 
 export type TUpdateMessageRequest = {

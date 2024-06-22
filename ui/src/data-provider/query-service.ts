@@ -213,7 +213,7 @@ export const useMessagesByCheckpoint = (threadId: string) => {
 };
 
 // --Messages--
-export const useCreateMessage = (payload: t.TMessageRequest) => {
+export const useCreateMessage = (payload: t.TMessage) => {
   return useQuery<t.TMessage, Error>({
     queryKey: [],
     queryFn: async (): Promise<t.TMessage> =>
