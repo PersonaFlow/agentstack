@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import NewThreadBtn from "./new-thread-btn";
 import { useRouter } from "next/navigation";
 import ThreadItem from "./thread-item";
-import { TAssistant, TThread } from "@/data-provider/types";
+import { TThread } from "@/data-provider/types";
 import { useToast } from "@/components/ui/use-toast";
 import { useAtom } from "jotai";
 import { assistantAtom } from "@/store";
@@ -38,7 +38,7 @@ export default function Navbar() {
       const _filteredThreads = Object.entries(threadsData).reduce(
         (newGroupedThreads, [grouping, threads]) => {
           const filtered = threads.filter(
-            (thread) => thread.assistant_id === selectedAssistant.id,
+            (thread) => thread.assistant_id === selectedAssistant?.id,
           );
           newGroupedThreads[grouping] = filtered;
           return newGroupedThreads;
