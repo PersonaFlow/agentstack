@@ -46,7 +46,6 @@ export function EditAssistant() {
   const { tools } = form.getValues().config.configurable;
 
   useEffect(() => {
-    console.log("changed");
     form.reset(selectedAssistant);
   }, [selectedAssistant]);
 
