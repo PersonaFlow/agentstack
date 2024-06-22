@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "@/styles/main.css";
-import Header from "@/app/features/header/components/header";
 import Providers from "@/providers/Providers";
-import BuildPanel from "./features/build-panel/components/build-panel";
-import Navbar from "./features/navbar/components/navbar";
 import { Toaster } from "@/components/ui/toaster";
+import Header from "@/features/header/components/header";
+import Navbar from "@/features/navbar/components/navbar";
+import BuildPanel from "@/features/build-panel/components/build-panel";
 
 const inter = Inter({ subsets: ["latin"] });
 
