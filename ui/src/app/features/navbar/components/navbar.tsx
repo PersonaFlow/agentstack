@@ -34,11 +34,11 @@ export default function Navbar() {
   }, [threadsData]);
 
   useEffect(() => {
-    if (assistantAtom && threadsData) {
+    if (selectedAssistant && threadsData) {
       const _filteredThreads = filterThreads(threadsData);
       setFilteredThreads(_filteredThreads);
     }
-  }, [selectedAssistant]);
+  }, [selectedAssistant, threadsData]);
 
   const filterThreads = (groupedThreads: TGroupedThreads) =>
     Object.entries(groupedThreads).reduce(
