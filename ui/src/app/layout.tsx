@@ -3,9 +3,9 @@ import { Inter } from "next/font/google";
 import "@/styles/main.css";
 import Providers from "@/providers/Providers";
 import { Toaster } from "@/components/ui/toaster";
-import Header from "@/features/header/components/header";
-import Navbar from "@/features/navbar/components/navbar";
-import BuildPanel from "@/features/build-panel/components/build-panel";
+import BuildPanel from "@/components/features/build-panel/components/build-panel";
+import Navbar from "@/components/features/navbar/components/navbar";
+import Header from "@/components/features/header/components/header";
 
 const inter = Inter({ subsets: ["latin"] });
 
