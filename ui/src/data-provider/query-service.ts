@@ -2,6 +2,7 @@ import {
   Query,
   QueryObserverResult,
   QueryOptions,
+  UseQueryOptions,
   useMutation,
   useQuery,
   useQueryClient,
@@ -280,7 +281,7 @@ export const useAssistant = (
 
 export const useUpdateAssistant = (assistantId: string) => {
   const queryClient = useQueryClient();
-  return useMutation<t.TAssistant, Error>({
+  return useMutation<t.TAssistant, Error, t.TAssistant>({
     mutationFn: async (payload: t.TAssistant): Promise<t.TAssistant> =>
       await dataService.updateAssistant(assistantId, payload),
     onSuccess: () => {

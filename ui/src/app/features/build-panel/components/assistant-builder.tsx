@@ -7,31 +7,25 @@ import { TAssistant } from "@/data-provider/types";
 import { SquareIcon } from "@radix-ui/react-icons";
 import { EditAssistant } from "./edit-assistant";
 import { CreateAssistant } from "./create-assistant";
+import { useAtom } from "jotai";
+import { assistantAtom } from "@/store";
 
 export function AssistentBuilder() {
-  const [selectedAssistant, setSelectedAssistant] = useState<
-    TAssistant | undefined
-  >(undefined);
+  const [selectedAssistant, setSelectedAssistant] = useAtom(assistantAtom);
 
   return (
     <>
       <div className="flex gap-3">
-        {/* <AssistantSelector setSelectedAssistant={setSelectedAssistant} />
-         */}
-        <AssistantSelector setSelectedAssistant={setSelectedAssistant} />
+        <AssistantSelector />
         <Button
           className="flex gap-2"
-          onClick={() => setSelectedAssistant(undefined)}
+          onClick={() => setSelectedAssistant(null)}
         >
           <SquareIcon />
           Create Assistant
         </Button>
       </div>
-      {selectedAssistant ? (
-        <EditAssistant selectedAssistant={selectedAssistant} />
-      ) : (
-        <CreateAssistant setSelectedAssistant={setSelectedAssistant} />
-      )}
+      {selectedAssistant ? <EditAssistant /> : <CreateAssistant />}
     </>
   );
 }
