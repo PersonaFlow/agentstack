@@ -19,13 +19,19 @@ export default function Navbar() {
   );
 
   const [filteredThreads, setFilteredThreads] = useState(threadsData || []);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const [selectedAssistant] = useAtom(assistantAtom);
 
   const router = useRouter();
   const createNewThread = useCreateThread();
 
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (!selectedAssistant && threadsData) {
+      setFilteredThreads(threadsData);
+    }
+  }, [threadsData]);
 
   useEffect(() => {
     if (assistantAtom && threadsData) {
