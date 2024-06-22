@@ -10,6 +10,8 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { AssistantForm } from "./assistant-form";
 import { TAssistant } from "@/data-provider/types";
+import { useAtom } from "jotai";
+import { assistantAtom } from "@/store";
 
 const formSchema = z.object({
   public: z.boolean(),
@@ -46,14 +48,9 @@ const defaultValues = {
   file_ids: [],
 };
 
-type TCreateAssistantProps = {
-  setSelectedAssistant: (arg: TAssistant) => void;
-};
-
-export function CreateAssistant({
-  setSelectedAssistant,
-}: TCreateAssistantProps) {
+export function CreateAssistant() {
   const { data: assistantsData, isLoading } = useAssistants();
+  const [_, setSelectedAssistant] = useAtom(assistantAtom);
 
   const createAssistant = useCreateAssistant();
 
