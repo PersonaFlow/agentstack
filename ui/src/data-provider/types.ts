@@ -136,12 +136,16 @@ export interface TCreateThreadRequest extends TThreadRequest {
 }
 
 export type TMessage = {
-  thread_id: string;
-  user_id: string;
-  assistant_id: string;
+  thread_id?: string;
+  user_id?: string;
+  assistant_id?: string;
   content: string;
   type: string;
+  name?: string | null;
+  tool_calls?: string[];
+  invalid_tool_calls?: string[];
   additional_kwargs: {};
+  response_metadata?: {};
   example: boolean;
   id?: string;
   created_at?: string;

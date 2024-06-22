@@ -20,12 +20,16 @@ export default function MessageItem({ message }: TMessageItemProps) {
           {/* <Avatar message={message} /> */}
           <div className="flex w-full min-w-0 max-w-message flex-1 flex-col items-center gap-x-3 md:flex-row">
             <div className="w-full">
-              {message.content}
-              {/* <MessageContent
+              <div className="flex w-full flex-col justify-center gap-y-1 py-1">
+                <div className="flex flex-col gap-y-1 whitespace-pre-wrap [overflow-wrap:anywhere] md:max-w-4xl">
+                  {message.content}
+                  {/* <MessageContent
                 isLast={isLast}
                 message={message}
                 onRetry={onRetry}
               /> */}
+                </div>
+              </div>
             </div>
           </div>
         </div>
