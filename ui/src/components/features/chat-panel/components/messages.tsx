@@ -1,8 +1,6 @@
 "use client";
-import { useRouter } from "next/router";
 import MessageItem from "./message-item";
-import { useParams, usePathname } from "next/navigation";
-import { useMessagesByThread } from "@/data-provider/query-service";
+import { useParams } from "next/navigation";
 
 const data = {
   values: [
