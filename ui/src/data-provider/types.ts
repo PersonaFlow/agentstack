@@ -140,6 +140,11 @@ export interface TCreateThreadRequest extends TThreadRequest {
   user_id: string;
 }
 
+export type TMessageState = {
+  values: TMessage[];
+  next: string[]
+}
+
 export type TMessage = {
   thread_id?: string;
   user_id?: string;
