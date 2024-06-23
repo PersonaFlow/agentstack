@@ -14,7 +14,6 @@ from pydantic_settings import BaseSettings
 from pydantic import ValidationError
 import structlog
 from typing import Optional
-# from langfuse.callback import CallbackHandler
 
 logger = structlog.get_logger()
 
