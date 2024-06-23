@@ -10,6 +10,8 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { TAssistant, TConfigurableTool } from "@/data-provider/types";
 import { AssistantForm } from "./assistant-form";
+import { useAtom } from "jotai";
+import { assistantAtom } from "@/store";
 
 const formSchema = z.object({
   public: z.boolean(),
@@ -28,14 +30,11 @@ const formSchema = z.object({
   file_ids: z.array(z.string()),
 });
 
-type TEditAssistantProps = {
-  selectedAssistant: TAssistant;
-};
-
-export function EditAssistant({ selectedAssistant }: TEditAssistantProps) {
+export function EditAssistant() {
   const { data: assistantsData, isLoading } = useAssistants();
+  const [selectedAssistant] = useAtom(assistantAtom);
 
-  const updateAssistant = useUpdateAssistant(selectedAssistant.id);
+  const updateAssistant = useUpdateAssistant(selectedAssistant?.id);
 
   const form = useForm<TAssistant>({
     resolver: zodResolver(formSchema),

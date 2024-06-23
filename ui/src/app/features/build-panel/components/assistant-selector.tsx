@@ -9,18 +9,11 @@ import {
 } from "@/components/ui/select";
 import Spinner from "@/components/ui/spinner";
 import { useAssistants } from "@/data-provider/query-service";
-import { TAssistant } from "@/data-provider/types";
-import { useEffect } from "react";
+import { assistantAtom } from "@/store";
+import { useAtom } from "jotai";
 
-type TAssistantProps = {
-  setSelectedAssistant: (arg: TAssistant | null) => void;
-  selectedAssistant?: TAssistant;
-};
-
-export function AssistantSelector({
-  setSelectedAssistant,
-  selectedAssistant,
-}: TAssistantProps) {
+export function AssistantSelector() {
+  const [selectedAssistant, setSelectedAssistant] = useAtom(assistantAtom);
   const { data: assistantsData, isLoading } = useAssistants();
 
   const handleValueChange = (assistantId: string) => {
@@ -29,6 +22,10 @@ export function AssistantSelector({
     );
 
     if (_selectedAssistant) {
+      localStorage.setItem(
+        "personaflow_defaultAssistant",
+        JSON.stringify(_selectedAssistant),
+      );
       setSelectedAssistant(_selectedAssistant);
     }
   };
@@ -37,9 +34,8 @@ export function AssistantSelector({
 
   return (
     <Select
-      key={selectedAssistant?.name}
       onValueChange={handleValueChange}
-      value={selectedAssistant?.name}
+      value={selectedAssistant?.id}
       defaultValue={selectedAssistant?.name}
     >
       <SelectTrigger className="w-[180px]">
