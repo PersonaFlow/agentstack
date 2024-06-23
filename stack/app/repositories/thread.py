@@ -11,7 +11,8 @@ from stack.app.core.datastore import get_postgresql_session_provider
 from typing import Optional, Any
 from langchain_core.messages import message_chunk_to_message
 
-from stack.app.agents.configurable_agent import AgentType, get_agent_executor
+from stack.app.schema.assistant import Assistant
+from stack.app.agents.configurable_agent import AgentType, get_agent_executor, agent
 
 from langgraph.channels.base import ChannelsManager
 from langgraph.checkpoint.base import empty_checkpoint
@@ -168,3 +169,26 @@ class ThreadRepository(BaseRepository):
                     _prepare_next_tasks(checkpoint, app.nodes, channels)
                 ),
             }
+
+    async def get_thread_state(self, thread_id: str, assistant: Assistant):
+        """Get the state of a thread."""
+        try:
+            state = await agent.aget_state(
+                {
+                    "configurable": {
+                        **assistant.config["configurable"],
+                        "thread_id": thread_id,
+                        "assistant_id": assistant.id,
+                    }
+                }
+            )
+            return {
+                "values": state.values,
+                "next": state.next,
+            }
+        except TypeError as e:
+            print(f"Type Error: {e}")
+            raise
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+            raise
