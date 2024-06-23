@@ -32,15 +32,11 @@ def group_threads(
         if updated_at_date == now_in_user_tz.date():
             grouped["Today"].append(thread)
         elif updated_at_date == (now_in_user_tz - timedelta(days=1)).date():
-        elif updated_at_date == (now_in_user_tz - timedelta(days=1)).date():
             grouped["Yesterday"].append(thread)
-        elif (now_in_user_tz - timedelta(days=7)).date() <= updated_at_date < (now_in_user_tz - timedelta(days=1)).date():
         elif (now_in_user_tz - timedelta(days=7)).date() <= updated_at_date < (now_in_user_tz - timedelta(days=1)).date():
             grouped["Past 7 Days"].append(thread)
         elif (now_in_user_tz - timedelta(days=30)).date() <= updated_at_date < (now_in_user_tz - timedelta(days=7)).date():
-        elif (now_in_user_tz - timedelta(days=30)).date() <= updated_at_date < (now_in_user_tz - timedelta(days=7)).date():
             grouped["Past 30 Days"].append(thread)
-        elif updated_at_user_tz.year == now_in_user_tz.year:
         elif updated_at_user_tz.year == now_in_user_tz.year:
             grouped["This Year"].append(thread)
         else:
