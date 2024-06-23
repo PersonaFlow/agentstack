@@ -1,4 +1,8 @@
+"use client";
+import { useRouter } from "next/router";
 import MessageItem from "./message-item";
+import { useParams, usePathname } from "next/navigation";
+import { useMessagesByThread } from "@/data-provider/query-service";
 
 const data = {
   values: [
@@ -61,10 +65,14 @@ const data = {
 
 export default function Messages() {
   const { values: messages } = data;
+  const { id: threadId } = useParams();
+
+  //   const {data: messages} = useMessagesByThread(threadId)
+
   return (
-    <div>
+    <div className="p-6">
       {messages.map((message) => (
-        <MessageItem message={message} />
+        <MessageItem message={message} key={message.id} />
       ))}
     </div>
   );

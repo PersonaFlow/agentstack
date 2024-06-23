@@ -5,6 +5,11 @@ export type TRunInput = {
   example: boolean;
 };
 
+export enum MessageType {
+  AI = "ai",
+  HUMAN = "human",
+}
+
 export type TBotType = "chatbot" | "chat_retrieval" | "agent";
 
 export type TAgentType =
