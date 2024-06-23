@@ -82,15 +82,7 @@ class Settings(BaseSettings):
     # Tavily external search service api key - used for assistant external search tool (Optional)
     TAVILY_API_KEY: Optional[str] = os.getenv("TAVILY_API_KEY", None)
 
-    # For Langsmith tracing (Optional)
-    ENABLE_LANGSMITH_TRACING: bool = (
-        True if os.getenv("ENABLE_LANGSMITH_TRACING", "false") == "true" else False
-    )
-    LANGCHAIN_API_KEY: Optional[str] = os.getenv("LANGCHAIN_API_KEY", None)
-    LANGCHAIN_ENDPOINT: str = os.getenv(
-        "LANGCHAIN_ENDPOINT", "https://api.smith.langchain.com"
-    )
-    LANGSMITH_PROJECT_NAME: str = os.getenv("LANGSMITH_PROJECT_NAME", "project")
+
 
     # Number of iterations assistant is allowed to run to accomplish task or improve results or response (Required)
     LANGGRAPH_RECURSION_LIMIT: int = os.getenv("LANGGRAPH_RECURSION_LIMIT", 25)
@@ -218,6 +210,29 @@ class Settings(BaseSettings):
 
     MAX_QUERY_TOP_K: int = int(os.getenv("MAX_QUERY_TOP_K", 5))
 
+    # For Langsmith tracing (Optional)
+    ENABLE_LANGSMITH_TRACING: bool = (
+        True if os.getenv("ENABLE_LANGSMITH_TRACING", "false") == "true" else False
+    )
+    LANGCHAIN_API_KEY: Optional[str] = os.getenv("LANGCHAIN_API_KEY", None)
+    LANGCHAIN_ENDPOINT: str = os.getenv(
+        "LANGCHAIN_ENDPOINT", "https://api.smith.langchain.com"
+    )
+    LANGSMITH_PROJECT_NAME: str = os.getenv("LANGSMITH_PROJECT_NAME", "project")
+
+    # Langfuse Configurations (Optional)
+    ENABLE_LANGFUSE_TRACING: bool = (
+        True if os.getenv("ENABLE_LANGFUSE_TRACING", "false") == "true" else False
+    )
+    LANGFUSE_SECRET_KEY: Optional[str] = os.getenv("LANGFUSE_SECRET_KEY", "")
+    LANGFUSE_PUBLIC_KEY: Optional[str] = os.getenv("LANGFUSE_PUBLIC_KEY", "")
+    LANGFUSE_HOST: Optional[str] = os.getenv(
+        "LANGFUSE_HOST", "http://localhost:3000"
+    )
+
+    ENABLE_PHOENIX_TRACING: bool = (
+        True if os.getenv("ENABLE_PHOENIX_TRACING", "false") == "true" else False
+    )
 
 def get_settings() -> Settings:
     return Settings()
