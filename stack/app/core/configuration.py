@@ -67,7 +67,9 @@ class Settings(BaseSettings):
 
     # Required if you intend to use reranking functionality to query documents
     COHERE_API_KEY: Optional[str] = os.getenv("COHERE_API_KEY", None)
-    MIXTRAL_FIREWORKS_API_KEY: Optional[str] = os.getenv("MIXTRAL_FIREWORKS_API_KEY", None)
+    MIXTRAL_FIREWORKS_API_KEY: Optional[str] = os.getenv(
+        "MIXTRAL_FIREWORKS_API_KEY", None
+    )
 
     # Used for processing of unstructured documents to be ingested into vector db
     # "semantic" splitting method will not work without these
@@ -81,8 +83,6 @@ class Settings(BaseSettings):
 
     # Tavily external search service api key - used for assistant external search tool (Optional)
     TAVILY_API_KEY: Optional[str] = os.getenv("TAVILY_API_KEY", None)
-
-
 
     # Number of iterations assistant is allowed to run to accomplish task or improve results or response (Required)
     LANGGRAPH_RECURSION_LIMIT: int = os.getenv("LANGGRAPH_RECURSION_LIMIT", 25)
@@ -226,13 +226,12 @@ class Settings(BaseSettings):
     )
     LANGFUSE_SECRET_KEY: Optional[str] = os.getenv("LANGFUSE_SECRET_KEY", "")
     LANGFUSE_PUBLIC_KEY: Optional[str] = os.getenv("LANGFUSE_PUBLIC_KEY", "")
-    LANGFUSE_HOST: Optional[str] = os.getenv(
-        "LANGFUSE_HOST", "http://localhost:3000"
-    )
+    LANGFUSE_HOST: Optional[str] = os.getenv("LANGFUSE_HOST", "http://localhost:3000")
 
     ENABLE_PHOENIX_TRACING: bool = (
         True if os.getenv("ENABLE_PHOENIX_TRACING", "false") == "true" else False
     )
+
 
 def get_settings() -> Settings:
     return Settings()

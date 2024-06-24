@@ -363,13 +363,17 @@ def downgrade() -> None:
     )
     op.drop_table("users", schema="personaflow")
     op.drop_index(
-        op.f("ix_personaflow_threads_user_id"), table_name="threads", schema="personaflow"
+        op.f("ix_personaflow_threads_user_id"),
+        table_name="threads",
+        schema="personaflow",
     )
     op.drop_table("threads", schema="personaflow")
     op.drop_table("request_logs", schema="personaflow")
     op.drop_table("messages", schema="personaflow")
     op.drop_index(
-        op.f("ix_personaflow_assistants_name"), table_name="assistants", schema="personaflow"
+        op.f("ix_personaflow_assistants_name"),
+        table_name="assistants",
+        schema="personaflow",
     )
     op.drop_table("assistants", schema="personaflow")
     # ### end Alembic commands ###  # Operations to downgrade the database schema.

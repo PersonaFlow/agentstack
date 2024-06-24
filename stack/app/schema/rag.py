@@ -2,7 +2,13 @@ import uuid
 from enum import Enum
 from typing import Literal, Optional
 from pydantic import BaseModel, Field, validator
-from semantic_router.encoders import BaseEncoder, CohereEncoder, OpenAIEncoder, AzureOpenAIEncoder, MistralEncoder
+from semantic_router.encoders import (
+    BaseEncoder,
+    CohereEncoder,
+    OpenAIEncoder,
+    AzureOpenAIEncoder,
+    MistralEncoder,
+)
 from stack.app.rag.encoders.ollama_encoder import OllamaEncoder
 from stack.app.core.configuration import get_settings
 

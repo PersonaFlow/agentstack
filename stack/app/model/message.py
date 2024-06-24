@@ -22,17 +22,17 @@ class Message(Base):
         ForeignKey(f"{settings.INTERNAL_DATABASE_SCHEMA}.threads.id"),
         nullable=False,
         index=True,
-        comment="The ID of the thread to which this message belongs."
+        comment="The ID of the thread to which this message belongs.",
     )
     user_id: Mapped[str] = mapped_column(
         String(),
         ForeignKey(f"{settings.INTERNAL_DATABASE_SCHEMA}.users.user_id"),
-        comment="The ID of the user who sent the message."
+        comment="The ID of the user who sent the message.",
     )
     assistant_id: Mapped[str] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey(f"{settings.INTERNAL_DATABASE_SCHEMA}.assistants.id"),
-        comment="The ID of the assistant that processed the message."
+        comment="The ID of the assistant that processed the message.",
     )
     content: Mapped[str] = mapped_column(
         String(), comment="The content of the message."
@@ -64,12 +64,6 @@ class Message(Base):
         comment="Last updated date",
     )
 
-    thread = relationship(
-        "Thread",
-        back_populates="message"
-    )
+    thread = relationship("Thread", back_populates="message")
 
-    user = relationship(
-        "User",
-        back_populates="message"
-    )
+    user = relationship("User", back_populates="message")

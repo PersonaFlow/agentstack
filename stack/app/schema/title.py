@@ -11,9 +11,11 @@ class Metadata(BaseModel):
     run_id: Optional[str]
     sources: Optional[List[Source]]
 
+
 class ChatMessage(BaseModel):
     content: str
     type: str
+
 
 class TitleRequest(BaseModel):
     thread_id: str = Field(
