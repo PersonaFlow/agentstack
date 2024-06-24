@@ -9,14 +9,11 @@ from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 from stack.app.core.datastore import get_postgresql_session_provider
 from typing import Optional, Any
-from langchain_core.messages import message_chunk_to_message
-
+from typing import Any, Dict, Mapping, Optional, Sequence, Union
+from langchain_core.runnables import RunnableConfig
 from stack.app.schema.assistant import Assistant
-from stack.app.agents.configurable_agent import AgentType, get_agent_executor, agent
-
-from langgraph.channels.base import ChannelsManager
-from langgraph.checkpoint.base import empty_checkpoint
-from langgraph.pregel import _prepare_next_tasks
+from stack.app.agents.configurable_agent import agent
+from langchain_core.messages import AnyMessage
 
 
 MESSAGES_CHANNEL_NAME = "__root__"
@@ -154,21 +151,6 @@ class ThreadRepository(BaseRepository):
                 detail="Failed to retrieve threads for the specified user.",
             )
 
-    async def get_thread_checkpoints(self, thread_id: str):
-        """Get all checkpoint messages for a thread."""
-        config = {"configurable": {"thread_id": thread_id}}
-        app = get_agent_executor([], AgentType.GPT_35_TURBO, "", False)
-        checkpoint = await app.checkpointer.aget(config) or empty_checkpoint()
-        with ChannelsManager(app.channels, checkpoint) as channels:
-            return {
-                "messages": [
-                    message_chunk_to_message(msg)
-                    for msg in channels[MESSAGES_CHANNEL_NAME].get()
-                ],
-                "resumeable": bool(
-                    _prepare_next_tasks(checkpoint, app.nodes, channels)
-                ),
-            }
 
     async def get_thread_state(self, thread_id: str, assistant: Assistant):
         """Get the state of a thread."""
@@ -187,8 +169,63 @@ class ThreadRepository(BaseRepository):
                 "next": state.next,
             }
         except TypeError as e:
-            print(f"Type Error: {e}")
-            raise
+            logger.exception(f"Type Error: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to retrieve thread state.",
+            )
+        except SQLAlchemyError as e:
+            logger.exception(
+                f"Failed to retrieve checkpoints due to a database error: {e}",
+                exc_info=True,
+            )
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to retrieve threads for the specified user.",
+            )
         except Exception as e:
-            print(f"Unexpected error: {e}")
-            raise
+            logger.exception(f"Unexpected error: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to retrieve thread state .",
+            )
+
+
+    async def update_thread_state(
+        config: RunnableConfig,
+        values: Union[Sequence[AnyMessage], dict[str, Any]],
+        *,
+        assistant: Assistant,
+    ):
+        """Add state to a thread."""
+        await agent.aupdate_state(
+            {
+                "configurable": {
+                    **assistant.config["configurable"],
+                    **config["configurable"],
+                    "assistant_id": assistant.id,
+                }
+            },
+            values,
+        )
+
+
+    async def get_thread_history(*, thread_id: str, assistant: Assistant):
+        """Get the history of a thread."""
+        return [
+            {
+                "values": c.values,
+                "next": c.next,
+                "config": c.config,
+                "parent": c.parent_config,
+            }
+            async for c in agent.aget_state_history(
+                {
+                    "configurable": {
+                        **assistant.config["configurable"],
+                        "thread_id": thread_id,
+                        "assistant_id": assistant.id,
+                    }
+                }
+            )
+        ]
