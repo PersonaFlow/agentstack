@@ -3,26 +3,54 @@ import Spinner from "@/components/ui/spinner";
 import { useCreateThread, useUserThreads } from "@/data-provider/query-service";
 import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import NewThreadBtn from "./new-thread-btn";
 import { useRouter } from "next/navigation";
 import ThreadItem from "./thread-item";
-import { AssistantSelector } from "../../build-panel/components/assistant-selector";
-import { TAssistant, TThread } from "@/data-provider/types";
+import { TAssistant, TGroupedThreads, TThread } from "@/data-provider/types";
 import { useToast } from "@/components/ui/use-toast";
+import { useAtom } from "jotai";
+import { assistantAtom } from "@/store";
 
 export default function Navbar() {
-  const [open, setOpen] = useState(false);
-  const [selectedAssistant, setSelectedAssistant] = useState<TAssistant>();
   const { data: threadsData, isLoading: threadsLoading } = useUserThreads(
     "1234",
     true,
   );
 
+  const [filteredThreads, setFilteredThreads] = useState(threadsData || {});
+  const [open, setOpen] = useState(true);
+  const [selectedAssistant] = useAtom(assistantAtom);
+
   const router = useRouter();
   const createNewThread = useCreateThread();
 
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (!selectedAssistant && threadsData) {
+      setFilteredThreads(threadsData);
+    }
+  }, [threadsData]);
+
+  useEffect(() => {
+    if (selectedAssistant && threadsData) {
+      const _filteredThreads = filterThreads(threadsData);
+      setFilteredThreads(_filteredThreads);
+    }
+  }, [selectedAssistant, threadsData]);
+
+  const filterThreads = (groupedThreads: TGroupedThreads) =>
+    Object.entries(groupedThreads).reduce(
+      (newGroupedThreads, [grouping, threads]) => {
+        const filtered = threads.filter(
+          (thread) => thread.assistant_id === selectedAssistant?.id,
+        );
+        newGroupedThreads[grouping] = filtered;
+        return newGroupedThreads;
+      },
+      {},
+    );
 
   const onNewThreadClick = () => {
     if (!selectedAssistant)
@@ -51,9 +79,6 @@ export default function Navbar() {
       <div
         className={cn("flex flex-col m-3", open ? "w-72" : "w-0 collapse m-0")}
       >
-        <div className="py-3">
-          <AssistantSelector setSelectedAssistant={setSelectedAssistant} />
-        </div>
         {/* New Thread Link */}
         {!threadsLoading && <NewThreadBtn handleClick={onNewThreadClick} />}
         <nav className="overflow-y-auto">
@@ -64,7 +89,7 @@ export default function Navbar() {
               <p className="mt-3">Loading threads... </p>
             </div>
           ) : (
-            Object.entries(threadsData).map(([groupName, threads]) => {
+            Object.entries(filteredThreads).map(([groupName, threads]) => {
               if (threads && threads.length > 0) {
                 return (
                   <div key={groupName}>
