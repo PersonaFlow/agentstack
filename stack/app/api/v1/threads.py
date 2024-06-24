@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, HTTPException
 from typing import List
 from stack.app.repositories.thread import ThreadRepository, get_thread_repository
 from stack.app.repositories.message import MessageRepository, get_message_repository
 from stack.app.repositories.user import UserRepository, get_user_repository
 from stack.app.repositories.assistant import AssistantRepository, get_assistant_repository
-from stack.app.schema.thread import CreateThreadSchema, Thread, UpdateThreadSchema
+from stack.app.schema.thread import CreateThreadSchema, Thread, UpdateThreadSchema, ThreadPostRequest
 from stack.app.schema.message import Message
 from stack.app.api.annotations import ApiKey
 from stack.app.core.exception import NotFoundException
@@ -130,16 +130,75 @@ async def retrieve_messages_by_thread_id(
 
 
 @router.get(
-    "/{thread_id}/checkpoints",
+    "/{thread_id}/state",
     tags=[DEFAULT_TAG],
-    operation_id="retrieve_checkpoint_messages_for_thread",
-    summary="Retrieve checkpoints by thread id",
-    description="Retrieves a list of messages in a thread from the checkpoints list identified by its ID.",
+    operation_id="retrieve_thread_state",
+    summary="Retrieve thread state",
+    description="Retrieves the state of a thread identified by its ID.",
 )
-async def retrieve_checkpoints_by_thread_id(
-    api_key: ApiKey,
+async def retrieve_thread_state(
     thread_id: str,
     thread_repo: ThreadRepository = Depends(get_thread_repository),
+    assistant_repo: AssistantRepository = Depends(get_assistant_repository),
 ):
-    checkpoints = await thread_repo.get_thread_checkpoints(thread_id=thread_id)
-    return checkpoints
+    # TODO: we should get user_id from token and include user_id in retrieve_thread filter
+    thread = await thread_repo.retrieve_thread(thread_id=thread_id)
+    if not thread:
+        raise HTTPException(status_code=404, detail="Thread not found")
+    assistant = await assistant_repo.retrieve_assistant(assistant_id=thread.assistant_id)
+    if not assistant:
+        raise HTTPException(status_code=400, detail="Thread has no assistant")
+    state = await thread_repo.get_thread_state(thread_id=thread_id, assistant=assistant)
+    return state
+
+@router.post(
+    "/{thread_id}/state",
+    tags=[DEFAULT_TAG],
+    operation_id="add_thread_state",
+    summary="Add thread state",
+    description="Adds the state of a thread identified by its ID.",
+)
+async def add_thread_state(
+    thread_id: str,
+    payload: ThreadPostRequest,
+    thread_repo: ThreadRepository = Depends(get_thread_repository),
+    assistant_repo: AssistantRepository = Depends(get_assistant_repository),
+):
+    thread = await thread_repo.retrieve_thread(thread_id=thread_id)
+    if not thread:
+        raise HTTPException(status_code=404, detail="Thread not found")
+    assistant = await assistant_repo.retrieve_assistant(assistant_id=thread.assistant_id)
+    if not assistant:
+        raise HTTPException(status_code=400, detail="Thread has no assistant")
+    state = await thread_repo.update_thread_state(
+        payload.config or {"configurable": {"thread_id": thread_id}},
+        payload.values,
+        assistant=assistant
+    )
+    return state
+
+
+@router.get(
+    "/{thread_id}/history",
+    tags=[DEFAULT_TAG],
+    operation_id="get_thread_history",
+    summary="Get thread history",
+    description="Gets the history of the thread identified by its ID.",
+)
+async def get_thread_history(
+    thread_id: str,
+    thread_repo: ThreadRepository = Depends(get_thread_repository),
+    assistant_repo: AssistantRepository = Depends(get_assistant_repository),
+):
+    thread = await thread_repo.retrieve_thread(thread_id=thread_id)
+    if not thread:
+        raise HTTPException(status_code=404, detail="Thread not found")
+    assistant = await assistant_repo.retrieve_assistant(assistant_id=thread.assistant_id)
+    if not assistant:
+        raise HTTPException(status_code=400, detail="Thread has no assistant")
+    history = await thread_repo.get_thread_history(
+        thread_id=thread_id,
+        assistant=assistant,
+    )
+    return history
+

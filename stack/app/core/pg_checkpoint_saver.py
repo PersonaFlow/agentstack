@@ -1,4 +1,6 @@
 import pickle
+import uuid
+from datetime import datetime, timezone
 from typing import Optional, Any, AsyncIterator
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
@@ -10,6 +12,7 @@ from langgraph.checkpoint.base import (
     BaseCheckpointSaver,
     Checkpoint,
     CheckpointAt,
+    CheckpointThreadTs,
     CheckpointTuple,
     SerializerProtocol,
 )
@@ -30,9 +33,9 @@ class PgCheckpointSaver(BaseCheckpointSaver):
         self,
         engine: Any,
         async_session_factory: Any,
-        at: CheckpointAt = CheckpointAt.END_OF_STEP,
+        at: Optional[CheckpointAt] = None,
         serde: Optional[SerializerProtocol] = None,
-    ):
+    ) -> None:
         self.engine = engine
         self.async_session_factory = async_session_factory
         self.serde = serde or self.serde
@@ -45,14 +48,6 @@ class PgCheckpointSaver(BaseCheckpointSaver):
     def config_specs(self) -> list[ConfigurableFieldSpec]:
         return [
             ConfigurableFieldSpec(
-                id="user_id",
-                annotation=str,
-                name="User ID",
-                description=None,
-                default="",
-                is_shared=True,
-            ),
-            ConfigurableFieldSpec(
                 id="thread_id",
                 annotation=Optional[str],
                 name="Thread ID",
@@ -60,6 +55,7 @@ class PgCheckpointSaver(BaseCheckpointSaver):
                 default=None,
                 is_shared=True,
             ),
+            CheckpointThreadTs,
         ]
 
     @classmethod
@@ -74,86 +70,121 @@ class PgCheckpointSaver(BaseCheckpointSaver):
         async with self.engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
 
+
     def get(self, config: RunnableConfig):
         raise NotImplementedError("Synchronous 'get' method is not implemented.")
+
 
     def put(self, config: RunnableConfig, checkpoint: Checkpoint):
         raise NotImplementedError("Synchronous 'put' method is not implemented.")
 
-    async def aget(self, config: RunnableConfig) -> Optional[Checkpoint]:
-        await self.setup()
-        async with self.async_session_factory() as session:
-            result = await session.execute(
-                select(PostgresCheckpoint).filter_by(
-                    user_id=config["configurable"]["user_id"],
-                    thread_id=config["configurable"]["thread_id"],
-                )
-            )
 
-            record = result.scalars().first()
-            if record:
-                return self.serde.loads(record.checkpoint)
+    async def aget(self, config: RunnableConfig) -> Optional[Checkpoint]:
+        if checkpoint_tuple := await self.aget_tuple(config):
+            return checkpoint_tuple.checkpoint
+        return None
+
 
     async def aget_tuple(self, config: RunnableConfig) -> Optional[CheckpointTuple]:
+        thread_id = uuid.UUID(config["configurable"]["thread_id"])
+        thread_ts = config["configurable"].get("thread_ts")
+
         await self.setup()
         async with self.async_session_factory() as session:
-            result = await session.execute(
-                select(PostgresCheckpoint)
-                .filter_by(
-                    user_id=config["configurable"]["user_id"],
-                    thread_id=config["configurable"]["thread_id"],
-                )
-                .order_by(PostgresCheckpoint.updated_at.desc())
-            )
+            query = select(PostgresCheckpoint).filter_by(thread_id=thread_id)
+
+            if thread_ts:
+                query = query.filter_by(thread_ts=datetime.fromisoformat(thread_ts))
+            else:
+                query = query.order_by(PostgresCheckpoint.thread_ts.desc())
+
+            query = query.limit(1)
+
+            result = await session.execute(query)
             record = result.scalars().first()
+
             if record:
+                checkpoint = self.serde.loads(record.checkpoint)
                 return CheckpointTuple(
-                    config=config, checkpoint=self.serde.loads(record.checkpoint)
+                    config=config,
+                    checkpoint=checkpoint,
+                    parent_config={
+                        "configurable": {
+                            "thread_id": thread_id,
+                            "thread_ts": record.parent_ts.isoformat() if record.parent_ts else None,
+                        }
+                    } if record.parent_ts else None
                 )
+        return None
+
 
     async def alist(self, config: RunnableConfig) -> AsyncIterator[CheckpointTuple]:
+        thread_id = uuid.UUID(config["configurable"]["thread_id"])
+
         await self.setup()
         async with self.async_session_factory() as session:
-            result = await session.execute(
+            query = (
                 select(PostgresCheckpoint)
-                .filter_by(
-                    user_id=config["configurable"]["user_id"],
-                    thread_id=config["configurable"]["thread_id"],
-                )
-                .order_by(PostgresCheckpoint.updated_at.desc())
+                .filter(PostgresCheckpoint.thread_id == thread_id)
+                .order_by(PostgresCheckpoint.thread_ts.desc())
             )
+
+            result = await session.execute(query)
             records = result.scalars().all()
+
             for record in records:
+                checkpoint = self.serde.loads(record.checkpoint)
                 yield CheckpointTuple(
-                    config=config, checkpoint=self.serde.loads(record.checkpoint)
+                    config={
+                        "configurable": {
+                            "thread_id": str(record.thread_id),
+                            "thread_ts": record.thread_ts.isoformat(),
+                        }
+                    },
+                    checkpoint=checkpoint,
+                    parent_config={
+                        "configurable": {
+                            "thread_id": str(record.thread_id),
+                            "thread_ts": record.parent_ts.isoformat() if record.parent_ts else None,
+                        }
+                    } if record.parent_ts else None
                 )
 
+
     async def aput(self, config: RunnableConfig, checkpoint: Checkpoint) -> None:
-        # TODO: At some point in the pipeline this gets called with None config
-        # Maybe langgraph bug, but need to make sure all expected checkpoints are being saved
-        if not config:
-            return
         await self.setup()
         async with self.async_session_factory() as session:
             serialized_checkpoint = self.serde.dumps(checkpoint)
+            thread_id = config["configurable"]["thread_id"]
+            thread_ts = datetime.fromisoformat(checkpoint["ts"])
             result = await session.execute(
                 select(PostgresCheckpoint).filter_by(
-                    user_id=config["configurable"]["user_id"],
-                    thread_id=config["configurable"]["thread_id"],
+                    thread_id=thread_id,
+                    thread_ts=thread_ts
                 )
             )
             record = result.scalars().first()
             if record:
                 record.checkpoint = serialized_checkpoint
+                record.updated_at = datetime.now(timezone.utc)
             else:
                 new_record = PostgresCheckpoint(
-                    user_id=config["configurable"]["user_id"],
-                    thread_id=config["configurable"]["thread_id"],
+                    thread_id=thread_id,
+                    thread_ts=thread_ts,
                     checkpoint=serialized_checkpoint,
+                    parent_ts=datetime.fromisoformat(checkpoint.get("parent_ts")) if checkpoint.get("parent_ts") else None
                 )
                 session.add(new_record)
+
             await session.commit()
 
+        return {
+            "configurable": {
+                "thread_id": thread_id,
+                "thread_ts": checkpoint["ts"],
+            }
+        }
+    
 
 def get_pg_checkpoint_saver(
     serde: SerializerProtocol = pickle, at: CheckpointAt = CheckpointAt.END_OF_STEP

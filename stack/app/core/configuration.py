@@ -93,9 +93,9 @@ class Settings(BaseSettings):
     MAX_FILE_UPLOAD_SIZE: int = int(os.getenv("MAX_FILE_UPLOAD_SIZE", 25000000))
 
     # Postgres Database environment variables
-    INTERNAL_DATABASE_USER: str = os.getenv("INTERNAL_DATABASE_USER", "internal")
+    INTERNAL_DATABASE_USER: str = os.getenv("INTERNAL_DATABASE_USER", "postgres")
     INTERNAL_DATABASE_PASSWORD: str = os.getenv(
-        "INTERNAL_DATABASE_PASSWORD", "internal"
+        "INTERNAL_DATABASE_PASSWORD", "postgres"
     )
     INTERNAL_DATABASE_HOST: str = os.getenv("INTERNAL_DATABASE_HOST", "localhost")
     INTERNAL_DATABASE_PORT: int = os.getenv("INTERNAL_DATABASE_PORT", 5432)

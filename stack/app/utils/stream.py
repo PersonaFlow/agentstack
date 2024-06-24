@@ -1,12 +1,12 @@
 import functools
-import logging
 from typing import Any, AsyncIterator, Dict, Optional, Sequence, Union
+import structlog
 
 import orjson
 from langchain_core.messages import AnyMessage, BaseMessage, message_chunk_to_message
 from langchain_core.runnables import Runnable, RunnableConfig
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 MessagesStream = AsyncIterator[Union[list[AnyMessage], str]]
 
@@ -19,7 +19,6 @@ async def astream_state(
     """Stream messages from the runnable."""
     root_run_id: Optional[str] = None
     messages: dict[str, BaseMessage] = {}
-    print(f"ASTREAM_STATE CONFIG: {config}")
     async for event in app.astream_events(
         input, config, version="v1", stream_mode="values", exclude_tags=["nostream"]
     ):
@@ -79,8 +78,8 @@ async def to_sse(messages_stream: MessagesStream) -> AsyncIterator[dict]:
                         [message_chunk_to_message(msg) for msg in chunk]
                     ).decode(),
                 }
-    except Exception:
-        logger.error("error in stream", exc_info=True)
+    except Exception as e:
+        logger.warn(f"error in stream: {e}", exc_info=True)
         yield {
             "event": "error",
             "data": orjson.dumps(
