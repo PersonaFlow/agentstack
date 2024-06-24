@@ -213,10 +213,10 @@ export const useMessagesByCheckpoint = (threadId: string) => {
   });
 };
 
-export const useConversation = (threadId: string) => {
-  return useQuery<t.TConversation, Error>({
+export const useThreadState = (threadId: string) => {
+  return useQuery<t.TThreadState, Error>({
     queryKey: [QueryKeys.conversation, threadId],
-    queryFn: async (): Promise<t.TConversation> =>
+    queryFn: async (): Promise<t.TThreadState> =>
       await dataService.getThreadState(threadId),
   });
 };

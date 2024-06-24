@@ -103,7 +103,7 @@ export function getMessagesByThread(threadId: string): Promise<t.TMessage[]> {
   return request.get(endpoints.threadMessages(threadId));
 }
 
-export function getThreadState(threadId: string): Promise<t.TConversation> {
+export function getThreadState(threadId: string): Promise<t.TThreadState> {
   return request.get(endpoints.threadState(threadId));
 }
 
