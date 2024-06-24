@@ -16,7 +16,10 @@ from langchain.schema.runnable import RunnableMap
 from stack.app.agents.configurable_agent import agent, get_llm
 from stack.app.api.annotations import ApiKey
 from stack.app.schema.thread import Thread
-from stack.app.repositories.assistant import AssistantRepository, get_assistant_repository
+from stack.app.repositories.assistant import (
+    AssistantRepository,
+    get_assistant_repository,
+)
 from stack.app.repositories.thread import ThreadRepository, get_thread_repository
 from stack.app.schema.feedback import FeedbackCreateRequest
 from stack.app.schema.title import TitleRequest
@@ -29,11 +32,13 @@ settings = get_settings()
 if settings.ENABLE_LANGSMITH_TRACING:
     from langsmith import Client
     from langchain.callbacks.tracers import LangChainTracer
+
     langsmith_tracer = LangChainTracer(project_name=settings.LANGSMITH_PROJECT_NAME)
     langsmith_client = Client()
 
 if settings.ENABLE_LANGFUSE_TRACING:
     from langfuse.callback import CallbackHandler
+
     langfuse_tracer = CallbackHandler(
         secret_key=settings.LANGFUSE_SECRET_KEY,
         public_key=settings.LANGFUSE_PUBLIC_KEY,
@@ -42,14 +47,17 @@ if settings.ENABLE_LANGFUSE_TRACING:
 
 if settings.ENABLE_PHOENIX_TRACING:
     from phoenix.trace.langchain import LangChainInstrumentor
+
     LangChainInstrumentor().instrument()
 
 DEFAULT_TAG = "Runs"
 logger = structlog.get_logger()
 router = APIRouter()
 
+
 class CreateRunPayload(BaseModel):
     """Payload for creating a run."""
+
     user_id: str
     assistant_id: Optional[str] = None
     thread_id: Optional[str] = None
@@ -92,7 +100,7 @@ async def _run_input_and_config(
             "thread_id": payload.thread_id,
             "assistant_id": payload.assistant_id,
         },
-        "callbacks": []
+        "callbacks": [],
     }
     if settings.ENABLE_LANGSMITH_TRACING:
         config["callbacks"].append(langsmith_tracer)
@@ -223,7 +231,6 @@ async def title_endpoint(
     thread_repository: ThreadRepository = Depends(get_thread_repository),
     assistant_repo: AssistantRepository = Depends(get_assistant_repository),
 ) -> Thread:
-
     converted_chat_history = []
     for message in request.history:
         if message.type == "human":
@@ -248,7 +255,7 @@ async def title_endpoint(
         ]
     )
 
-    response_synthesizer = (prompt | llm | StrOutputParser())
+    response_synthesizer = prompt | llm | StrOutputParser()
 
     chain = _context | response_synthesizer
 

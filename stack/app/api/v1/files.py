@@ -14,7 +14,12 @@ import uuid
 from stack.app.repositories.file import get_file_repository, FileRepository
 
 # from stack.app.repositories.api_key import get_api_key_repository, ApiKeyRepository
-from stack.app.schema.file import FileSchema, UploadFileSchema, DeleteFileResponse, FilePurpose
+from stack.app.schema.file import (
+    FileSchema,
+    UploadFileSchema,
+    DeleteFileResponse,
+    FilePurpose,
+)
 from stack.app.api.annotations import ApiKey
 from stack.app.core.configuration import settings
 from typing import Optional
@@ -25,7 +30,10 @@ from stack.app.utils.file_helpers import (
     guess_file_extension,
 )
 from stack.app.vectordbs.qdrant import QdrantService
-from stack.app.repositories.assistant import get_assistant_repository, AssistantRepository
+from stack.app.repositories.assistant import (
+    get_assistant_repository,
+    AssistantRepository,
+)
 
 router = APIRouter()
 DEFAULT_TAG = "Files"
@@ -111,7 +119,7 @@ async def upload_file(
 )
 async def retrieve_files(
     api_key: ApiKey,
-    user_id: Optional[str] = '',
+    user_id: Optional[str] = "",
     purpose: Optional[str] = Query(None),
     files_repository: FileRepository = Depends(get_file_repository),
     # api_key_repository: ApiKeyRepository = Depends(get_api_key_repository)
@@ -175,7 +183,11 @@ async def delete_file(
         file: FileSchema = await files_repository.retrieve_file(file_id=file_id)
         if not file:
             raise HTTPException(status_code=404, detail="File not found")
-        if file.purpose in [FilePurpose.ASSISTANTS, FilePurpose.THREADS, FilePurpose.RAG]:
+        if file.purpose in [
+            FilePurpose.ASSISTANTS,
+            FilePurpose.THREADS,
+            FilePurpose.RAG,
+        ]:
             # delete any embeddings associated with the file from the vector db
             service = QdrantService()
             deleted_chunks = await service.delete(str(file_id))

@@ -3,10 +3,7 @@ from stack.app.schema.thread import Thread, GroupedThreads
 from datetime import datetime, timedelta, timezone
 
 
-def group_threads(
-    threads: List[Thread], client_tz_offset: int = 0
-) -> GroupedThreads:
-
+def group_threads(threads: List[Thread], client_tz_offset: int = 0) -> GroupedThreads:
     grouped = {
         "Today": [],
         "Yesterday": [],
@@ -34,9 +31,17 @@ def group_threads(
             grouped["Today"].append(thread)
         elif updated_at_date == (now_in_user_tz - timedelta(days=1)).date():
             grouped["Yesterday"].append(thread)
-        elif (now_in_user_tz - timedelta(days=7)).date() <= updated_at_date < (now_in_user_tz - timedelta(days=1)).date():
+        elif (
+            (now_in_user_tz - timedelta(days=7)).date()
+            <= updated_at_date
+            < (now_in_user_tz - timedelta(days=1)).date()
+        ):
             grouped["Past 7 Days"].append(thread)
-        elif (now_in_user_tz - timedelta(days=30)).date() <= updated_at_date < (now_in_user_tz - timedelta(days=7)).date():
+        elif (
+            (now_in_user_tz - timedelta(days=30)).date()
+            <= updated_at_date
+            < (now_in_user_tz - timedelta(days=7)).date()
+        ):
             grouped["Past 30 Days"].append(thread)
         elif updated_at_user_tz.year == now_in_user_tz.year:
             grouped["This Year"].append(thread)
@@ -50,4 +55,3 @@ def group_threads(
         )
 
     return grouped
-

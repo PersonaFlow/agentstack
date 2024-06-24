@@ -5,11 +5,13 @@ from typing import Optional, Any
 from datetime import datetime
 from stack.app.schema.rag import ContextType
 
+
 class FilePurpose(Enum):
     PERSONAS = "personas"
     ASSISTANTS = "assistants"
     THREADS = "threads"
     RAG = "rag"
+
 
 class FileType(Enum):
     pdf = "PDF"

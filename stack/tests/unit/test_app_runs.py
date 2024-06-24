@@ -11,14 +11,22 @@ from datetime import datetime
 from stack.app.app_factory import create_app
 from stack.app.core.configuration import Settings
 from stack.app.repositories.thread import ThreadRepository, get_thread_repository
-from stack.app.repositories.assistant import AssistantRepository, get_assistant_repository
+from stack.app.repositories.assistant import (
+    AssistantRepository,
+    get_assistant_repository,
+)
 from stack.app.model.thread import Thread as ModelThread
 from stack.app.schema.thread import Thread as SchemaThread
 from stack.app.schema.assistant import Assistant as AssistantSchema
 from stack.app.schema.feedback import FeedbackCreateRequest
 from stack.app.schema.title import TitleRequest
 from pydantic.error_wrappers import ValidationError
-from stack.app.api.v1.runs import CreateRunPayload, _run_input_and_config, stream_run, EventSourceResponse
+from stack.app.api.v1.runs import (
+    CreateRunPayload,
+    _run_input_and_config,
+    stream_run,
+    EventSourceResponse,
+)
 from stack.app.agents.configurable_agent import agent
 
 
@@ -32,46 +40,63 @@ def valid_title_request(random_schema_thread):
         thread_id=str(random_schema_thread.id),
         history=[
             {"type": "human", "content": "Hello"},
-            {"type": "ai", "content": "Hi, how can I help you?"}
-        ]
+            {"type": "ai", "content": "Hi, how can I help you?"},
+        ],
     )
 
 
 @pytest.fixture
 def valid_feedback_request():
     return FeedbackCreateRequest(
-        run_id='run1',
-        key='helpfulness',
+        run_id="run1",
+        key="helpfulness",
         score=5,
-        value='very helpful',
-        comment='The assistant was very helpful and responsive.'
+        value="very helpful",
+        comment="The assistant was very helpful and responsive.",
     )
+
 
 @pytest.fixture
 def valid_payload(random_schema_thread):
     return CreateRunPayload(
-        assistant_id='5bb8e18a-038e-4fd2-a0da-5730d0b65d69',
+        assistant_id="5bb8e18a-038e-4fd2-a0da-5730d0b65d69",
         thread_id=str(random_schema_thread.id),
-        user_id='68937497-93ec-4ebb-9fbf-651932e20932',
+        user_id="68937497-93ec-4ebb-9fbf-651932e20932",
         input=[
             {
-                "content":"Hello.",
-                "additional_kwargs":{
-
-                },
-                "type":"human",
-                "example": False
+                "content": "Hello.",
+                "additional_kwargs": {},
+                "type": "human",
+                "example": False,
             }
-        ]
+        ],
     )
+
 
 # Mock Stream Events
 async def mock_astream_events(*args, **kwargs):
     if kwargs.get("input") == "error":
         raise Exception("Test exception")
     yield {"event": "on_chain_start", "run_id": "run1"}
-    yield {"event": "on_chain_stream", "run_id": "run1", "data": {"chunk": [{"id": "msg1", "role": "user", "content": "Hello"}]}}
-    yield {"event": "on_chain_stream", "run_id": "run1", "data": {"chunk": [{"id": "msg2", "role": "assistant", "content": "Hello, how can I help you?"}]}}
+    yield {
+        "event": "on_chain_stream",
+        "run_id": "run1",
+        "data": {"chunk": [{"id": "msg1", "role": "user", "content": "Hello"}]},
+    }
+    yield {
+        "event": "on_chain_stream",
+        "run_id": "run1",
+        "data": {
+            "chunk": [
+                {
+                    "id": "msg2",
+                    "role": "assistant",
+                    "content": "Hello, how can I help you?",
+                }
+            ]
+        },
+    }
+
 
 @pytest.fixture
 def mock_agent():
@@ -81,6 +106,7 @@ def mock_agent():
     mock_agent.with_config = MagicMock(return_value=mock_agent)
     return mock_agent
 
+
 # =============================================================================
 # TODO: couldn't get the mocks right on these so they don't pass right now...
 # We may just want integration tests for these endpoints anyway.
@@ -88,10 +114,10 @@ def mock_agent():
 # =============================================================================
 # Tests for stream_run endpoint
 # @pytest.mark.asyncio
-@patch('stack.app.agents.configurable_agent', new_callable=lambda: MagicMock())
-@patch('stack.app.utils.stream.astream_state', new_callable=lambda: AsyncMock())
-@patch('stack.app.utils.stream.to_sse', new_callable=lambda: AsyncMock())
-@patch('stack.app.api.v1.runs._run_input_and_config', new_callable=lambda: AsyncMock())
+@patch("stack.app.agents.configurable_agent", new_callable=lambda: MagicMock())
+@patch("stack.app.utils.stream.astream_state", new_callable=lambda: AsyncMock())
+@patch("stack.app.utils.stream.to_sse", new_callable=lambda: AsyncMock())
+@patch("stack.app.api.v1.runs._run_input_and_config", new_callable=lambda: AsyncMock())
 async def test__stream_run__new_thread_creation(
     mock_agent,
     mocked_astream_state,

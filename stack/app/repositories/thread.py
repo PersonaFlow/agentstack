@@ -109,7 +109,9 @@ class ThreadRepository(BaseRepository):
         """Updates an existing thread."""
         try:
             filtered_data = {k: v for k, v in data.items() if v is not None}
-            thread = await self.update(model=Thread, values=filtered_data, object_id=thread_id)
+            thread = await self.update(
+                model=Thread, values=filtered_data, object_id=thread_id
+            )
             await self.postgresql_session.commit()
             return thread
         except SQLAlchemyError as e:
@@ -151,7 +153,6 @@ class ThreadRepository(BaseRepository):
                 detail="Failed to retrieve threads for the specified user.",
             )
 
-
     async def get_thread_state(self, thread_id: str, assistant: Assistant):
         """Get the state of a thread."""
         try:
@@ -190,7 +191,6 @@ class ThreadRepository(BaseRepository):
                 detail="Failed to retrieve thread state .",
             )
 
-
     async def update_thread_state(
         config: RunnableConfig,
         values: Union[Sequence[AnyMessage], dict[str, Any]],
@@ -208,7 +208,6 @@ class ThreadRepository(BaseRepository):
             },
             values,
         )
-
 
     async def get_thread_history(*, thread_id: str, assistant: Assistant):
         """Get the history of a thread."""

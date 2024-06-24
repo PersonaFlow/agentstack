@@ -63,6 +63,7 @@ class UpdateThreadSchema(BaseModel):
 
 class GroupedThreads(BaseModel):
     """Grouped threads by time period."""
+
     Today: Optional[List[Thread]] = Field(None, alias="Today")
     Yesterday: Optional[List[Thread]] = Field(None, alias="Yesterday")
     Past_7_Days: Optional[List[Thread]] = Field(None, alias="Past 7 Days")
@@ -88,5 +89,3 @@ class ThreadPostRequest(BaseModel):
         None,
         description="The configuration values to add to the thread. It can be a dictionary.",
     )
-
-

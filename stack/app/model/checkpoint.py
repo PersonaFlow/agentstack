@@ -58,12 +58,6 @@ class PostgresCheckpoint(Base):
         comment="The timestamp when the checkpoint was last updated.",
     )
 
-    thread = relationship(
-        "Thread",
-        back_populates="checkpoint"
-    )
+    thread = relationship("Thread", back_populates="checkpoint")
 
-    user = relationship(
-        "User",
-        back_populates="checkpoint"
-    )
+    user = relationship("User", back_populates="checkpoint")
