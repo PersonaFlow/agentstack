@@ -70,20 +70,16 @@ class PgCheckpointSaver(BaseCheckpointSaver):
         async with self.engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
 
-
     def get(self, config: RunnableConfig):
         raise NotImplementedError("Synchronous 'get' method is not implemented.")
 
-
     def put(self, config: RunnableConfig, checkpoint: Checkpoint):
         raise NotImplementedError("Synchronous 'put' method is not implemented.")
-
 
     async def aget(self, config: RunnableConfig) -> Optional[Checkpoint]:
         if checkpoint_tuple := await self.aget_tuple(config):
             return checkpoint_tuple.checkpoint
         return None
-
 
     async def aget_tuple(self, config: RunnableConfig) -> Optional[CheckpointTuple]:
         thread_id = uuid.UUID(config["configurable"]["thread_id"])
@@ -111,12 +107,15 @@ class PgCheckpointSaver(BaseCheckpointSaver):
                     parent_config={
                         "configurable": {
                             "thread_id": thread_id,
-                            "thread_ts": record.parent_ts.isoformat() if record.parent_ts else None,
+                            "thread_ts": record.parent_ts.isoformat()
+                            if record.parent_ts
+                            else None,
                         }
-                    } if record.parent_ts else None
+                    }
+                    if record.parent_ts
+                    else None,
                 )
         return None
-
 
     async def alist(self, config: RunnableConfig) -> AsyncIterator[CheckpointTuple]:
         thread_id = uuid.UUID(config["configurable"]["thread_id"])
@@ -145,11 +144,14 @@ class PgCheckpointSaver(BaseCheckpointSaver):
                     parent_config={
                         "configurable": {
                             "thread_id": str(record.thread_id),
-                            "thread_ts": record.parent_ts.isoformat() if record.parent_ts else None,
+                            "thread_ts": record.parent_ts.isoformat()
+                            if record.parent_ts
+                            else None,
                         }
-                    } if record.parent_ts else None
+                    }
+                    if record.parent_ts
+                    else None,
                 )
-
 
     async def aput(self, config: RunnableConfig, checkpoint: Checkpoint) -> None:
         await self.setup()
@@ -159,8 +161,7 @@ class PgCheckpointSaver(BaseCheckpointSaver):
             thread_ts = datetime.fromisoformat(checkpoint["ts"])
             result = await session.execute(
                 select(PostgresCheckpoint).filter_by(
-                    thread_id=thread_id,
-                    thread_ts=thread_ts
+                    thread_id=thread_id, thread_ts=thread_ts
                 )
             )
             record = result.scalars().first()
@@ -172,7 +173,9 @@ class PgCheckpointSaver(BaseCheckpointSaver):
                     thread_id=thread_id,
                     thread_ts=thread_ts,
                     checkpoint=serialized_checkpoint,
-                    parent_ts=datetime.fromisoformat(checkpoint.get("parent_ts")) if checkpoint.get("parent_ts") else None
+                    parent_ts=datetime.fromisoformat(checkpoint.get("parent_ts"))
+                    if checkpoint.get("parent_ts")
+                    else None,
                 )
                 session.add(new_record)
 
@@ -184,7 +187,7 @@ class PgCheckpointSaver(BaseCheckpointSaver):
                 "thread_ts": checkpoint["ts"],
             }
         }
-    
+
 
 def get_pg_checkpoint_saver(
     serde: SerializerProtocol = pickle, at: CheckpointAt = CheckpointAt.END_OF_STEP

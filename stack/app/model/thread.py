@@ -21,7 +21,7 @@ class Thread(Base):
         String(),
         ForeignKey(f"{settings.INTERNAL_DATABASE_SCHEMA}.users.user_id"),
         index=True,
-        comment="The ID of the user who initiated the thread."
+        comment="The ID of the user who initiated the thread.",
     )
     assistant_id: Mapped[str] = mapped_column(
         UUID(as_uuid=True),
@@ -30,9 +30,7 @@ class Thread(Base):
         comment="The ID of the assistant that is associated with the thread.",
     )
     name: Mapped[str] = mapped_column(
-        String(),
-        nullable=True,
-        comment="The title of the thread."
+        String(), nullable=True, comment="The title of the thread."
     )
     kwargs: Mapped[JSONB] = mapped_column(
         JSONB(),
@@ -66,12 +64,6 @@ class Thread(Base):
         cascade="all, delete-orphan",
     )
 
-    user = relationship(
-        "User",
-        back_populates="thread"
-    )
+    user = relationship("User", back_populates="thread")
 
-    assistant = relationship(
-        "Assistant",
-        back_populates="thread"
-    )
+    assistant = relationship("Assistant", back_populates="thread")

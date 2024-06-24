@@ -229,5 +229,7 @@ def downgrade() -> None:
         schema="personaflow",
     )
     op.drop_index(
-        op.f("ix_personaflow_threads_updated_at"), table_name="threads", schema="personaflow"
+        op.f("ix_personaflow_threads_updated_at"),
+        table_name="threads",
+        schema="personaflow",
     )

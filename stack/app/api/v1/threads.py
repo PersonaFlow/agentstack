@@ -3,8 +3,16 @@ from typing import List
 from stack.app.repositories.thread import ThreadRepository, get_thread_repository
 from stack.app.repositories.message import MessageRepository, get_message_repository
 from stack.app.repositories.user import UserRepository, get_user_repository
-from stack.app.repositories.assistant import AssistantRepository, get_assistant_repository
-from stack.app.schema.thread import CreateThreadSchema, Thread, UpdateThreadSchema, ThreadPostRequest
+from stack.app.repositories.assistant import (
+    AssistantRepository,
+    get_assistant_repository,
+)
+from stack.app.schema.thread import (
+    CreateThreadSchema,
+    Thread,
+    UpdateThreadSchema,
+    ThreadPostRequest,
+)
 from stack.app.schema.message import Message
 from stack.app.api.annotations import ApiKey
 from stack.app.core.exception import NotFoundException
@@ -145,11 +153,14 @@ async def retrieve_thread_state(
     thread = await thread_repo.retrieve_thread(thread_id=thread_id)
     if not thread:
         raise HTTPException(status_code=404, detail="Thread not found")
-    assistant = await assistant_repo.retrieve_assistant(assistant_id=thread.assistant_id)
+    assistant = await assistant_repo.retrieve_assistant(
+        assistant_id=thread.assistant_id
+    )
     if not assistant:
         raise HTTPException(status_code=400, detail="Thread has no assistant")
     state = await thread_repo.get_thread_state(thread_id=thread_id, assistant=assistant)
     return state
+
 
 @router.post(
     "/{thread_id}/state",
@@ -167,13 +178,15 @@ async def add_thread_state(
     thread = await thread_repo.retrieve_thread(thread_id=thread_id)
     if not thread:
         raise HTTPException(status_code=404, detail="Thread not found")
-    assistant = await assistant_repo.retrieve_assistant(assistant_id=thread.assistant_id)
+    assistant = await assistant_repo.retrieve_assistant(
+        assistant_id=thread.assistant_id
+    )
     if not assistant:
         raise HTTPException(status_code=400, detail="Thread has no assistant")
     state = await thread_repo.update_thread_state(
         payload.config or {"configurable": {"thread_id": thread_id}},
         payload.values,
-        assistant=assistant
+        assistant=assistant,
     )
     return state
 
@@ -193,7 +206,9 @@ async def get_thread_history(
     thread = await thread_repo.retrieve_thread(thread_id=thread_id)
     if not thread:
         raise HTTPException(status_code=404, detail="Thread not found")
-    assistant = await assistant_repo.retrieve_assistant(assistant_id=thread.assistant_id)
+    assistant = await assistant_repo.retrieve_assistant(
+        assistant_id=thread.assistant_id
+    )
     if not assistant:
         raise HTTPException(status_code=400, detail="Thread has no assistant")
     history = await thread_repo.get_thread_history(
@@ -201,4 +216,3 @@ async def get_thread_history(
         assistant=assistant,
     )
     return history
-

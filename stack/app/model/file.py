@@ -66,7 +66,4 @@ class File(Base):
         comment="Last updated date",
     )
 
-    user = relationship(
-        "User",
-        back_populates="file"
-    )
+    user = relationship("User", back_populates="file")
