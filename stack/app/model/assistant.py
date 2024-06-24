@@ -60,12 +60,6 @@ class Assistant(Base):
         comment="Last updated date",
     )
 
-    user = relationship(
-        "User",
-        back_populates="assistant"
-    )
+    user = relationship("User", back_populates="assistant")
 
-    thread = relationship(
-        "Thread",
-        back_populates="assistant"
-    )
+    thread = relationship("Thread", back_populates="assistant")
