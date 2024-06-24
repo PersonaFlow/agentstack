@@ -1,12 +1,12 @@
 "use client";
-import { TMessage, TMessageState } from "@/data-provider/types";
+import { TMessage, TConversation } from "@/data-provider/types";
 import MessageItem from "./message-item";
 import { useParams } from "next/navigation";
 import { ReactNode } from "react";
 
 type Props = {
   isStreaming?: boolean;
-  messages: TMessageState;
+  messages: TConversation;
   streamingMessage?: TMessage | null;
   onRetry?: VoidFunction;
   composer: ReactNode;

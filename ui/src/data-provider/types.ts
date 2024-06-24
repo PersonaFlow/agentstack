@@ -140,27 +140,45 @@ export interface TCreateThreadRequest extends TThreadRequest {
   user_id: string;
 }
 
-export type TMessageState = {
+export type TConversation = {
   values: TMessage[];
-  next: string[]
-}
+  next: string[];
+};
 
 export type TMessage = {
-  thread_id?: string;
-  user_id?: string;
-  assistant_id?: string;
   content: string;
+  additional_kwargs?: {
+    additional_kwargs?: {};
+    example?: boolean;
+  };
+  responsoe_metadata?: {
+    finish_reason?: boolean;
+  };
   type: string;
   name?: string | null;
+  id: string;
+  example: boolean;
   tool_calls?: string[];
   invalid_tool_calls?: string[];
-  additional_kwargs: {};
-  response_metadata?: {};
-  example: boolean;
-  id?: string;
-  created_at?: string;
-  updated_at?: string;
 };
+
+// export type TMessage = {
+//   content: string;
+//   thread_id?: string;
+//   user_id?: string;
+//   assistant_id?: string;
+//   content: string;
+//   type: string;
+//   name?: string | null;
+//   tool_calls?: string[];
+//   invalid_tool_calls?: string[];
+//   additional_kwargs: {};
+//   response_metadata?: {};
+//   example: boolean;
+//   id?: string;
+//   created_at?: string;
+//   updated_at?: string;
+// };
 
 export type TUpdateMessageRequest = {
   assistant_id: string;

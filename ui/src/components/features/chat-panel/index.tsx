@@ -1,4 +1,7 @@
-import { ChatForm } from "./components/chat-form";
+"use client";
+
+import { useChat } from "@/hooks/useChat";
+import { Composer } from "./components/composer";
 import MessagesContainer from "./components/messages-container";
 
 const data = {
@@ -61,9 +64,24 @@ const data = {
 };
 
 export default function ChatPanel() {
+  const { setUserMessage, userMessage, handleSend: send } = useChat();
+
+  const handleSend = () => {
+    send();
+  };
+
   return (
     <div className="h-full w-full gap-4 flex flex-col">
-      <MessagesContainer composer={<ChatForm />} messages={data} />
+      <MessagesContainer
+        messages={data}
+        composer={
+          <Composer
+            onChange={(e) => setUserMessage(e.target.value)}
+            value={userMessage}
+            sendMessage={handleSend}
+          />
+        }
+      />
     </div>
   );
 }
