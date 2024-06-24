@@ -1,14 +1,8 @@
-"""
-schema/thread.py
----------------
-
-This module provides Pydantic models for thread data serialization, validation, and response formatting.
-
-"""
 from pydantic import BaseModel, Field, validator
-from typing import List, Optional
 import uuid
 from datetime import datetime
+from langchain.schema.messages import AnyMessage
+from typing import Any, Dict, List, Optional, Sequence, Union
 
 
 class Thread(BaseModel):
@@ -68,6 +62,7 @@ class UpdateThreadSchema(BaseModel):
 
 
 class GroupedThreads(BaseModel):
+    """Grouped threads by time period."""
     Today: Optional[List[Thread]] = Field(None, alias="Today")
     Yesterday: Optional[List[Thread]] = Field(None, alias="Yesterday")
     Past_7_Days: Optional[List[Thread]] = Field(None, alias="Past 7 Days")
@@ -80,3 +75,18 @@ class GroupedThreads(BaseModel):
         json_encoders = {
             datetime: lambda v: v.replace(microsecond=0).isoformat(),
         }
+
+
+class ThreadPostRequest(BaseModel):
+    """Payload for adding state to a thread."""
+
+    values: Union[Sequence[AnyMessage], Dict[str, Any]] = Field(
+        ...,
+        description="The state values to add to the thread. It can be a list of messages or a dictionary.",
+    )
+    config: Optional[Dict[str, Any]] = Field(
+        None,
+        description="The configuration values to add to the thread. It can be a dictionary.",
+    )
+
+
