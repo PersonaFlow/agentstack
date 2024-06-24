@@ -103,6 +103,10 @@ export function getMessagesByThread(threadId: string): Promise<t.TMessage[]> {
   return request.get(endpoints.threadMessages(threadId));
 }
 
+export function getThreadState(threadId: string): Promise<t.TConversation> {
+  return request.get(endpoints.threadState(threadId));
+}
+
 // Confirm this
 export function getMessagesByCheckpoint(
   threadId: string,

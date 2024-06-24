@@ -28,6 +28,9 @@ export const threadMessages = (threadId: string) =>
 export const threadCheckpoints = (threadId: string) =>
   `/api/v1/threads/${threadId}/checkpoints`;
 
+export const threadState = (threadId: string) =>
+  `api/v1/threads/${threadId}/state`;
+
 // --Messages--
 export const messages = (messageId?: string) =>
   `/api/v1/messages/${formatParam(messageId)}`;

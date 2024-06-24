@@ -33,6 +33,7 @@ enum QueryKeys {
   file = "file",
   healthCheck = "healthCheck",
   fileContent = "fileContent",
+  conversation = "conversation",
 }
 
 // --Runs--
@@ -209,6 +210,14 @@ export const useMessagesByCheckpoint = (threadId: string) => {
     queryKey: [QueryKeys.messagesByCheckpoint, QueryKeys.messages, threadId],
     queryFn: async (): Promise<t.TMessage[]> =>
       await dataService.getMessagesByCheckpoint(threadId),
+  });
+};
+
+export const useConversation = (threadId: string) => {
+  return useQuery<t.TConversation, Error>({
+    queryKey: [QueryKeys.conversation, threadId],
+    queryFn: async (): Promise<t.TConversation> =>
+      await dataService.getThreadState(threadId),
   });
 };
 

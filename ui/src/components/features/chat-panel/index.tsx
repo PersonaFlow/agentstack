@@ -65,6 +65,7 @@ const data = {
 
 export default function ChatPanel() {
   const { setUserMessage, userMessage, handleSend: send } = useChat();
+  const {data: messages} = 
 
   const handleSend = () => {
     send();
