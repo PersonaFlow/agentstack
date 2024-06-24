@@ -241,20 +241,115 @@ async def test_retrieve_messages_by_thread_id_responds_404():
         assert method.call_count == 1
         assert response.status_code == 404
 
-
-async def test_retrieve_checkpoint_messages_for_thread_responds_404():
+async def test_retrieve_thread_state_responds_correctly(random_schema_thread, random_schema_assistant):
+    # Arrange
     thread_repository = MagicMock(ThreadRepository)
-    with patch.object(
-        thread_repository,
-        "get_thread_checkpoints",
-        side_effect=HTTPException(status_code=404, detail="Thread not found"),
-    ) as method:
-        app.dependency_overrides[get_thread_repository] = lambda: thread_repository
+    assistant_repository = MagicMock(AssistantRepository)
+    expected_state = {"key": "value"}
+
+    with patch.object(thread_repository, "retrieve_thread", return_value=random_schema_thread), \
+         patch.object(assistant_repository, "retrieve_assistant", return_value=random_schema_assistant), \
+         patch.object(thread_repository, "get_thread_state", return_value=expected_state):
+
+        app.dependency_overrides[get_thread_repository] = passthrough(thread_repository)
+        app.dependency_overrides[get_assistant_repository] = passthrough(assistant_repository)
 
         # Act
-        non_existent_thread_id = str(uuid.uuid4())
-        response = client.get(f"/api/v1/threads/{non_existent_thread_id}/checkpoints")
+        response = client.get(f"/api/v1/threads/{random_schema_thread.id}/state")
 
         # Assert
-        assert method.call_count == 1
+        assert response.status_code == 200
+        assert response.json() == expected_state
+
+async def test_retrieve_thread_state_responds_404_when_thread_not_found():
+    # Arrange
+    thread_repository = MagicMock(ThreadRepository)
+
+    with patch.object(thread_repository, "retrieve_thread", return_value=None):
+        app.dependency_overrides[get_thread_repository] = passthrough(thread_repository)
+
+        # Act
+        non_existent_id = str(uuid.uuid4())
+        response = client.get(f"/api/v1/threads/{non_existent_id}/state")
+
+        # Assert
         assert response.status_code == 404
+        assert response.json()["detail"] == "Thread not found"
+
+async def test_add_thread_state_responds_correctly(random_schema_thread, random_schema_assistant):
+    # Arrange
+    thread_repository = MagicMock(ThreadRepository)
+    assistant_repository = MagicMock(AssistantRepository)
+    expected_state = {"key": "new_value"}
+    payload = {
+        "config": {"configurable": {"thread_id": str(random_schema_thread.id)}},
+        "values": {"key": "new_value"}
+    }
+
+    with patch.object(thread_repository, "retrieve_thread", return_value=random_schema_thread), \
+         patch.object(assistant_repository, "retrieve_assistant", return_value=random_schema_assistant), \
+         patch.object(thread_repository, "update_thread_state", return_value=expected_state):
+
+        app.dependency_overrides[get_thread_repository] = passthrough(thread_repository)
+        app.dependency_overrides[get_assistant_repository] = passthrough(assistant_repository)
+
+        # Act
+        response = client.post(f"/api/v1/threads/{random_schema_thread.id}/state", json=payload)
+
+        # Assert
+        assert response.status_code == 200
+        assert response.json() == expected_state
+
+async def test_add_thread_state_responds_404_when_thread_not_found():
+    # Arrange
+    thread_repository = MagicMock(ThreadRepository)
+
+    with patch.object(thread_repository, "retrieve_thread", return_value=None):
+        app.dependency_overrides[get_thread_repository] = passthrough(thread_repository)
+
+        # Act
+        non_existent_id = str(uuid.uuid4())
+        payload = {
+            "config": {"configurable": {"thread_id": non_existent_id}},
+            "values": {"key": "value"}
+        }
+        response = client.post(f"/api/v1/threads/{non_existent_id}/state", json=payload)
+
+        # Assert
+        assert response.status_code == 404
+        assert response.json()["detail"] == "Thread not found"
+
+async def test_get_thread_history_responds_correctly(random_schema_thread, random_schema_assistant):
+    # Arrange
+    thread_repository = MagicMock(ThreadRepository)
+    assistant_repository = MagicMock(AssistantRepository)
+    expected_history = [{"message": "Hello"}, {"message": "Hi there"}]
+
+    with patch.object(thread_repository, "retrieve_thread", return_value=random_schema_thread), \
+         patch.object(assistant_repository, "retrieve_assistant", return_value=random_schema_assistant), \
+         patch.object(thread_repository, "get_thread_history", return_value=expected_history):
+
+        app.dependency_overrides[get_thread_repository] = passthrough(thread_repository)
+        app.dependency_overrides[get_assistant_repository] = passthrough(assistant_repository)
+
+        # Act
+        response = client.get(f"/api/v1/threads/{random_schema_thread.id}/history")
+
+        # Assert
+        assert response.status_code == 200
+        assert response.json() == expected_history
+
+async def test_get_thread_history_responds_404_when_thread_not_found():
+    # Arrange
+    thread_repository = MagicMock(ThreadRepository)
+
+    with patch.object(thread_repository, "retrieve_thread", return_value=None):
+        app.dependency_overrides[get_thread_repository] = passthrough(thread_repository)
+
+        # Act
+        non_existent_id = str(uuid.uuid4())
+        response = client.get(f"/api/v1/threads/{non_existent_id}/history")
+
+        # Assert
+        assert response.status_code == 404
+        assert response.json()["detail"] == "Thread not found"
