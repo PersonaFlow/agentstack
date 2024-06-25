@@ -16,6 +16,7 @@ import { UseFormReturn } from "react-hook-form";
 
 type TSelectModalProps = {
   form: UseFormReturn<any>;
+  models: string[];
 };
 
 const modelTypes = [
@@ -28,7 +29,7 @@ const modelTypes = [
   { display: "Ollama", value: "Ollama" },
 ];
 
-export default function SelectModel({ form }: TSelectModalProps) {
+export default function SelectModel({ form, models }: TSelectModalProps) {
   return (
     <FormField
       control={form.control}

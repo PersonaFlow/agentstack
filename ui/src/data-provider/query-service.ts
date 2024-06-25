@@ -65,9 +65,10 @@ export const useRunnableOutputSchema = () => {
 };
 
 export const useRunnableConfigSchema = () => {
-  return useQuery<any, Error>({
+  return useQuery<t.TConfigSchema, Error>({
     queryKey: [QueryKeys.configSchema],
-    queryFn: async () => await dataService.getRunnableConfigSchema(),
+    queryFn: async (): Promise<t.TConfigSchema> =>
+      await dataService.getRunnableConfigSchema(),
   });
 };
 

@@ -47,6 +47,19 @@ export type TConfigurable = {
   llm_type: TLLMType;
 };
 
+export type TConfigType = {
+  enum: string[];
+};
+
+export type TConfigSchema = {
+  definitions: {
+    Bot_Type: TConfigType;
+    AgentType: TConfigType;
+    AvailableTools: TConfigType;
+    LLMType: TConfigType;
+  };
+};
+
 export type TRunConfig = {
   tags: string[];
   metadata: {};

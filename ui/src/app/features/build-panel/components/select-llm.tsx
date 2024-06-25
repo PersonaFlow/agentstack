@@ -28,9 +28,10 @@ const llmTypes = [
 
 type TSelectLLMProps = {
   form: UseFormReturn<any>;
+  llms: string[]
 };
 
-export function SelectLLM({ form }: TSelectLLMProps) {
+export function SelectLLM({ form, llms }: TSelectLLMProps) {
   return (
     <FormField
       control={form.control}

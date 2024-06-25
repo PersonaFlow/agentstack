@@ -23,8 +23,10 @@ const architectureTypes = [
 
 export default function SelectArchitecture({
   form,
+  types,
 }: {
   form: UseFormReturn<any>;
+  types: string[];
 }) {
   return (
     <FormField
@@ -39,9 +41,9 @@ export default function SelectArchitecture({
                 <SelectValue placeholder="Select architecture" />
               </SelectTrigger>
               <SelectContent>
-                {architectureTypes.map((item) => (
-                  <SelectItem key={item.value} value={item.value}>
-                    {item.display}
+                {types.map((item) => (
+                  <SelectItem key={item} value={item}>
+                    {item}
                   </SelectItem>
                 ))}
               </SelectContent>

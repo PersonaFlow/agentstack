@@ -2,6 +2,7 @@
 
 import {
   useAssistants,
+  useRunnableConfigSchema,
   useUpdateAssistant,
 } from "@/data-provider/query-service";
 import { zodResolver } from "@hookform/resolvers/zod";
