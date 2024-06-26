@@ -39,7 +39,7 @@ export function ToolDialog({ form }: TToolDialog) {
         <DialogHeader>
           <DialogTitle>Tools</DialogTitle>
           <DialogDescription>
-            {config?.definitions.AvailableTools.enum.map((tool) => (
+            {config?.definitions.AvailableTools.enum?.map((tool) => (
               <FormField
                 key={tool}
                 control={form.control}

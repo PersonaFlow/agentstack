@@ -34,8 +34,6 @@ export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
   const { type: architectureType } = form.getValues().config.configurable;
   const { data: config, isLoading, isError } = useRunnableConfigSchema();
 
-  console.log(config);
-
   if (isLoading) return <Spinner />;
 
   if (isError) return <div>There was an issue fetching config schema.</div>;
@@ -65,15 +63,12 @@ export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
                 </FormItem>
               )}
             />
-
             <PublicSwitch form={form} />
           </div>
-
           <SelectArchitecture
             form={form}
             types={config?.definitions.Bot_Type.enum ?? []}
           />
-
           {architectureType && (
             <>
               {architectureType === "agent" ? (
