@@ -51,12 +51,16 @@ export type TConfigType = {
   enum: string[];
 };
 
+export type TSchemaField = {
+  type: string;
+  title: string;
+  description: string;
+  enum?: string[];
+};
+
 export type TConfigSchema = {
   definitions: {
-    Bot_Type: TConfigType;
-    AgentType: TConfigType;
-    AvailableTools: TConfigType;
-    LLMType: TConfigType;
+    [key: string]: TSchemaField;
   };
 };
 
