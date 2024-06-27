@@ -56,11 +56,18 @@ export type TSchemaField = {
   title: string;
   description: string;
   enum?: string[];
+  default?: string;
+};
+
+type TConfigurableSchema = {
+  properties: {
+    [key: string]: TSchemaField;
+  };
 };
 
 export type TConfigSchema = {
   definitions: {
-    [key: string]: TSchemaField;
+    [key: string]: TSchemaField | TConfigurableSchema;
   };
 };
 
