@@ -7,6 +7,7 @@ import { useThreadState } from "@/data-provider/query-service";
 import { useAtom } from "jotai";
 import { assistantAtom, conversationAtom } from "@/store";
 import { useParams } from "next/navigation";
+import { useToast } from "@/components/ui/use-toast";
 
 const data = {
   values: [
@@ -73,8 +74,16 @@ export default function ChatPanel() {
   const { id: threadId } = useParams();
   const { data: threadState } = useThreadState(threadId);
   const { setUserMessage, userMessage, handleSend: send } = useChat(threadId);
+  const { toast } = useToast();
 
   const handleSend = () => {
+    if (!assistant) {
+      toast({
+        variant: "destructive",
+        title: "Please select an assistant.",
+      });
+      return;
+    }
     send();
   };
 

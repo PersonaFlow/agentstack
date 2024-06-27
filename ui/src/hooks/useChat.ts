@@ -12,12 +12,13 @@ export const useChat = (threadId: string) => {
 
   const handleSend = () => {
     if (!conversation) return null;
-    setConversation((prevConversation) => [...prevConversation, userMessage]);
 
+    setConversation((prevConversation) => [...prevConversation, userMessage]);
+    console.log(assistant?.id);
     const payload = {
       userId: "1234",
       thread_id: threadId,
-      assistant_id: assistant?.id,
+      assistant_id: assistant.id,
       input: [
         {
           content: userMessage,

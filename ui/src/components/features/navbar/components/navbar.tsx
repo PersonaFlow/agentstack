@@ -20,7 +20,7 @@ export default function Navbar() {
 
   const [filteredThreads, setFilteredThreads] = useState(threadsData || {});
   const [open, setOpen] = useState(true);
-  const [selectedAssistant] = useAtom(assistantAtom);
+  const [selectedAssistant, setSelectedAssistant] = useAtom(assistantAtom);
 
   const router = useRouter();
   const createNewThread = useCreateThread();
@@ -67,6 +67,9 @@ export default function Navbar() {
       },
       {
         onSuccess: (thread: TThread) => {
+          if (selectedAssistant.id !== thread.assistant_id) {
+            setSelectedAssistant(thread.assistant_id);
+          }
           router.push(`/c/${thread.id}`);
         },
       },
