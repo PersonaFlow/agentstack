@@ -18,6 +18,7 @@ import {
 } from "@/data-provider/types";
 import { useAtom } from "jotai";
 import { assistantAtom } from "@/store";
+import Spinner from "@/components/ui/spinner";
 
 const formSchema = z.object({
   public: z.boolean(),
@@ -82,12 +83,8 @@ export function CreateAssistant() {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: useMemo(() => {
-      return defaultValues;
-    }, [configSchema]),
+    defaultValues: defaultValues,
   });
-
-  // const { tools } = form.getValues().config.configurable;
 
   const architectureType = form.watch("config.configurable.type");
   const tools = form.watch("config.configurable.tools");
@@ -95,18 +92,9 @@ export function CreateAssistant() {
   useEffect(() => {
     if (configSchema && architectureType) {
       const message = systemMessage(configSchema, architectureType);
-      console.log("message: " + message);
-      // defaultValues.config.configurable.system_message = message;
-      // defaultValues.config.configurable.retrieval_description =
-      //   configProperties["type==chat_retrieval/system_message"].default;
-      // console.log(architectureType);
       form.setValue("config.configurable.system_message", message);
-      // console.log("after reset: ", defaultValues);
     }
   }, [configSchema, architectureType]);
-
-  console.log("rerendered");
-  console.log("on render: ", defaultValues);
 
   useEffect(() => {
     if (architectureType !== "agent") {
@@ -135,7 +123,7 @@ export function CreateAssistant() {
     });
   }
 
-  if (isLoading || !assistantsData) return <div>is loading</div>;
+  if (isLoading || !assistantsData) return <Spinner />;
 
   return <AssistantForm form={form} onSubmit={onSubmit} />;
 }

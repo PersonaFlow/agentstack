@@ -260,7 +260,7 @@ export const useAssistants = () => {
 
 export const useCreateAssistant = () => {
   const queryClient = useQueryClient();
-  return useMutation<t.TAssistant, Error>({
+  return useMutation<t.TAssistant, Error, t.TAssistant>({
     mutationFn: async (payload: t.TAssistant): Promise<t.TAssistant> =>
       await dataService.createAssistant(payload),
     onSuccess: () =>
