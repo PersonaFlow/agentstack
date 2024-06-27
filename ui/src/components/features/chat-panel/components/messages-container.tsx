@@ -22,7 +22,6 @@ export default function MessagesContainer({
   composer,
   conversationId,
 }: Props) {
-  if (!messages?.length) return <Spinner />;
   return (
     <div className="h-full flex flex-col">
       <div className="p-6">

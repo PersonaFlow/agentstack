@@ -1,7 +1,7 @@
 export type TRunInput = {
   content: string;
   role: string;
-  additional_kwargs: {};
+  additional_kwargs?: {};
   example: boolean;
 };
 
@@ -56,11 +56,11 @@ export type TRunConfig = {
 };
 
 export type TRunRequest = {
-  user_id: string;
+  user_id?: string;
   assistant_id: string;
-  thread_id: string;
+  thread_id?: string;
   input: TRunInput[];
-  config: TRunConfig;
+  config?: TRunConfig;
 };
 
 // Not quite right... check when fix bug

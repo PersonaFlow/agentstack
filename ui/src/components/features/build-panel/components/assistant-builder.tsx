@@ -1,9 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { AssistantSelector } from "./assistant-selector";
 import { Button } from "@/components/ui/button";
-import { TAssistant } from "@/data-provider/types";
 import { SquareIcon } from "@radix-ui/react-icons";
 import { EditAssistant } from "./edit-assistant";
 import { CreateAssistant } from "./create-assistant";

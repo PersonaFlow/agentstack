@@ -3,7 +3,7 @@
 import { useChat } from "@/hooks/useChat";
 import { Composer } from "./components/composer";
 import MessagesContainer from "./components/messages-container";
-import { useConversation, useThreadState } from "@/data-provider/query-service";
+import { useThreadState } from "@/data-provider/query-service";
 import { useAtom } from "jotai";
 import { assistantAtom, conversationAtom } from "@/store";
 import { useParams } from "next/navigation";
@@ -68,17 +68,15 @@ const data = {
 };
 
 export default function ChatPanel() {
-  const { setUserMessage, userMessage, handleSend: send } = useChat();
   const [conversation] = useAtom(conversationAtom);
   const [assistant] = useAtom(assistantAtom);
   const { id: threadId } = useParams();
   const { data: threadState } = useThreadState(threadId);
+  const { setUserMessage, userMessage, handleSend: send } = useChat(threadId);
 
   const handleSend = () => {
     send();
   };
-
-  console.log(assistant);
 
   return (
     <div className="h-full w-full gap-4 flex flex-col">
