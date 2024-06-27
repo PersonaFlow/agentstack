@@ -104,7 +104,7 @@ async def update_user(
     operation_id="delete_user",
     summary="Delete a specific user ",
     description=(
-                """
+        """
                    DELETE endpoint at `/users/{user_id}` for removing a specific user using its `user_id`.
                 """
     ),

@@ -3,15 +3,22 @@
 import {
   useAssistants,
   useCreateAssistant,
+  useRunnableConfigSchema,
 } from "@/data-provider/query-service";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { AssistantForm } from "./assistant-form";
-import { TAssistant } from "@/data-provider/types";
+import {
+  TAssistant,
+  TConfigSchema,
+  TConfigurableSchema,
+  TSchemaField,
+} from "@/data-provider/types";
 import { useAtom } from "jotai";
 import { assistantAtom } from "@/store";
+import Spinner from "@/components/ui/spinner";
 
 const formSchema = z.object({
   public: z.boolean(),
@@ -39,13 +46,46 @@ const defaultValues = {
       type: "",
       agent_type: "GPT 3.5 Turbo",
       llm_type: "GPT 3.5 Turbo",
-      retrieval_description:
-        "Can be used to look up information that was uploaded for this assistant.",
-      system_message: "You are a helpful assistant.",
+      retrieval_description: "",
+      system_message: "",
       tools: [],
     },
   },
   file_ids: [],
+};
+
+const useConfigSchema = (
+  configSchema: TConfigurableSchema,
+  selectedArchType: string,
+) => {
+  const configProperties =
+    configSchema?.definitions["Configurable" as TConfigurableSchema].properties;
+
+  let systemMessage = "";
+  let retrievalDescription = "";
+
+  if (selectedArchType === "chat_retrieval") {
+    systemMessage =
+      configProperties["type==chat_retrieval/system_message"].default;
+  }
+
+  if (selectedArchType === "chatbot") {
+    systemMessage = configProperties["type==chatbot/system_message"].default;
+  }
+
+  if (selectedArchType === "agent") {
+    systemMessage = configProperties["type==agent/system_message"].default;
+  }
+
+  if (selectedArchType) {
+    retrievalDescription =
+      configProperties["type==agent/retrieval_description"].default;
+  }
+
+  return {
+    systemMessage,
+    retrievalDescription,
+  };
 };
 
 export function CreateAssistant() {
@@ -53,16 +93,30 @@ export function CreateAssistant() {
   const [_, setSelectedAssistant] = useAtom(assistantAtom);
 
   const createAssistant = useCreateAssistant();
+  const { data: configSchema } = useRunnableConfigSchema();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: defaultValues,
   });
 
-  const { tools } = form.getValues().config.configurable;
-
   const architectureType = form.watch("config.configurable.type");
-  form.watch("config.configurable.tools");
+  const tools = form.watch("config.configurable.tools");
+
+  const { systemMessage, retrievalDescription } = useConfigSchema(
+    configSchema,
+    architectureType ?? "",
+  );
+
+  useEffect(() => {
+    if (configSchema && architectureType) {
+      form.setValue("config.configurable.system_message", systemMessage);
+      form.setValue(
+        "config.configurable.retrieval_description",
+        retrievalDescription,
+      );
+    }
+  }, [configSchema, architectureType]);
 
   useEffect(() => {
     if (architectureType !== "agent") {
@@ -91,7 +145,7 @@ export function CreateAssistant() {
     });
   }
 
-  if (isLoading || !assistantsData) return <div>is loading</div>;
+  if (isLoading || !assistantsData) return <Spinner />;
 
   return <AssistantForm form={form} onSubmit={onSubmit} />;
 }

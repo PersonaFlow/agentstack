@@ -64,6 +64,7 @@ DEFAULT_SYSTEM_MESSAGE = "You are a helpful assistant."
 
 CHECKPOINTER = get_pg_checkpoint_saver()
 
+
 def get_llm(llm_type: LLMType):
     if llm_type == LLMType.GPT_35_TURBO:
         llm = get_openai_llm()
@@ -197,6 +198,7 @@ class ConfigurableAgent(RunnableBinding):
             kwargs=kwargs or {},
             config=config or {},
         )
+
 
 def get_chatbot(
     llm_type: LLMType,

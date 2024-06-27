@@ -10,46 +10,38 @@ export enum MessageType {
   HUMAN = "human",
 }
 
-export type TBotType = "chatbot" | "chat_retrieval" | "agent";
-
-export type TAgentType =
-  | "GPT 3.5 Turbo"
-  | "GPT 4 Turbo"
-  | "GPT 4 (Azure OpenAI)"
-  | "Claude 2"
-  | "Claude 2 (Amazon Bedrock)"
-  | "GEMINI"
-  | "Ollama";
-
-export type TConfigurableTool =
-  | "Retrieval"
-  | "Code interpretor"
-  | "DDG Search"
-  | "Search (Tavily)"
-  | "Search (short answer, Tavily)"
-  | "Retrieval"
-  | "Arxiv"
-  | "PubMed"
-  | "Wikipedia";
-
-export type TLLMType =
-  | "GPT 3.5 Turbo"
-  | "GPT 4"
-  | "GPT 4 (Azure OpenAI)"
-  | "Claude 2"
-  | "Claude 2 (Amazon Bedrock)"
-  | "GEMINI"
-  | "Mixtral"
-  | "Ollama";
-
 export type TConfigurable = {
-  type: TBotType;
-  agent_type?: TAgentType;
+  type: string | null;
+  agent_type?: string | null;
   interrupt_before_action: boolean;
   retrieval_description: string;
   system_message: string;
-  tools: TConfigurableTool[];
-  llm_type: TLLMType;
+  tools: string[];
+  llm_type: string;
+};
+
+export type TConfigType = {
+  enum: string[];
+};
+
+export type TSchemaField = {
+  type: string;
+  title: string;
+  description: string;
+  enum?: string[];
+  default?: string;
+};
+
+type TConfigurableSchema = {
+  properties: {
+    [key: string]: TSchemaField;
+  };
+};
+
+export type TConfigSchema = {
+  definitions: {
+    [key: string]: TSchemaField | TConfigurableSchema;
+  };
 };
 
 export type TRunConfig = {
@@ -187,17 +179,17 @@ export type TUpdateMessageRequest = {
 };
 
 export interface TAssistant {
-  id: string;
+  id?: string;
   created_at?: string;
   updated_at?: string;
-  user_id: string;
+  user_id?: string;
   name: string;
   config: {
     configurable: TConfigurable;
   };
-  kwargs: {};
-  file_ids: string[];
-  public: boolean;
+  kwargs?: {};
+  file_ids?: string[];
+  public?: boolean;
 }
 
 export type TCreateAssistantFileRequest = {

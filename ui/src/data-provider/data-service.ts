@@ -23,7 +23,7 @@ export function getRunnableOutputSchema(): Promise<any> {
   return request.get(endpoints.runnableOutputSchema);
 }
 
-export function getRunnableConfigSchema(): Promise<void> {
+export function getRunnableConfigSchema(): Promise<t.TConfigSchema> {
   return request.get(endpoints.runnableConfigSchema);
 }
 

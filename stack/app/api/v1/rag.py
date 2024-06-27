@@ -8,7 +8,10 @@ from stack.app.schema.rag import (
     QueryRequestPayload,
     QueryResponsePayload,
 )
-from stack.app.repositories.assistant import get_assistant_repository, AssistantRepository
+from stack.app.repositories.assistant import (
+    get_assistant_repository,
+    AssistantRepository,
+)
 from stack.app.rag.query import query_documents
 from stack.app.core.configuration import get_settings
 from stack.app.repositories.file import FileRepository, get_file_repository
@@ -110,14 +113,10 @@ async def query(api_key: ApiKey, payload: QueryRequestPayload):
         )
         return response_data
     except HTTPException as e:
-        logger.exception(
-            f"Error querying vector database: {str(e)}", exc_info=True
-        )
+        logger.exception(f"Error querying vector database: {str(e)}", exc_info=True)
         raise e
     except Exception as e:
-        logger.exception(
-            f"Error querying vector database: {str(e)}", exc_info=True
-        )
+        logger.exception(f"Error querying vector database: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 

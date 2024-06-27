@@ -3,7 +3,10 @@ import uuid
 import asyncio
 from datetime import datetime
 import structlog
-from stack.app.repositories.assistant import AssistantRepository, get_assistant_repository
+from stack.app.repositories.assistant import (
+    AssistantRepository,
+    get_assistant_repository,
+)
 from stack.app.repositories.file import FileRepository, get_file_repository
 from stack.app.schema.assistant import (
     CreateAssistantSchema,

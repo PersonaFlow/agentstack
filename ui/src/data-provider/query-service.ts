@@ -66,9 +66,10 @@ export const useRunnableOutputSchema = () => {
 };
 
 export const useRunnableConfigSchema = () => {
-  return useQuery<any, Error>({
+  return useQuery<t.TConfigSchema, Error>({
     queryKey: [QueryKeys.configSchema],
-    queryFn: async () => await dataService.getRunnableConfigSchema(),
+    queryFn: async (): Promise<t.TConfigSchema> =>
+      await dataService.getRunnableConfigSchema(),
   });
 };
 
@@ -268,7 +269,7 @@ export const useAssistants = () => {
 
 export const useCreateAssistant = () => {
   const queryClient = useQueryClient();
-  return useMutation<t.TAssistant, Error>({
+  return useMutation<t.TAssistant, Error, t.TAssistant>({
     mutationFn: async (payload: t.TAssistant): Promise<t.TAssistant> =>
       await dataService.createAssistant(payload),
     onSuccess: () =>
