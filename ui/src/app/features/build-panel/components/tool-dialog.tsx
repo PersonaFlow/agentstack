@@ -15,35 +15,21 @@ import {
   FormItem,
   FormLabel,
 } from "@/components/ui/form";
+import Spinner from "@/components/ui/spinner";
+import { useRunnableConfigSchema } from "@/data-provider/query-service";
 import { UseFormReturn } from "react-hook-form";
 
-// const tools = [
-//   { display: "DDG Search", value: "DDG Search" },
-//   { display: "Search (Tavily)", value: "Search (Tavily)" },
-//   {
-//     display: "Search (short answer, Tavily)",
-//     value: "Search (short answer, Tavily)",
-//   },
-//   { display: "Retrieval", value: "Retrieval" },
-//   { display: "Arxiv", value: "Arxiv" },
-//   { display: "PubMed", value: "PubMed" },
-//   { display: "Wikipedia", value: "Wikipedia" },
-// ];
-
-const tools = [
-  "DDG Search",
-  "Search (Tavily)",
-  "Search (short answer, Tavily)",
-  "Retrieval",
-  "Arxiv",
-  "PubMed",
-  "Wikipedia",
-];
 type TToolDialog = {
   form: UseFormReturn<any>;
 };
 
 export function ToolDialog({ form }: TToolDialog) {
+  const { data: config, isLoading, isError } = useRunnableConfigSchema();
+
+  if (isLoading) return <Spinner />;
+
+  if (isError) return <div>Issue fetching available tools.</div>;
+
   return (
     <Dialog>
       <DialogTrigger>
@@ -53,7 +39,7 @@ export function ToolDialog({ form }: TToolDialog) {
         <DialogHeader>
           <DialogTitle>Tools</DialogTitle>
           <DialogDescription>
-            {tools.map((tool) => (
+            {config?.definitions.AvailableTools.enum?.map((tool) => (
               <FormField
                 key={tool}
                 control={form.control}

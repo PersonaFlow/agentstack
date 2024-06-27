@@ -22,6 +22,8 @@ import FilesDialog from "./files-dialog";
 import PublicSwitch from "./public-switch";
 import SelectArchitecture from "./select-architecture";
 import SelectFiles from "./select-files";
+import { useRunnableConfigSchema } from "@/data-provider/query-service";
+import Spinner from "@/components/ui/spinner";
 
 type TAssistantFormProps = {
   form: UseFormReturn<any>;
@@ -30,6 +32,11 @@ type TAssistantFormProps = {
 
 export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
   const { type: architectureType } = form.getValues().config.configurable;
+  const { data: config, isLoading, isError } = useRunnableConfigSchema();
+
+  if (isLoading) return <Spinner />;
+
+  if (isError) return <div>There was an issue fetching config schema.</div>;
 
   return (
     <Form {...form}>
@@ -56,18 +63,24 @@ export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
                 </FormItem>
               )}
             />
-
             <PublicSwitch form={form} />
           </div>
-
-          <SelectArchitecture form={form} />
-
+          <SelectArchitecture
+            form={form}
+            types={config?.definitions.Bot_Type.enum ?? []}
+          />
           {architectureType && (
             <>
               {architectureType === "agent" ? (
-                <SelectModel form={form} />
+                <SelectModel
+                  form={form}
+                  models={config?.definitions.AgentType.enum ?? []}
+                />
               ) : (
-                <SelectLLM form={form} />
+                <SelectLLM
+                  form={form}
+                  llms={config?.definitions.LLMType.enum ?? []}
+                />
               )}
               <SystemPrompt form={form} />
               {architectureType !== "chatbot" && (
@@ -95,49 +108,6 @@ export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
             </>
           )}
         </div>
-        {/* 
-          <AccordionItem value="files">
-            <AccordionTrigger className="p-2">Upload Files</AccordionTrigger>
-            <AccordionContent className="overflow-y-scroll p-2 gap-3 flex flex-col">
-              {mockFiles.map((file) => (
-                <FormField
-                  key={file.id}
-                  control={form.control}
-                  name="file_ids"
-                  render={({ field }) => {
-                    return (
-                      <FormItem
-                        key={file.id}
-                        className="flex flex-row items-start space-x-3 space-y-0"
-                      >
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value?.includes(file.id)}
-                            onCheckedChange={(checked) => {
-                              return checked
-                                ? field.onChange([...field.value, file.id])
-                                : field.onChange(
-                                    field.value?.filter(
-                                      (value) => value !== file.id,
-                                    ),
-                                  );
-                            }}
-                          />
-                        </FormControl>
-                        <FormLabel className="text-sm font-normal">
-                          {file.filename}
-                        </FormLabel>
-                      </FormItem>
-                    );
-                  }}
-                />
-              ))}
-              <div className="flex my-3">
-                <UploadFiles />
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion> */}
       </form>
     </Form>
   );
