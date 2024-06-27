@@ -3,13 +3,19 @@
 import {
   useAssistants,
   useCreateAssistant,
+  useRunnableConfigSchema,
 } from "@/data-provider/query-service";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { AssistantForm } from "./assistant-form";
-import { TAssistant } from "@/data-provider/types";
+import {
+  TAssistant,
+  TConfigSchema,
+  TConfigurableSchema,
+  TSchemaField,
+} from "@/data-provider/types";
 import { useAtom } from "jotai";
 import { assistantAtom } from "@/store";
 
@@ -39,13 +45,32 @@ const defaultValues = {
       type: "",
       agent_type: "GPT 3.5 Turbo",
       llm_type: "GPT 3.5 Turbo",
-      retrieval_description:
-        "Can be used to look up information that was uploaded for this assistant.",
-      system_message: "You are a helpful assistant.",
+      retrieval_description: "",
+      system_message: "",
       tools: [],
     },
   },
   file_ids: [],
+};
+
+const systemMessage = (
+  configSchema: TConfigurableSchema,
+  selectedArchType: string,
+) => {
+  const configProperties =
+    configSchema?.definitions["Configurable" as TConfigurableSchema].properties;
+
+  if (selectedArchType === "chat_retrieval") {
+    return configProperties["type==chat_retrieval/system_message"].default;
+  }
+
+  if (selectedArchType === "chatbot") {
+    return configProperties["type==chatbot/system_message"].default;
+  }
+
+  if (selectedArchType === "agent") {
+    return configProperties["type==agent/system_message"].default;
+  }
 };
 
 export function CreateAssistant() {
@@ -53,16 +78,35 @@ export function CreateAssistant() {
   const [_, setSelectedAssistant] = useAtom(assistantAtom);
 
   const createAssistant = useCreateAssistant();
+  const { data: configSchema } = useRunnableConfigSchema();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: defaultValues,
+    defaultValues: useMemo(() => {
+      return defaultValues;
+    }, [configSchema]),
   });
 
-  const { tools } = form.getValues().config.configurable;
+  // const { tools } = form.getValues().config.configurable;
 
   const architectureType = form.watch("config.configurable.type");
-  form.watch("config.configurable.tools");
+  const tools = form.watch("config.configurable.tools");
+
+  useEffect(() => {
+    if (configSchema && architectureType) {
+      const message = systemMessage(configSchema, architectureType);
+      console.log("message: " + message);
+      // defaultValues.config.configurable.system_message = message;
+      // defaultValues.config.configurable.retrieval_description =
+      //   configProperties["type==chat_retrieval/system_message"].default;
+      // console.log(architectureType);
+      form.setValue("config.configurable.system_message", message);
+      // console.log("after reset: ", defaultValues);
+    }
+  }, [configSchema, architectureType]);
+
+  console.log("rerendered");
+  console.log("on render: ", defaultValues);
 
   useEffect(() => {
     if (architectureType !== "agent") {
