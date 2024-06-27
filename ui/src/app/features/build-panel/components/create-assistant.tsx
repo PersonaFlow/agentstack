@@ -54,24 +54,38 @@ const defaultValues = {
   file_ids: [],
 };
 
-const systemMessage = (
+const useConfigSchema = (
   configSchema: TConfigurableSchema,
   selectedArchType: string,
 ) => {
   const configProperties =
     configSchema?.definitions["Configurable" as TConfigurableSchema].properties;
 
+  let systemMessage = "";
+  let retrievalDescription = "";
+
   if (selectedArchType === "chat_retrieval") {
-    return configProperties["type==chat_retrieval/system_message"].default;
+    systemMessage =
+      configProperties["type==chat_retrieval/system_message"].default;
   }
 
   if (selectedArchType === "chatbot") {
-    return configProperties["type==chatbot/system_message"].default;
+    systemMessage = configProperties["type==chatbot/system_message"].default;
   }
 
   if (selectedArchType === "agent") {
-    return configProperties["type==agent/system_message"].default;
+    systemMessage = configProperties["type==agent/system_message"].default;
   }
+
+  if (selectedArchType) {
+    retrievalDescription =
+      configProperties["type==agent/retrieval_description"].default;
+  }
+
+  return {
+    systemMessage,
+    retrievalDescription,
+  };
 };
 
 export function CreateAssistant() {
@@ -89,10 +103,18 @@ export function CreateAssistant() {
   const architectureType = form.watch("config.configurable.type");
   const tools = form.watch("config.configurable.tools");
 
+  const { systemMessage, retrievalDescription } = useConfigSchema(
+    configSchema,
+    architectureType ?? "",
+  );
+
   useEffect(() => {
     if (configSchema && architectureType) {
-      const message = systemMessage(configSchema, architectureType);
-      form.setValue("config.configurable.system_message", message);
+      form.setValue("config.configurable.system_message", systemMessage);
+      form.setValue(
+        "config.configurable.retrieval_description",
+        retrievalDescription,
+      );
     }
   }, [configSchema, architectureType]);
 
