@@ -9,7 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { TAssistant, TConfigurableTool } from "@/data-provider/types";
+import { TAssistant, TConfigurable } from "@/data-provider/types";
 import { AssistantForm } from "./assistant-form";
 import { useAtom } from "jotai";
 import { assistantAtom } from "@/store";
@@ -64,7 +64,7 @@ export function EditAssistant() {
     }
 
     if (architectureType === "chat_retrieval") {
-      const retrievalTools: TConfigurableTool[] = ["Retrieval"];
+      const retrievalTools = ["Retrieval"];
       const containsCodeInterpreter = tools.includes("Code interpretor");
       // if (containsCodeInterpreter) retrievalTools.push("Code interpreter");
       form.setValue("config.configurable.tools", retrievalTools);

@@ -67,9 +67,6 @@ export default function Navbar() {
       },
       {
         onSuccess: (thread: TThread) => {
-          if (selectedAssistant.id !== thread.assistant_id) {
-            setSelectedAssistant(thread.assistant_id);
-          }
           router.push(`/c/${thread.id}`);
         },
       },

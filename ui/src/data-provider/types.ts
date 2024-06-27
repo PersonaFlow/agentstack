@@ -32,7 +32,7 @@ export type TSchemaField = {
   default?: string;
 };
 
-type TConfigurableSchema = {
+export type TConfigurableSchema = {
   properties: {
     [key: string]: TSchemaField;
   };
