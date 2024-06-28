@@ -7,9 +7,28 @@ import { EditAssistant } from "./edit-assistant";
 import { CreateAssistant } from "./create-assistant";
 import { useAtom } from "jotai";
 import { assistantAtom } from "@/store";
+import { useEffect } from "react";
+import { useParams } from "next/navigation";
+import { useAssistant, useThread } from "@/data-provider/query-service";
 
 export function AssistentBuilder() {
   const [selectedAssistant, setSelectedAssistant] = useAtom(assistantAtom);
+  const { id: threadId } = useParams();
+
+  const { data: threadData } = useThread(threadId, {
+    enabled: !!threadId,
+  });
+
+  const { data: assistantData } = useAssistant(threadData?.assistant_id!, {
+    enabled: !!threadData?.assistant_id,
+  });
+
+  useEffect(() => {
+    if (assistantData) {
+      setSelectedAssistant(assistantData);
+      console.log(assistantData);
+    }
+  }, [threadId, assistantData]);
 
   return (
     <>

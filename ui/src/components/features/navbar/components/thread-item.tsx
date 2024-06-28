@@ -6,7 +6,7 @@ import {
 } from "@/data-provider/query-service";
 import { TThread } from "@/data-provider/types";
 import { cn } from "@/lib/utils";
-import { assistantAtom } from "@/store";
+import { assistantAtom, threadAtom } from "@/store";
 import { useAtom } from "jotai";
 import { Brain, EditIcon, Trash } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";

@@ -11,8 +11,6 @@ import Spinner from "@/components/ui/spinner";
 import { useAssistants } from "@/data-provider/query-service";
 import { assistantAtom } from "@/store";
 import { useAtom } from "jotai";
-import { useParams } from "next/navigation";
-import { useEffect } from "react";
 
 export function AssistantSelector() {
   const [selectedAssistant, setSelectedAssistant] = useAtom(assistantAtom);

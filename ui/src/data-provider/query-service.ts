@@ -166,10 +166,14 @@ export const useCreateThread = () => {
   });
 };
 
-export const useThread = (threadId: string) => {
+export const useThread = (
+  threadId: string,
+  enabled?: { enabled?: boolean },
+) => {
   return useQuery<t.TThread, Error>({
     queryKey: [QueryKeys.thread, threadId],
     queryFn: async () => await dataService.getThread(threadId),
+    ...enabled,
   });
 };
 
