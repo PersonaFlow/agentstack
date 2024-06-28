@@ -210,14 +210,6 @@ export const useMessagesByThread = (threadId: string) => {
   });
 };
 
-export const useMessagesByCheckpoint = (threadId: string) => {
-  return useQuery<t.TMessage[], Error>({
-    queryKey: [QueryKeys.messagesByCheckpoint, QueryKeys.messages, threadId],
-    queryFn: async (): Promise<t.TMessage[]> =>
-      await dataService.getMessagesByCheckpoint(threadId),
-  });
-};
-
 export const useThreadState = (threadId: string) => {
   return useQuery<t.TThreadState, Error>({
     queryKey: [QueryKeys.conversation, threadId],

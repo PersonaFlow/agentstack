@@ -107,13 +107,6 @@ export function getThreadState(threadId: string): Promise<t.TThreadState> {
   return request.get(endpoints.threadState(threadId));
 }
 
-// Confirm this
-export function getMessagesByCheckpoint(
-  threadId: string,
-): Promise<t.TMessage[]> {
-  return request.get(endpoints.threadCheckpoints(threadId));
-}
-
 // --Messages--
 export function createMessage(payload: t.TMessage): Promise<t.TMessage> {
   return request.post(endpoints.messages());
