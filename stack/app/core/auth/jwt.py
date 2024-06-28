@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 import structlog
 import uuid
 import jwt
-from app.core.configuration import settings
+from stack.app.core.configuration import settings
 
 logger = structlog.get_logger()
 

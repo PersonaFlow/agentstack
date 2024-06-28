@@ -58,6 +58,10 @@ class CreateUserSchema(BaseModel):
         None,
         description="(Optional) The email address associated with the user's account. It's a string type and is expected to be unique across the userbase",
     )
+    password: Optional[str] = Field(
+        None,
+        description="(Optional) The hashed password associated with the user's account. Only used when internal authentication is enabled.",
+    )
     first_name: Optional[str] = Field(
         None, description="(Optional) The first name of the user."
     )

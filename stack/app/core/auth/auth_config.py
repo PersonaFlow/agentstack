@@ -8,9 +8,9 @@ from stack.app.core.auth.strategies.base import BaseAuthenticationStrategy, Base
 # Add Auth strategy classes here to enable them
 # Ex: [BasicAuthentication]
 ENABLED_AUTH_STRATEGIES = [
-    {"Basic": BasicAuthentication()},
-    # {"GoogleOAuth": GoogleOAuth()},
-    # {"OpenIDConnect": OpenIDConnect()}
+    BasicAuthentication,
+    # GoogleOAuth,
+    # OpenIDConnect,
 ]
 
 # Define the mapping from Auth strategy name to class obj - does not need to be manually modified.
