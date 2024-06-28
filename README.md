@@ -77,7 +77,7 @@ _Builds and dependencies are managed by [Pantsbuild](https://www.pantsbuild.org/
 
 1. [install Pants](https://www.pantsbuild.org/2.20/docs/getting-started/installing-pants) on your system.
 2. Clone the repo and make sure you have Python 3.11.* installed and the interpreter selected in your IDE.
-3. Create .env.local and .env.production files using the .env.local.example and .env.production.example templates.
+3. Create .env and .env.production files using the .env.example and .env.production.example templates.
 4. Open docker-compose.yaml and comment out the `stack` block under `services` if it is not already commented out.
 5. Open docker on your machine if it is not already running and run `docker-compose up -d`. This will download and start the images for Qdrant, Postgres, and Unstructured-API
 6. Install dependencies by running `poetry install --no-root`. 
