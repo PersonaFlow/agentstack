@@ -87,10 +87,12 @@ export default function ChatPanel() {
     send();
   };
 
+  if (!threadState) return <div>There was an issue fetching messages.</div>;
+
   return (
     <div className="h-full w-full gap-4 flex flex-col">
       <MessagesContainer
-        messages={threadState?.values}
+        messages={threadState?.values.length >= 0 ? threadState?.values : []}
         composer={
           <Composer
             onChange={(e) => setUserMessage(e.target.value)}
