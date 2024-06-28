@@ -17,58 +17,59 @@ export const useStream = () => {
       setController(controller);
       setCurrent({ status: "inflight", messages: input || [] });
 
-      console.log(input);
-
-      await fetchEventSource("http://localhost:9000/api/v1/runs/stream", {
-        signal: controller.signal,
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-API-KEY": "personaflow-api-key",
-        },
-        body: JSON.stringify({ user_id, input, thread_id, assistant_id }),
-        openWhenHidden: true,
-        onmessage(msg) {
-          if (msg.event === "data") {
-            const messages = JSON.parse(msg.data);
+      await fetchEventSource(
+        `${process.env.NEXT_PUBLIC_BASE_API_URL}/api/v1/runs/stream`,
+        {
+          signal: controller.signal,
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-API-KEY": "personaflow-api-key",
+          },
+          body: JSON.stringify({ user_id, input, thread_id, assistant_id }),
+          openWhenHidden: true,
+          onmessage(msg) {
+            if (msg.event === "data") {
+              const messages = JSON.parse(msg.data);
+              setCurrent((current) => ({
+                status: "inflight" as TStreamState["status"],
+                messages: mergeMessagesById(current?.messages, messages),
+                run_id: current?.run_id,
+              }));
+            } else if (msg.event === "metadata") {
+              const { run_id } = JSON.parse(msg.data);
+              setCurrent((current) => ({
+                status: "inflight",
+                messages: current?.messages,
+                run_id: run_id,
+              }));
+            } else if (msg.event === "error") {
+              setCurrent((current) => ({
+                status: "error",
+                messages: current?.messages,
+                run_id: current?.run_id,
+              }));
+            }
+          },
+          onclose() {
             setCurrent((current) => ({
-              status: "inflight" as TStreamState["status"],
-              messages: mergeMessagesById(current?.messages, messages),
+              status: current?.status === "error" ? current.status : "done",
+              messages: current?.messages,
               run_id: current?.run_id,
             }));
-          } else if (msg.event === "metadata") {
-            const { run_id } = JSON.parse(msg.data);
-            setCurrent((current) => ({
-              status: "inflight",
-              messages: current?.messages,
-              run_id: run_id,
-            }));
-          } else if (msg.event === "error") {
+            setController(null);
+          },
+          onerror(error) {
             setCurrent((current) => ({
               status: "error",
               messages: current?.messages,
               run_id: current?.run_id,
             }));
-          }
+            setController(null);
+            throw error;
+          },
         },
-        onclose() {
-          setCurrent((current) => ({
-            status: current?.status === "error" ? current.status : "done",
-            messages: current?.messages,
-            run_id: current?.run_id,
-          }));
-          setController(null);
-        },
-        onerror(error) {
-          setCurrent((current) => ({
-            status: "error",
-            messages: current?.messages,
-            run_id: current?.run_id,
-          }));
-          setController(null);
-          throw error;
-        },
-      });
+      );
     },
     [],
   );
