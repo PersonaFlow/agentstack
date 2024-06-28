@@ -24,6 +24,12 @@ export type TConfigType = {
   enum: string[];
 };
 
+export type TStreamState = {
+  status: "inflight" | "error" | "done";
+  messages?: TMessage[] | Record<string, any>;
+  run_id?: string;
+};
+
 export type TSchemaField = {
   type: string;
   title: string;
