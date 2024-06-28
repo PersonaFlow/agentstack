@@ -10,15 +10,11 @@ import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { AssistantForm } from "./assistant-form";
-import {
-  TAssistant,
-  TConfigSchema,
-  TConfigurableSchema,
-  TSchemaField,
-} from "@/data-provider/types";
+import { TAssistant, TConfigSchema, TSchemaField } from "@/data-provider/types";
 import { useAtom } from "jotai";
 import { assistantAtom } from "@/store";
 import Spinner from "@/components/ui/spinner";
+import { useConfigSchema } from "@/hooks/useConfig";
 
 const formSchema = z.object({
   public: z.boolean(),

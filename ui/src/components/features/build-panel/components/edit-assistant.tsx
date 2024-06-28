@@ -9,10 +9,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { TAssistant, TConfigurable } from "@/data-provider/types";
+import { TAssistant } from "@/data-provider/types";
 import { AssistantForm } from "./assistant-form";
 import { useAtom } from "jotai";
 import { assistantAtom } from "@/store";
+import { useConfigSchema } from "@/hooks/useConfig";
 
 const formSchema = z.object({
   public: z.boolean(),
@@ -34,6 +35,7 @@ const formSchema = z.object({
 export function EditAssistant() {
   const { data: assistantsData, isLoading } = useAssistants();
   const [selectedAssistant] = useAtom(assistantAtom);
+  const { data: configSchema } = useRunnableConfigSchema();
 
   const updateAssistant = useUpdateAssistant(selectedAssistant?.id);
 
@@ -44,14 +46,27 @@ export function EditAssistant() {
     }, [selectedAssistant]),
   });
 
-  const { tools } = form.getValues().config.configurable;
+  const architectureType = form.watch("config.configurable.type");
+  const tools = form.watch("config.configurable.tools");
+
+  const { systemMessage, retrievalDescription } = useConfigSchema(
+    configSchema,
+    architectureType ?? "",
+  );
+
+  useEffect(() => {
+    if (configSchema && architectureType) {
+      form.setValue("config.configurable.system_message", systemMessage);
+      form.setValue(
+        "config.configurable.retrieval_description",
+        retrievalDescription,
+      );
+    }
+  }, [configSchema, architectureType]);
 
   useEffect(() => {
     form.reset(selectedAssistant);
   }, [selectedAssistant]);
-
-  const architectureType = form.watch("config.configurable.type");
-  form.watch("config.configurable.tools");
 
   useEffect(() => {
     if (architectureType !== "agent") {
