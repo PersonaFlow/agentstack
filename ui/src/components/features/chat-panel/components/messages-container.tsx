@@ -24,7 +24,7 @@ export default function MessagesContainer({
 }: Props) {
   return (
     <div className="h-full flex flex-col">
-      <div className="p-6">
+      <div className="p-6 overflow-y-scroll">
         {messages?.map((message) => (
           <MessageItem message={message} key={message.id} />
         ))}

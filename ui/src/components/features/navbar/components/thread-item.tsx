@@ -21,7 +21,6 @@ export default function ThreadItem({ thread }: TThreadItemProps) {
   const [editedName, setEditedname] = useState(thread.name || "New thread");
   const [isSelected, setIsSelected] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [selectedAssistant, setSelectedAssistant] = useAtom(assistantAtom);
 
   const updateThread = useUpdateThread(thread.id!);
   const deleteThread = useDeleteThread(thread.id!);
@@ -37,11 +36,6 @@ export default function ThreadItem({ thread }: TThreadItemProps) {
   const handleItemClick = () => {
     if (isSelected) return;
     router.push(`/c/${thread.id}`);
-    console.log(thread.assistant_id);
-    if (!selectedAssistant || selectedAssistant.id !== thread.assistant_id) {
-      console.log(selectedAssistant);
-      setSelectedAssistant(thread.assistant_id);
-    }
   };
 
   const submitUpdatedName = () => {

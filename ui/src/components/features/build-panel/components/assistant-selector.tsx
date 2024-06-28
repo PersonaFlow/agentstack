@@ -11,6 +11,7 @@ import Spinner from "@/components/ui/spinner";
 import { useAssistants } from "@/data-provider/query-service";
 import { assistantAtom } from "@/store";
 import { useAtom } from "jotai";
+import { useParams } from "next/navigation";
 import { useEffect } from "react";
 
 export function AssistantSelector() {
@@ -30,10 +31,6 @@ export function AssistantSelector() {
       setSelectedAssistant(_selectedAssistant);
     }
   };
-
-  useEffect(() => {
-    console.log(selectedAssistant);
-  }, [selectedAssistant]);
 
   if (isLoading || !assistantsData) return <Spinner />;
 

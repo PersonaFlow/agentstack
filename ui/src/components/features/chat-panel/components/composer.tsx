@@ -1,7 +1,7 @@
 "use client";
 import { Input } from "@/components/ui/input";
 import { Send } from "lucide-react";
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent } from "react";
 
 type Props = {
   onChange: (e: ChangeEvent<HTMLInputElement>) => void;
