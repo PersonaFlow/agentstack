@@ -64,9 +64,8 @@ export function EditAssistant() {
     }
   }, [configSchema, architectureType]);
 
-  useEffect(() => {
-    form.reset(selectedAssistant);
-  }, [selectedAssistant]);
+  console.log(selectedAssistant);
+  console.log("edit!");
 
   useEffect(() => {
     if (architectureType !== "agent") {

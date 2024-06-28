@@ -3,12 +3,6 @@ import * as endpoints from "./endpoints";
 import * as t from "./types";
 
 // --Runs--
-export function stream(payload: t.TRunRequest): Promise<t.TRunResponse> {
-  return request.post(endpoints.stream, {
-    ...payload,
-  });
-}
-
 export function run(payload: t.TRunRequest): Promise<t.TRunResponse> {
   return request.post(endpoints.runs, {
     ...payload,
@@ -103,15 +97,12 @@ export function getMessagesByThread(threadId: string): Promise<t.TMessage[]> {
   return request.get(endpoints.threadMessages(threadId));
 }
 
-// Confirm this
-export function getMessagesByCheckpoint(
-  threadId: string,
-): Promise<t.TMessage[]> {
-  return request.get(endpoints.threadCheckpoints(threadId));
+export function getThreadState(threadId: string): Promise<t.TThreadState> {
+  return request.get(endpoints.threadState(threadId));
 }
 
 // --Messages--
-export function createMessage(payload: t.TMessageRequest): Promise<t.TMessage> {
+export function createMessage(payload: t.TMessage): Promise<t.TMessage> {
   return request.post(endpoints.messages());
 }
 

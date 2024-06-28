@@ -1,11 +1,11 @@
 "use client";
 
-import { ChatForm } from "./features/chat/components/chat-form";
+import ChatPanel from "@/components/features/chat-panel";
 
 export default function Page() {
   return (
     <div className="border-solid border-2 w-full gap-4 flex flex-col">
-      <ChatForm />
+      <h1>Select a thread!</h1>
     </div>
   );
 }
