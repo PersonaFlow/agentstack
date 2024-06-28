@@ -3,12 +3,6 @@ import * as endpoints from "./endpoints";
 import * as t from "./types";
 
 // --Runs--
-export function stream(payload: t.TRunRequest): Promise<t.TRunResponse> {
-  return request.post(endpoints.stream, {
-    ...payload,
-  });
-}
-
 export function run(payload: t.TRunRequest): Promise<t.TRunResponse> {
   return request.post(endpoints.runs, {
     ...payload,

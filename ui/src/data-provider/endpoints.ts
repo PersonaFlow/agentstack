@@ -1,7 +1,6 @@
 const formatParam = (param?: any) => (param ? param : "");
 
 // --Runs--
-export const stream = "/api/v1/runs/stream";
 export const runs = "/api/v1/runs";
 export const runnableInputSchema = "/api/v1/runs/input_schema";
 export const runnableOutputSchema = "/api/v1/runs/output_schema";

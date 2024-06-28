@@ -37,13 +37,6 @@ enum QueryKeys {
 }
 
 // --Runs--
-export const useStreamChat = () => {
-  return useMutation<t.TRunResponse, Error, t.TRunRequest>({
-    mutationFn: async (payload: t.TRunRequest) =>
-      await dataService.stream(payload),
-  });
-};
-
 export const useRun = (payload: t.TRunRequest) => {
   return useQuery<t.TRunResponse, Error>({
     queryKey: [QueryKeys.run],
