@@ -9,8 +9,9 @@ export const useStream = () => {
   const startStream = useCallback(
     async (
       input: TMessage[] | Record<string, any> | null,
+      user_id: string,
       thread_id: string,
-      config?: Record<string, unknown>,
+      assistant_id: string,
     ) => {
       const controller = new AbortController();
       setController(controller);
@@ -18,11 +19,14 @@ export const useStream = () => {
 
       console.log(input);
 
-      await fetchEventSource("/runs/stream", {
+      await fetchEventSource("http://localhost:9000/api/v1/runs/stream", {
         signal: controller.signal,
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ input, thread_id, config }),
+        headers: {
+          "Content-Type": "application/json",
+          "X-API-KEY": "personaflow-api-key",
+        },
+        body: JSON.stringify({ user_id, input, thread_id, assistant_id }),
         openWhenHidden: true,
         onmessage(msg) {
           if (msg.event === "data") {
