@@ -9,6 +9,7 @@ from stack.app.api.v1 import messages
 from stack.app.api.v1 import assistants
 from stack.app.api.v1 import rag
 from stack.app.api.v1 import files
+from stack.app.api.v1 import auth
 
 api_router = APIRouter()
 # api_router.include_router(feedback.router, tags=["Feedback"])
@@ -20,6 +21,7 @@ api_router.include_router(messages.router, prefix="/messages")
 api_router.include_router(assistants.router, prefix="/assistants")
 api_router.include_router(rag.router, prefix="/rag")
 api_router.include_router(files.router, prefix="/files")
+api_router.include_router(auth.router, prefix="/auth")
 
 
 @api_router.get("/health_check", tags=["Health Check"])

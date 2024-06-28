@@ -61,17 +61,12 @@ class Settings(BaseSettings):
     FILE_DATA_DIRECTORY: Path = BASE_DIR.parent.joinpath("file_data")
     PATCH_DIR: Path = BASE_DIR.parent.joinpath("patches")
 
-    # Key to be sent as x-api-key header to authenticate requests
-    # WARNING: Auth disabled if not provided
-    PERSONAFLOW_API_KEY: Optional[str] = os.getenv("PERSONAFLOW_API_KEY", None)
-
     # Auth
-    # Note that the JTW_ variables are pulled in by jwks, not stack
-    AUTH_TYPE: Optional[str] = os.getenv("AUTH_TYPE", "NOOP")
-    JWT_ISS: Optional[str] = os.getenv("JWT_ISS", None)
-    JWT_AUD: Optional[str] = os.getenv("JWT_AUD", None)
-    JWT_ALG: Optional[str] = os.getenv("JWT_ALG", "HS256")
-    JWT_DECODE_KEY_B64: Optional[str] = os.getenv("JWT_DECODE_KEY_B64", None)
+    JWT_ISSUER: Optional[str] = os.getenv("JWT_ISSUER", None)
+    JWT_ALGORITHM: Optional[str] = os.getenv("JWT_ALGORITHM", "HS256")
+    AUTH_SECRET_KEY: Optional[str] = os.getenv("AUTH_SECRET_KEY", None)
+    TOKEN_EXPIRY_HOURS: Optional[int] = os.getenv("TOKEN_EXPIRY_HOURS", 24)
+
 
     # Required if you intend to use reranking functionality to query documents
     COHERE_API_KEY: Optional[str] = os.getenv("COHERE_API_KEY", None)
