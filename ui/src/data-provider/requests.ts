@@ -39,7 +39,7 @@ axios.interceptors.request.use(
   async (config) => {
     // @ts-ignore
     config.headers = {
-      "x-api-key": "personaflow-api-key",
+      "X-API-KEY": process.env.NEXT_PUBLIC_PERSONAFLOW_API_KEY,
     };
 
     return config;
@@ -48,25 +48,6 @@ axios.interceptors.request.use(
     return Promise.reject(error);
   },
 );
-
-// Grabs new token if bearer token is stale
-// axios.interceptors.response.use(
-//   async (response) => {
-//     return response;
-//   },
-//   async (error) => {
-//     const originalRequest = error.config;
-//     // 403 - Forbidden means auth token stale
-//     if (error.response.status === 403 && !originalRequest._retry) {
-//       // Prevents continuous retries
-//       originalRequest._retry = true;
-//       const sessionToken = await window.Clerk.session.getToken();
-//       axios.defaults.headers.common["Authorization"] = "Bearer " + sessionToken;
-//       return axios(originalRequest);
-//     }
-//     return Promise.reject(error);
-//   },
-// );
 
 const request = {
   get: _get,

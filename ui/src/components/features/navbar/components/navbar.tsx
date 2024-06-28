@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import NewThreadBtn from "./new-thread-btn";
 import { useRouter } from "next/navigation";
 import ThreadItem from "./thread-item";
-import { TAssistant, TGroupedThreads, TThread } from "@/data-provider/types";
+import { TGroupedThreads, TThread } from "@/data-provider/types";
 import { useToast } from "@/components/ui/use-toast";
 import { useAtom } from "jotai";
 import { assistantAtom } from "@/store";
@@ -20,7 +20,7 @@ export default function Navbar() {
 
   const [filteredThreads, setFilteredThreads] = useState(threadsData || {});
   const [open, setOpen] = useState(true);
-  const [selectedAssistant] = useAtom(assistantAtom);
+  const [selectedAssistant, setSelectedAssistant] = useAtom(assistantAtom);
 
   const router = useRouter();
   const createNewThread = useCreateThread();

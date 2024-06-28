@@ -33,16 +33,10 @@ enum QueryKeys {
   file = "file",
   healthCheck = "healthCheck",
   fileContent = "fileContent",
+  conversation = "conversation",
 }
 
 // --Runs--
-export const useStream = (payload: t.TRunRequest) => {
-  return useQuery<t.TRunResponse, Error>({
-    queryKey: [QueryKeys.stream],
-    queryFn: async () => await dataService.stream(payload),
-  });
-};
-
 export const useRun = (payload: t.TRunRequest) => {
   return useQuery<t.TRunResponse, Error>({
     queryKey: [QueryKeys.run],
@@ -165,10 +159,14 @@ export const useCreateThread = () => {
   });
 };
 
-export const useThread = (threadId: string) => {
+export const useThread = (
+  threadId: string,
+  enabled?: { enabled?: boolean },
+) => {
   return useQuery<t.TThread, Error>({
     queryKey: [QueryKeys.thread, threadId],
     queryFn: async () => await dataService.getThread(threadId),
+    ...enabled,
   });
 };
 
@@ -205,16 +203,16 @@ export const useMessagesByThread = (threadId: string) => {
   });
 };
 
-export const useMessagesByCheckpoint = (threadId: string) => {
-  return useQuery<t.TMessage[], Error>({
-    queryKey: [QueryKeys.messagesByCheckpoint, QueryKeys.messages, threadId],
-    queryFn: async (): Promise<t.TMessage[]> =>
-      await dataService.getMessagesByCheckpoint(threadId),
+export const useThreadState = (threadId: string) => {
+  return useQuery<t.TThreadState, Error>({
+    queryKey: [QueryKeys.conversation, threadId],
+    queryFn: async (): Promise<t.TThreadState> =>
+      await dataService.getThreadState(threadId),
   });
 };
 
 // --Messages--
-export const useCreateMessage = (payload: t.TMessageRequest) => {
+export const useCreateMessage = (payload: t.TMessage) => {
   return useQuery<t.TMessage, Error>({
     queryKey: [],
     queryFn: async (): Promise<t.TMessage> =>

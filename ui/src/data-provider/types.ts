@@ -1,9 +1,14 @@
 export type TRunInput = {
   content: string;
   role: string;
-  additional_kwargs: {};
+  additional_kwargs?: {};
   example: boolean;
 };
+
+export enum MessageType {
+  AI = "ai",
+  HUMAN = "human",
+}
 
 export type TConfigurable = {
   type: string | null;
@@ -17,6 +22,12 @@ export type TConfigurable = {
 
 export type TConfigType = {
   enum: string[];
+};
+
+export type TStreamState = {
+  status: "inflight" | "error" | "done";
+  messages?: TMessage[] | Record<string, any>;
+  run_id?: string;
 };
 
 export type TSchemaField = {
@@ -51,11 +62,11 @@ export type TRunConfig = {
 };
 
 export type TRunRequest = {
-  user_id: string;
+  user_id?: string;
   assistant_id: string;
-  thread_id: string;
+  thread_id?: string;
   input: TRunInput[];
-  config: TRunConfig;
+  config?: TRunConfig;
 };
 
 // Not quite right... check when fix bug
@@ -127,21 +138,45 @@ export interface TCreateThreadRequest extends TThreadRequest {
   user_id: string;
 }
 
-export interface TMessage extends TMessageRequest {
-  id: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export type TMessageRequest = {
-  thread_id: string;
-  user_id: string;
-  assistant_id: string;
-  content: string;
-  type: string;
-  additional_kwargs: {};
-  example: boolean;
+export type TThreadState = {
+  values: TMessage[];
+  next: string[];
 };
+
+export type TMessage = {
+  content: string;
+  additional_kwargs?: {
+    additional_kwargs?: {};
+    example?: boolean;
+  };
+  responsoe_metadata?: {
+    finish_reason?: boolean;
+  };
+  type: string;
+  name?: string | null;
+  id: string;
+  example: boolean;
+  tool_calls?: string[];
+  invalid_tool_calls?: string[];
+};
+
+// export type TMessage = {
+//   content: string;
+//   thread_id?: string;
+//   user_id?: string;
+//   assistant_id?: string;
+//   content: string;
+//   type: string;
+//   name?: string | null;
+//   tool_calls?: string[];
+//   invalid_tool_calls?: string[];
+//   additional_kwargs: {};
+//   response_metadata?: {};
+//   example: boolean;
+//   id?: string;
+//   created_at?: string;
+//   updated_at?: string;
+// };
 
 export type TUpdateMessageRequest = {
   assistant_id: string;

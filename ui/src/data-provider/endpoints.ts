@@ -1,7 +1,6 @@
 const formatParam = (param?: any) => (param ? param : "");
 
 // --Runs--
-export const stream = "/api/v1/runs/stream";
 export const runs = "/api/v1/runs";
 export const runnableInputSchema = "/api/v1/runs/input_schema";
 export const runnableOutputSchema = "/api/v1/runs/output_schema";
@@ -25,8 +24,9 @@ export const threads = (threadId?: string) =>
   `/api/v1/threads/${formatParam(threadId)}`;
 export const threadMessages = (threadId: string) =>
   `/api/v1/threads/${threadId}/messages`;
-export const threadCheckpoints = (threadId: string) =>
-  `/api/v1/threads/${threadId}/checkpoints`;
+
+export const threadState = (threadId: string) =>
+  `api/v1/threads/${threadId}/state`;
 
 // --Messages--
 export const messages = (messageId?: string) =>
