@@ -1,35 +1,3 @@
-"""
-repositories/user.py
-----------
-
-This module provides a repository class, `UserRepository`, specifically tailored for operations related to the User model. It extends the base repository, making use of its generic methods while also adding more domain-specific methods related to users.
-
-Classes:
--------
-- `UserRepository`: A repository class tailored for the User model.
-    - `create_user`: Creates a new user in the database.
-    - `_get_retrieve_query`: A private method to construct the default query for user retrieval.
-    - `retrieve_users`: Fetches all users.
-    - `retrieve_user`: Fetches a single user by user_id.
-    - `retrieve_by_user_id`: Retrieves a user based on their user_id.
-    - `update_user`: Updates an existing user.
-    - `update_by_user_id`: Updates a user based on their user_id.
-    - `delete_user`: Removes a user from the database.
-    - `delete_by_user_id`: Removes a user based on their user_id.
-
-Key Functionalities:
--------------------
-- **Async Operations**: All methods are asynchronous for efficient, non-blocking operations.
-- **Domain-Specific Methods**: While many methods utilize the base repository's functions, methods like `retrieve_by_user_id` are tailored specifically for user-related operations.
-- **Exception handling and logging**: All methods are wrapped in try-except blocks to handle exceptions and log errors.
-
-Notes:
------
-1. Transactions are encapsulated within methods, ensuring atomicity. For example, after creating or updating a user, the changes are committed to the database within the same method.
-2. The use of Pydantic models (`CreateUserSchema` and `UpdateUserSchema`) for data validation and serialization ensures data integrity.
-3. It's essential to ensure proper error handling in all methods, especially when interfacing with the database, to maintain data consistency and reliability.
-
-"""
 import uuid
 from sqlalchemy import select
 from stack.app.model.user import User
@@ -133,6 +101,23 @@ class UserRepository(BaseRepository):
                 status_code=500, detail="Failed to retrieve user by user_id."
             )
 
+    async def retrieve_user_by_email(self, email: str):
+        """Retrieves a user based on their email."""
+        try:
+            query = self._get_retrieve_query().where(User.email == email)
+            result = await self.postgresql_session.execute(query)
+            record = result.fetchone()
+            return record
+        except SQLAlchemyError as e:
+            logger.exception(
+                "Failed to retrieve user by email due to a database error",
+                exc_info=True,
+                object_id=email,
+            )
+            raise HTTPException(
+                status_code=500, detail="Failed to retrieve user by email."
+            )
+
     async def update_user(self, object_id: uuid.UUID, data: UpdateUserSchema):
         """Updates an existing user based on its UUID."""
         try:
@@ -204,3 +189,25 @@ class UserRepository(BaseRepository):
             raise HTTPException(
                 status_code=400, detail="Failed to delete user by user_id."
             )
+
+    async def get_or_create_user(self, token_user: dict[str, str]):
+        """
+        Gets or creates a user when authenticating them.
+
+        Args:
+            token_user (dict): Dictionary of user
+
+
+        Returns:
+            User: User object
+        """
+        email = token_user.get("email")
+        # fullname = token_user.get("name")
+        user = self.retrieve_one(User.email == email)
+
+        # Create User if DNE
+        if not user:
+            db_user = CreateUserSchema(email=email)
+            user = self.create_user(db_user)
+
+        return user

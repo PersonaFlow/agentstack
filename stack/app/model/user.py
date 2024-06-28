@@ -1,6 +1,6 @@
 from datetime import datetime
 import uuid
-from sqlalchemy import String, text, DateTime, func
+from sqlalchemy import String, text, DateTime, func, LargeBinary
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from stack.app.core.configuration import settings
@@ -34,13 +34,15 @@ class User(Base):
         comment="The username chosen by the user. It's a string type and is expected to be unique across the userbase.",
     )
     password: Mapped[str] = mapped_column(
-        String(),
+        LargeBinary(),
         nullable=True,
         comment="The hashed password associated with the user's account. *NOTE: This is a convenience placeholder field*.",
     )
     email: Mapped[str] = mapped_column(
         String(),
         nullable=True,
+        unique=True,
+        index=True,
         comment="The email address associated with the user's account. It's a string type and is expected to be unique across the userbase.",
     )
     first_name: Mapped[str] = mapped_column(
