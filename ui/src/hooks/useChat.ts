@@ -16,7 +16,7 @@ export const useChat = (threadId: string) => {
     setConversation((prevConversation) => [...prevConversation, userMessage]);
     console.log(assistant?.id);
     const payload = {
-      userId: "1234",
+      user_id: "1234",
       thread_id: threadId,
       assistant_id: assistant.id,
       input: [
