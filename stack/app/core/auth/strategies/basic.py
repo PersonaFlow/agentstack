@@ -23,7 +23,20 @@ class BasicAuthentication(BaseAuthenticationStrategy):
         """
         return ["email", "password"]
 
-    
+    def check_password(plain_text_password: str, hashed_password: bytes) -> bool:
+        """
+        Checks that the input plain text password corresponds to a hashed password.
+
+        Args:
+            plain_text_password (str): Password to check.
+            hashed_password (bytes): Password to check against.
+
+        Returns:
+            bool: Whether the plain-text password matches the given hashed password.
+        """
+        return bcrypt.checkpw(plain_text_password.encode("utf-8"), hashed_password)
+
+
     def login(self, user_repository: UserRepository, payload: dict[str, str]) -> dict | None:
         """
         Logs user in, checking if the hashed input password corresponds to the

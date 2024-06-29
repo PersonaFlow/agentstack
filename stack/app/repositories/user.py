@@ -1,15 +1,17 @@
 import uuid
+import bcrypt
+from asyncpg.exceptions import UniqueViolationError
 from sqlalchemy import select
 from stack.app.model.user import User
 from stack.app.repositories.base import BaseRepository
 from stack.app.schema.user import CreateUserSchema, UpdateUserSchema
+from stack.app.utils.exceptions import UniqueConstraintViolationError
 import structlog
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from fastapi import HTTPException, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from stack.app.core.datastore import get_postgresql_session_provider
 from typing import Optional, Any, Union
-from stack.app.core.auth.utils import hash_and_salt_password
 
 
 logger = structlog.get_logger()
@@ -20,10 +22,21 @@ def get_user_repository(
 ):
     return UserRepository(postgresql_session=session)
 
-
 class UserRepository(BaseRepository):
     def __init__(self, postgresql_session):
         self.postgresql_session = postgresql_session
+
+    def hash_and_salt_password(plain_text_password: str) -> bytes:
+        """
+        Hashes a given plain-text password with a randomly generated salt.
+
+        Args:
+            plain_text_password (str): Password to hash.
+
+        Returns:
+            bytes: Hashed password
+        """
+        return bcrypt.hashpw(plain_text_password.encode("utf-8"), bcrypt.gensalt())
 
 
     def _prepare_user_data(self, data: Union[CreateUserSchema, UpdateUserSchema]) -> dict:
@@ -38,7 +51,7 @@ class UserRepository(BaseRepository):
         """
         values = data.model_dump(exclude={"password"})
         if data.password:
-            values["hashed_password"] = hash_and_salt_password(data.password)
+            values["hashed_password"] = self.hash_and_salt_password(data.password)
         return values
 
 
@@ -49,15 +62,22 @@ class UserRepository(BaseRepository):
             user = await self.create(model=User, values=values)
             await self.postgresql_session.commit()
             return user
-        except SQLAlchemyError as e:
+        except IntegrityError as e:
             await self.postgresql_session.rollback()
-            logger.exception(
-                f"Failed to create user due to a database error: {str(e)}",
-                exc_info=True,
-                user_data=data.json(),
-            )
-            raise HTTPException(status_code=400, detail="Failed to create user.") from e
-
+            error_msg = str(e.orig)
+            if "ix_personaflow_users_email" in error_msg:
+                raise UniqueConstraintViolationError("Email")
+            elif "ix_personaflow_users_username" in error_msg:
+                raise UniqueConstraintViolationError("Username")
+            elif "ix_personaflow_users_user_id" in error_msg:
+                raise UniqueConstraintViolationError("User ID")
+            else:
+                logger.exception(
+                    f"Failed to create user due to a database error: {error_msg}",
+                    exc_info=True,
+                    user_data=data.json(),
+                )
+                raise HTTPException(status_code=400, detail="Failed to create user.") from e
 
     @staticmethod
     def _get_retrieve_query():
@@ -150,6 +170,15 @@ class UserRepository(BaseRepository):
             user = await self.update(model=User, values=values, object_id=object_id)
             await self.postgresql_session.commit()
             return user
+        except IntegrityError as e:
+            await self.postgresql_session.rollback()
+            error_msg = str(e.orig)
+            if "ix_personaflow_users_email" in error_msg:
+                raise UniqueConstraintViolationError("Email")
+            elif "ix_personaflow_users_username" in error_msg:
+                raise UniqueConstraintViolationError("Username")
+            elif "ix_personaflow_users_user_id" in error_msg:
+                raise UniqueConstraintViolationError("User ID")
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
             logger.exception(
@@ -170,6 +199,15 @@ class UserRepository(BaseRepository):
             )
             await self.postgresql_session.commit()
             return updated_user
+        except IntegrityError as e:
+            await self.postgresql_session.rollback()
+            error_msg = str(e.orig)
+            if "ix_personaflow_users_email" in error_msg:
+                raise UniqueConstraintViolationError("Email")
+            elif "ix_personaflow_users_username" in error_msg:
+                raise UniqueConstraintViolationError("Username")
+            elif "ix_personaflow_users_user_id" in error_msg:
+                raise UniqueConstraintViolationError("User ID")
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
             logger.exception(

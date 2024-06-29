@@ -10,8 +10,8 @@ class UserPassword(BaseModel):
         password = data.pop("password", None)
 
         if password is not None:
-            from stack.app.core.auth.strategies.basic import BasicAuthentication
-            data["hashed_password"] = BasicAuthentication.hash_and_salt_password(
+            from stack.app.repositories.user import UserRepository
+            data["hashed_password"] = UserRepository.hash_and_salt_password(
                 password
             )
 

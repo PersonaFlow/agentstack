@@ -15,7 +15,7 @@ from stack.app.core.configuration import Settings
 from stack.app.core.logger import init_logging
 from stack.app.core.struct_logger import init_structlogger
 from stack.app.middlewares.system_logger import SystemLoggerMiddleware
-
+from stack.app.utils.exceptions import UniqueConstraintViolationError
 
 def create_async_engine_with_settings(settings: Settings) -> AsyncEngine:
     return create_async_engine(settings.INTERNAL_DATABASE_URI, echo=True)
@@ -33,7 +33,7 @@ def get_lifespan(settings: Settings) -> Callable:
     return lifespan
 
 
-def create_app(settings: Settings): 
+def create_app(settings: Settings):
     init_structlogger(settings)
     init_logging()
 
@@ -95,6 +95,13 @@ def create_app(settings: Settings):
 
     @_app.exception_handler(StarletteHTTPException)
     async def http_exception_handler(request, exc: StarletteHTTPException):
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"detail": exc.detail},
+        )
+
+    @_app.exception_handler(UniqueConstraintViolationError)
+    async def unique_constraint_exception_handler(request: Request, exc: UniqueConstraintViolationError):
         return JSONResponse(
             status_code=exc.status_code,
             content={"detail": exc.detail},

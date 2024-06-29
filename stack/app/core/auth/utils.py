@@ -1,9 +1,7 @@
 import bcrypt
 from fastapi import Request
-from stack.app.core.auth.constants import ENABLED_AUTH_STRATEGY_MAPPING
-from stack.app.core.auth.auth_config import is_authentication_enabled
+from stack.app.core.auth.auth_config import is_authentication_enabled, ENABLED_AUTH_STRATEGY_MAPPING
 from stack.app.core.auth.jwt import JWTService
-
 
 def is_enabled_authentication_strategy(strategy_name: str) -> bool:
     """
@@ -48,30 +46,3 @@ def get_header_user_id(request: Request) -> str:
     else:
         user_id = request.headers.get("User-Id", "")
         return user_id
-
-
-def hash_and_salt_password(plain_text_password: str) -> bytes:
-    """
-    Hashes a given plain-text password with a randomly generated salt.
-
-    Args:
-        plain_text_password (str): Password to hash.
-
-    Returns:
-        bytes: Hashed password
-    """
-    return bcrypt.hashpw(plain_text_password.encode("utf-8"), bcrypt.gensalt())
-
-
-def check_password(plain_text_password: str, hashed_password: bytes) -> bool:
-    """
-    Checks that the input plain text password corresponds to a hashed password.
-
-    Args:
-        plain_text_password (str): Password to check.
-        hashed_password (bytes): Password to check against.
-
-    Returns:
-        bool: Whether the plain-text password matches the given hashed password.
-    """
-    return bcrypt.checkpw(plain_text_password.encode("utf-8"), hashed_password)
