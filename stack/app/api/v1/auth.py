@@ -8,8 +8,6 @@ from stack.app.core.auth.auth_config import ENABLED_AUTH_STRATEGY_MAPPING
 from stack.app.repositories.blacklist import get_blacklist_repository, BlacklistRepository
 from stack.app.model.blacklist import Blacklist
 from stack.app.schema.auth import JWTResponse, ListAuthStrategy, Login, Logout
-from stack.app.core.auth.strategies.google_oauth import GoogleOAuth
-from stack.app.core.auth.strategies.oidc import OpenIDConnect
 from stack.app.core.auth.jwt import JWTService
 from stack.app.core.auth.request_validators import validate_authorization
 from stack.app.core.auth.utils import is_enabled_authentication_strategy
@@ -42,6 +40,11 @@ def get_strategies() -> list[ListAuthStrategy]:
                     strategy_instance.get_authorization_endpoint()
                     if hasattr(strategy_instance, "get_authorization_endpoint")
                     else None
+                ),
+                 "pkce_enabled": (
+                    strategy_instance.get_pkce_enabled()
+                    if hasattr(strategy_instance, "get_pkce_enabled")
+                    else False
                 ),
             }
         )
@@ -90,41 +93,54 @@ async def login(
 
     return {"token": token}
 
-
-@router.get(
-    "/google/auth",
-    tags=[DEFAULT_TAG],
+@router.post(
+    "/{strategy}/auth",
     response_model=JWTResponse,
-    operation_id="google_authorize",
-    summary="Google OAuth",
-    description="Callback authentication endpoint used for Google OAuth after redirecting to the service's login screen.",
+    operation_id="authorize",
+    summary="Authorize",
+    description="Callback authorization endpoint used for OAuth providers after authenticating on the provider's login screen.",
 )
-async def google_authorize(
+async def authorize(
+    strategy: str,
     request: Request,
-    user_repository: UserRepository = Depends(get_user_repository)
+    user_repository: UserRepository = Depends(get_user_repository),
 ):
+    strategy_name = None
+    for enabled_strategy_name in ENABLED_AUTH_STRATEGY_MAPPING.keys():
+        if enabled_strategy_name.lower() == strategy.lower():
+            strategy_name = enabled_strategy_name
 
-    strategy_name = GoogleOAuth.NAME
+    if not strategy_name:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Error calling /auth with invalid strategy name: {strategy_name}.",
+        )
+    if not is_enabled_authentication_strategy(strategy_name):
+        raise HTTPException(
+            status_code=404, detail=f"Invalid Authentication strategy: {strategy_name}."
+        )
 
-    return await authorize(request, user_repository, strategy_name)
+    strategy = ENABLED_AUTH_STRATEGY_MAPPING[strategy_name]
 
+    try:
+        userinfo = await strategy.authorize(request)
+    except Exception as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Could not fetch access token from provider, failed with error: {str(e)}",
+        )
 
-@router.get(
-    "/oidc/auth",
-    tags=[DEFAULT_TAG],
-    response_model=JWTResponse,
-    operation_id="oidc_authorize",
-    summary="OpenID Connect",
-    description="Callback authentication endpoint used for OIDC after redirecting to the service's login screen.",
-)
-async def oidc_authorize(
-    request: Request,
-    user_repository: UserRepository = Depends(get_user_repository)
-):
-    strategy_name = OpenIDConnect.NAME
+    if not userinfo:
+        raise HTTPException(
+            status_code=401, detail=f"Could not get user from auth token: {token}."
+        )
 
-    # TODO: Merge authorize endpoints into single one
-    return await authorize(request, user_repository, strategy_name)
+    # Get or create user, then set session user
+    user = user_repository.get_or_create_user(userinfo)
+
+    token = JWTService().create_and_encode_jwt(user)
+
+    return {"token": token}
 
 
 @router.get(
@@ -146,33 +162,3 @@ async def logout(
 
     return {}
 
-
-async def authorize(
-    request: Request, user_repository: UserRepository, strategy_name: str
-) -> JWTResponse:
-    if not is_enabled_authentication_strategy(strategy_name):
-        raise HTTPException(
-            status_code=404, detail=f"Invalid Authentication strategy: {strategy_name}."
-        )
-
-    strategy = ENABLED_AUTH_STRATEGY_MAPPING[strategy_name]
-
-    try:
-        userinfo = await strategy.authorize(request)
-    except OAuthError as e:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Could not fetch access token from provider, failed with error: {str(e)}",
-        )
-
-    if not userinfo:
-        raise HTTPException(
-            status_code=401, detail=f"Could not get user from auth token: {token}."
-        )
-
-    # Get or create user, then set session user
-    user = user_repository.get_or_create_user(userinfo)
-
-    token = JWTService().create_and_encode_jwt(user)
-
-    return {"token": token}
