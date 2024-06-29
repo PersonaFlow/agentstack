@@ -8,7 +8,9 @@ from sqlalchemy.exc import SQLAlchemyError
 from fastapi import HTTPException, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from stack.app.core.datastore import get_postgresql_session_provider
-from typing import Optional, Any
+from typing import Optional, Any, Union
+from stack.app.core.auth.utils import hash_and_salt_password
+
 
 logger = structlog.get_logger()
 
@@ -23,10 +25,27 @@ class UserRepository(BaseRepository):
     def __init__(self, postgresql_session):
         self.postgresql_session = postgresql_session
 
+
+    def _prepare_user_data(self, data: Union[CreateUserSchema, UpdateUserSchema]) -> dict:
+        """
+        Prepare user data for database operations, handling password hashing.
+
+        Args:
+            data (Union[CreateUserSchema, UpdateUserSchema]): User data.
+
+        Returns:
+            dict: Prepared user data with hashed password if applicable.
+        """
+        values = data.model_dump(exclude={"password"})
+        if data.password:
+            values["hashed_password"] = hash_and_salt_password(data.password)
+        return values
+
+
     async def create_user(self, data: CreateUserSchema):
         """Creates a new user in the database."""
         try:
-            values = data.model_dump()
+            values = self._prepare_user_data(data)
             user = await self.create(model=User, values=values)
             await self.postgresql_session.commit()
             return user
@@ -39,6 +58,7 @@ class UserRepository(BaseRepository):
             )
             raise HTTPException(status_code=400, detail="Failed to create user.") from e
 
+
     @staticmethod
     def _get_retrieve_query():
         """A private method to construct the default query for user
@@ -47,7 +67,7 @@ class UserRepository(BaseRepository):
             User.id,
             User.user_id,
             User.username,
-            User.password,
+            User.hashed_password,
             User.email,
             User.first_name,
             User.last_name,
@@ -55,6 +75,7 @@ class UserRepository(BaseRepository):
             User.created_at,
             User.updated_at,
         )
+
 
     async def retrieve_users(
         self, filters: Optional[dict[str, Any]] = None
@@ -70,6 +91,7 @@ class UserRepository(BaseRepository):
             )
             raise HTTPException(status_code=500, detail="Failed to retrieve users.")
 
+
     async def retrieve_user(self, object_id: uuid.UUID):
         """Fetches a single user by UUID."""
         try:
@@ -83,6 +105,7 @@ class UserRepository(BaseRepository):
                 object_id=object_id,
             )
             raise HTTPException(status_code=500, detail="Failed to retrieve user.")
+
 
     async def retrieve_by_user_id(self, user_id: str):
         """Retrieves a user based on their user_id."""
@@ -101,6 +124,7 @@ class UserRepository(BaseRepository):
                 status_code=500, detail="Failed to retrieve user by user_id."
             )
 
+
     async def retrieve_user_by_email(self, email: str):
         """Retrieves a user based on their email."""
         try:
@@ -118,10 +142,11 @@ class UserRepository(BaseRepository):
                 status_code=500, detail="Failed to retrieve user by email."
             )
 
+
     async def update_user(self, object_id: uuid.UUID, data: UpdateUserSchema):
         """Updates an existing user based on its UUID."""
         try:
-            values = data.model_dump()
+            values = self._prepare_user_data(data)
             user = await self.update(model=User, values=values, object_id=object_id)
             await self.postgresql_session.commit()
             return user
@@ -135,10 +160,11 @@ class UserRepository(BaseRepository):
             )
             raise HTTPException(status_code=400, detail="Failed to update user.")
 
+
     async def update_by_user_id(self, user_id: str, data: UpdateUserSchema):
         """Updates an existing user based on their user_id."""
         try:
-            values = data.model_dump()
+            values = self._prepare_user_data(data)
             updated_user = await self.update_by_field(
                 model=User, values=values, field=User.user_id, field_value=str(user_id)
             )
@@ -156,6 +182,7 @@ class UserRepository(BaseRepository):
                 status_code=400, detail="Failed to update user by user_id."
             )
 
+
     async def delete_user(self, object_id: uuid.UUID):
         """Removes a user from the database."""
         try:
@@ -170,6 +197,7 @@ class UserRepository(BaseRepository):
                 object_id=object_id,
             )
             raise HTTPException(status_code=400, detail="Failed to delete user.")
+
 
     async def delete_by_user_id(self, user_id: str):
         """Removes a user from the database based on their user_id."""
@@ -189,6 +217,7 @@ class UserRepository(BaseRepository):
             raise HTTPException(
                 status_code=400, detail="Failed to delete user by user_id."
             )
+
 
     async def get_or_create_user(self, token_user: dict[str, str]):
         """

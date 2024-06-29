@@ -33,7 +33,7 @@ class User(Base):
         nullable=True,
         comment="The username chosen by the user. It's a string type and is expected to be unique across the userbase.",
     )
-    password: Mapped[str] = mapped_column(
+    hashed_password: Mapped[str] = mapped_column(
         LargeBinary(),
         nullable=True,
         comment="The hashed password associated with the user's account. *NOTE: This is a convenience placeholder field*.",
