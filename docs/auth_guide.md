@@ -27,6 +27,14 @@ print(secrets.token_hex(32))
 When configuring your OAuth apps, make sure to whitelist the Redirect URI to the frontend endpoint, it should look like 
 `<FRONTEND_HOST>/auth/<STRATEGY_NAME>`. For example, your Redirect URI will be `http://localhost:4000/auth/google` if you're running the GoogleOAuth class locally. The strategy name is defined in the `NAME` class attribute.
 
+## Enabling Proof of Key Code Exchange (PKCE)
+
+Many OIDC-compliant auth providers also implement PKCE for added protection. This involves generating `code_verifier` and `code_challenge` values in the frontend and using these values to validate that the same entity that initially logged in with the auth provider is the one requesting an access token from an authorization code. 
+
+For more [details click here.](https://oauth.net/2/pkce/)
+
+To enable the additional PKCE auth flow, you will need to first ensure your auth provider is PKCE-compliant, then set the `PKCE_ENABLED` class attribute in your OIDCConnect auth strategy to `True`. 
+
 <!-- ### Enabling Refresh Tokens
 
 To enable refresh tokens, you must implement the `get_refresh_token_params()` method in your auth strategy class. This should return a dictionary containing key-value pairs that contain the query parameters the auth provider needs to return a refresh token. For example, if your auth provider requires a `?scope=offline` query parameter, you should add:
