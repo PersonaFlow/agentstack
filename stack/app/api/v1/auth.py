@@ -79,7 +79,7 @@ async def login(
             detail=f"Missing the following keys in the payload: {missing_keys}.",
         )
 
-    user = strategy.login(user_repository, payload)
+    user = await strategy.login(user_repository, payload)
     if not user:
         raise HTTPException(
             status_code=401,

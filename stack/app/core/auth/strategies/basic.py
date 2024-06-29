@@ -23,7 +23,7 @@ class BasicAuthentication(BaseAuthenticationStrategy):
         """
         return ["email", "password"]
 
-    def check_password(plain_text_password: str, hashed_password: bytes) -> bool:
+    def check_password(self, plain_text_password: str, hashed_password: bytes) -> bool:
         """
         Checks that the input plain text password corresponds to a hashed password.
 
@@ -37,7 +37,7 @@ class BasicAuthentication(BaseAuthenticationStrategy):
         return bcrypt.checkpw(plain_text_password.encode("utf-8"), hashed_password)
 
 
-    def login(self, user_repository: UserRepository, payload: dict[str, str]) -> dict | None:
+    async def login(self, user_repository: UserRepository, payload: dict[str, str]) -> dict | None:
         """
         Logs user in, checking if the hashed input password corresponds to the
         one stored in the DB.
@@ -52,7 +52,7 @@ class BasicAuthentication(BaseAuthenticationStrategy):
 
         payload_email = payload.get("email", "")
         payload_password = payload.get("password", "")
-        user:User = user_repository.retrieve_user_by_email(payload_email)
+        user: User = await user_repository.retrieve_user_by_email(payload_email)
 
         if not user:
             return None

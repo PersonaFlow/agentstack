@@ -33,7 +33,7 @@ DEFAULT_TAG = "Users"
             """,
 )
 async def create_user(
-    # auth: AuthenticatedUser,
+    auth: AuthenticatedUser,
     data: CreateUserSchema,
     user_repo: UserRepository = Depends(get_user_repository),
 ) -> User:

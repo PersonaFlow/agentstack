@@ -2,11 +2,11 @@ from datetime import datetime, timedelta, timezone
 import structlog
 import uuid
 import jwt
-from stack.app.core.configuration import settings
+from stack.app.core.configuration import get_settings
 
 logger = structlog.get_logger()
 
-
+settings = get_settings()
 class JWTService:
 
     def __init__(self):

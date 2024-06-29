@@ -38,7 +38,7 @@ class LogLevelEnum(enum.Enum):
 # and do not need to load the.env file
 environment = os.getenv("ENVIRONMENT")
 if not environment:
-    env_path = "../../../.env.local"
+    env_path = "../../../.env"
     load_dotenv(env_path)
 
 

@@ -20,7 +20,7 @@ class BaseAuthenticationStrategy:
         ...
 
     @abstractmethod
-    def login(self, **kwargs: Any):
+    async def login(self, **kwargs: Any):
         """
         Check email/password credentials and return JWT token.
         """
