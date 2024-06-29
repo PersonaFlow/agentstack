@@ -7,8 +7,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError, ResponseValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.middleware.sessions import SessionMiddleware
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
-
+from stack.app.core.auth.auth_config import is_authentication_enabled
 from stack.app.api.v1 import api_router
 from stack.app.core.configuration import Settings
 from stack.app.core.logger import init_logging
@@ -32,7 +33,7 @@ def get_lifespan(settings: Settings) -> Callable:
     return lifespan
 
 
-def create_app(settings: Settings):
+def create_app(settings: Settings): 
     init_structlogger(settings)
     init_logging()
 
@@ -57,6 +58,10 @@ def create_app(settings: Settings):
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    if is_authentication_enabled():
+        # Required to save temporary OAuth state in session
+        _app.add_middleware(SessionMiddleware, secret_key=settings.AUTH_SECRET_KEY)
 
     @_app.exception_handler(ValueError)
     async def value_error_exception_handler(request: Request, exc: ValueError):
