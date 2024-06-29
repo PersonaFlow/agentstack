@@ -60,11 +60,14 @@ def upgrade() -> None:
         """
     )
 
+    op.alter_column('users', 'password', new_column_name='hashed_password', schema='personaflow')
+
     # ### end Alembic commands ###  # Operations to upgrade the database schema.
 
 # Function to handle the 'downgrade' operation.
 # This contains the operations to revert the changes introduced in the 'upgrade' function.
 def downgrade() -> None:
+    op.alter_column('users', 'hashed_password', new_column_name='password', schema='personaflow')
     op.execute(
         """
         ALTER TABLE personaflow.users
