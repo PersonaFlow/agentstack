@@ -14,7 +14,7 @@ from stack.app.schema.thread import (
     ThreadPostRequest,
 )
 from stack.app.schema.message import Message
-from stack.app.api.annotations import ApiKey
+from stack.app.core.auth.request_validators import AuthenticatedUser
 from stack.app.core.exception import NotFoundException
 
 router = APIRouter()
@@ -31,7 +31,7 @@ DEFAULT_TAG = "Threads"
     description="Creates a new thread with the provided information. This can optionally be obtained from the api_key. If it is not set in the request, it will attempt to get it from the api_key.",
 )
 async def create_thread(
-    api_key: ApiKey,
+    auth: AuthenticatedUser,
     data: CreateThreadSchema,
     thread_repo: ThreadRepository = Depends(get_thread_repository),
     assistant_repo: AssistantRepository = Depends(get_assistant_repository),
@@ -56,7 +56,7 @@ async def create_thread(
     description="Retrieves a list of all threads in the database. Should be used as an admin operation only.",
 )
 async def retrieve_threads(
-    api_key: ApiKey, thread_repo: ThreadRepository = Depends(get_thread_repository)
+    auth: AuthenticatedUser, thread_repo: ThreadRepository = Depends(get_thread_repository)
 ) -> List[Thread]:
     threads = await thread_repo.retrieve_threads()
     return threads
@@ -71,7 +71,7 @@ async def retrieve_threads(
     description="Retrieves detailed information about a thread identified by its ID.",
 )
 async def retrieve_thread(
-    api_key: ApiKey,
+    auth: AuthenticatedUser,
     thread_id: str,
     thread_repo: ThreadRepository = Depends(get_thread_repository),
 ) -> Thread:
@@ -90,7 +90,7 @@ async def retrieve_thread(
     description="Updates the information of a thread identified by its ID.",
 )
 async def update_thread(
-    api_key: ApiKey,
+    auth: AuthenticatedUser,
     thread_id: str,
     data: UpdateThreadSchema,
     thread_repo: ThreadRepository = Depends(get_thread_repository),
@@ -112,7 +112,7 @@ async def update_thread(
     description="Deletes a thread identified by its ID from the database.",
 )
 async def delete_thread(
-    api_key: ApiKey,
+    auth: AuthenticatedUser,
     thread_id: str,
     thread_repo: ThreadRepository = Depends(get_thread_repository),
 ):
@@ -129,7 +129,7 @@ async def delete_thread(
     description="Retrieves a list of all messages in a thread identified by its ID.",
 )
 async def retrieve_messages_by_thread_id(
-    api_key: ApiKey,
+    auth: AuthenticatedUser,
     thread_id: str,
     message_repo: MessageRepository = Depends(get_message_repository),
 ) -> List[Message]:

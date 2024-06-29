@@ -8,7 +8,7 @@ This module provides the FastAPI endpoints related to user management functional
 
 from typing import List, Optional, Union
 from fastapi import APIRouter, status, Query, Depends
-from stack.app.api.annotations import ApiKey
+from stack.app.core.auth.request_validators import AuthenticatedUser
 from stack.app.core.exception import NotFoundException
 from stack.app.schema.thread import Thread, GroupedThreads
 from stack.app.schema.user import User, CreateUserSchema, UpdateUserSchema
@@ -33,7 +33,7 @@ DEFAULT_TAG = "Users"
             """,
 )
 async def create_user(
-    api_key: ApiKey,
+    # auth: AuthenticatedUser,
     data: CreateUserSchema,
     user_repo: UserRepository = Depends(get_user_repository),
 ) -> User:
@@ -52,6 +52,7 @@ async def create_user(
             """,
 )
 async def retrieve_users(
+    auth: AuthenticatedUser,
     user_repo: UserRepository = Depends(get_user_repository)
 ) -> List[User]:
     records = await user_repo.retrieve_users()
@@ -67,7 +68,7 @@ async def retrieve_users(
     description="GET endpoint at `/users/{user_id}` for fetching details of a specific user using its user_id.",
 )
 async def retrieve_user(
-    api_key: ApiKey,
+    auth: AuthenticatedUser,
     user_id: Optional[str],
     user_repo: UserRepository = Depends(get_user_repository),
 ) -> User:
@@ -86,7 +87,7 @@ async def retrieve_user(
     description="PATCH endpoint at `/{user_id}` for updating the details of a specific user.",
 )
 async def update_user(
-    api_key: ApiKey,
+    auth: AuthenticatedUser,
     user_id: str,
     data: UpdateUserSchema,
     user_repo: UserRepository = Depends(get_user_repository),
@@ -110,7 +111,7 @@ async def update_user(
     ),
 )
 async def delete_user(
-    api_key: ApiKey,
+    auth: AuthenticatedUser,
     user_id: str,
     user_repo: UserRepository = Depends(get_user_repository),
 ):
@@ -131,7 +132,7 @@ async def delete_user(
             """,
 )
 async def retrieve_user_threads(
-    api_key: ApiKey,
+    auth: AuthenticatedUser,
     user_id: str,
     thread_repo: ThreadRepository = Depends(get_thread_repository),
     grouped: Optional[bool] = Query(None),

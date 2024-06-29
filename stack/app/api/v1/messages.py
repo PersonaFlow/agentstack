@@ -1,7 +1,7 @@
 from fastapi import APIRouter, status, HTTPException, Depends
 from stack.app.repositories.message import MessageRepository, get_message_repository
 from stack.app.schema.message import CreateMessageSchema, Message, UpdateMessageSchema
-from stack.app.api.annotations import ApiKey
+from stack.app.core.auth.request_validators import AuthenticatedUser
 
 # Initialize the router for messages
 router = APIRouter()
@@ -18,7 +18,7 @@ DEFAULT_TAG = "Messages"
     description="Creates a new message within a thread.",
 )
 async def create_message(
-    api_key: ApiKey,
+    auth: AuthenticatedUser,
     data: CreateMessageSchema,
     message_repo: MessageRepository = Depends(get_message_repository),
 ) -> Message:
@@ -37,7 +37,7 @@ async def create_message(
     description="Updates the details of a specific message by its ID.",
 )
 async def update_message(
-    api_key: ApiKey,
+    auth: AuthenticatedUser,
     message_id: str,
     data: UpdateMessageSchema,
     message_repo: MessageRepository = Depends(get_message_repository),
@@ -59,7 +59,7 @@ async def update_message(
     description="Deletes a specific message by its ID from the database.",
 )
 async def delete_message(
-    api_key: ApiKey,
+    auth: AuthenticatedUser,
     message_id: str,
     message_repo: MessageRepository = Depends(get_message_repository),
 ):

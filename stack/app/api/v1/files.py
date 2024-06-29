@@ -20,7 +20,7 @@ from stack.app.schema.file import (
     DeleteFileResponse,
     FilePurpose,
 )
-from stack.app.api.annotations import ApiKey
+from stack.app.core.auth.request_validators import AuthenticatedUser
 from stack.app.core.configuration import settings
 from typing import Optional
 from stack.app.core.logger import logging
@@ -50,7 +50,7 @@ logger = logging.getLogger(__name__)
     description="Uploads a file that can be used across various endpoints. <br> NOTE: MUST INCLUDE `user_id`",
 )
 async def upload_file(
-    api_key: ApiKey,
+    auth: AuthenticatedUser,
     file: UploadFile = File(..., description="The file to upload."),
     purpose: str = Form(
         ...,
@@ -118,7 +118,7 @@ async def upload_file(
     description="Retrieves a list of files.",
 )
 async def retrieve_files(
-    api_key: ApiKey,
+    auth: AuthenticatedUser,
     user_id: Optional[str] = "",
     purpose: Optional[str] = Query(None),
     files_repository: FileRepository = Depends(get_file_repository),
@@ -145,7 +145,7 @@ async def retrieve_files(
     description="Retrieves information about a specific file by its ID.",
 )
 async def retrieve_file(
-    api_key: ApiKey,
+    auth: AuthenticatedUser,
     file_id: uuid.UUID,
     files_repository: FileRepository = Depends(get_file_repository),
 ) -> FileSchema:
@@ -174,7 +174,7 @@ async def retrieve_file(
     description="Deletes a specific file by its ID from the database and file system. When a file is deleted, it is also removed from any assistants that may be using it and all associated embeddings are deleted from the vector store.",
 )
 async def delete_file(
-    api_key: ApiKey,
+    auth: AuthenticatedUser,
     file_id: uuid.UUID,
     files_repository: FileRepository = Depends(get_file_repository),
     assistant_repository: AssistantRepository = Depends(get_assistant_repository),
@@ -232,7 +232,7 @@ async def delete_file(
     description="Retrieves the content of a specific file by its ID. Returns a downloadable file.",
 )
 async def retrieve_file_content(
-    api_key: ApiKey,
+    auth: AuthenticatedUser,
     file_id: uuid.UUID,
     files_repository: FileRepository = Depends(get_file_repository),
 ):

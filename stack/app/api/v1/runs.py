@@ -14,7 +14,7 @@ from langchain.schema import AIMessage, HumanMessage, StrOutputParser
 from langchain.schema.runnable import RunnableMap
 
 from stack.app.agents.configurable_agent import agent, get_llm
-from stack.app.api.annotations import ApiKey
+from stack.app.core.auth.request_validators import AuthenticatedUser
 from stack.app.schema.thread import Thread
 from stack.app.repositories.assistant import (
     AssistantRepository,
@@ -133,7 +133,7 @@ async def _run_input_and_config(
                 """,
 )
 async def stream_run(
-    api_key: ApiKey,
+    auth: AuthenticatedUser,
     payload: CreateRunPayload,
     assistant_repository: AssistantRepository = Depends(get_assistant_repository),
     thread_repository: ThreadRepository = Depends(get_thread_repository),
@@ -158,7 +158,7 @@ async def stream_run(
     description="Create a run to be processed by the LLM.",
 )
 async def create_run(
-    api_key: ApiKey,
+    auth: AuthenticatedUser,
     payload: CreateRunPayload,
     background_tasks: BackgroundTasks,
     assistant_repository: AssistantRepository = Depends(get_assistant_repository),
@@ -226,7 +226,7 @@ Conversation:
     description="Generates a title for the conversation by sending a list of interactions to the model.",
 )
 async def title_endpoint(
-    api_key: ApiKey,
+    auth: AuthenticatedUser,
     request: TitleRequest,
     thread_repository: ThreadRepository = Depends(get_thread_repository),
     assistant_repo: AssistantRepository = Depends(get_assistant_repository),

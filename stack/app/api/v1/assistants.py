@@ -15,7 +15,7 @@ from stack.app.schema.assistant import (
     CreateAssistantFileSchema,
     CreateAssistantFileSchemaResponse,
 )
-from stack.app.api.annotations import ApiKey
+from stack.app.core.auth.request_validators import AuthenticatedUser
 from stack.app.core.configuration import get_settings
 from stack.app.vectordbs import get_vector_service
 from stack.app.schema.file import FileSchema
@@ -39,7 +39,7 @@ settings = get_settings()
     description="Creates a new assistant with the specified details.",
 )
 async def create_assistant(
-    api_key: ApiKey,
+    auth: AuthenticatedUser,
     data: CreateAssistantSchema,
     assistant_repository: AssistantRepository = Depends(get_assistant_repository),
 ) -> Assistant:
@@ -63,7 +63,7 @@ async def create_assistant(
     description="Retrieves a list of all assistants.",
 )
 async def retrieve_assistants(
-    api_key: ApiKey,
+    auth: AuthenticatedUser,
     assistant_repository: AssistantRepository = Depends(get_assistant_repository),
 ) -> list[Assistant]:
     assistants = await assistant_repository.retrieve_assistants()
@@ -79,7 +79,7 @@ async def retrieve_assistants(
     description="Retrieves detailed information about a specific assistant by its ID.",
 )
 async def retrieve_assistant(
-    api_key: ApiKey,
+    auth: AuthenticatedUser,
     assistant_id: uuid.UUID,
     assistant_repository: AssistantRepository = Depends(get_assistant_repository),
 ) -> Assistant:
@@ -98,7 +98,7 @@ async def retrieve_assistant(
     description="Updates the details of a specific assistant by its ID.",
 )
 async def update_assistant(
-    api_key: ApiKey,
+    auth: AuthenticatedUser,
     assistant_id: uuid.UUID,
     data: UpdateAssistantSchema,
     assistant_repository: AssistantRepository = Depends(get_assistant_repository),
@@ -120,7 +120,7 @@ async def update_assistant(
     description="Deletes a specific assistant by its ID from the database.",
 )
 async def delete_assistant(
-    api_key: ApiKey,
+    auth: AuthenticatedUser,
     assistant_id: uuid.UUID,
     assistant_repository: AssistantRepository = Depends(get_assistant_repository),
 ):
@@ -137,7 +137,7 @@ async def delete_assistant(
     description="Convenience method to add an uploaded file to an assistant for RAG ingestion and retrieval",
 )
 async def create_assistant_file(
-    api_key: ApiKey,
+    auth: AuthenticatedUser,
     assistant_id: uuid.UUID,
     data: CreateAssistantFileSchema,
     assistant_repository: AssistantRepository = Depends(get_assistant_repository),
@@ -206,7 +206,7 @@ async def create_assistant_file(
     description="Removes a file from an assistant by its ID. This also deletes the corresponding documents from the vector store.",
 )
 async def delete_assistant_file(
-    api_key: ApiKey,
+    auth: AuthenticatedUser,
     assistant_id: uuid.UUID,
     file_id: uuid.UUID,
     assistant_repository: AssistantRepository = Depends(get_assistant_repository),
@@ -238,7 +238,7 @@ async def delete_assistant_file(
     description="Returns a list of file objects for all files associated with an assistant.",
 )
 async def retrieve_assistant_files(
-    api_key: ApiKey,
+    auth: AuthenticatedUser,
     assistant_id: uuid.UUID,
     limit: int = 20,
     order: str = "desc",
