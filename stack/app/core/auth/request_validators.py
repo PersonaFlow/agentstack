@@ -1,14 +1,15 @@
 from fastapi import Depends, HTTPException, Request
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Annotated
 
 from stack.app.model.blacklist import Blacklist
-from stack.app.core.datastore import get_session
+from stack.app.repositories.blacklist import BlacklistRepository, get_blacklist_repository
 from stack.app.core.auth.jwt import JWTService
 
 
-def validate_authorization(
+async def validate_authorization(
     request: Request,
-    session: Session = Depends(get_session)
+    blacklist_repository: BlacklistRepository = Depends(get_blacklist_repository),
 ) -> dict:
     """
     Validate that the request has the `Authorization` header, used for requests
@@ -45,12 +46,12 @@ def validate_authorization(
             status_code=401, detail="Bearer token is invalid or expired."
         )
 
-    blacklist = (
-        session.query(Blacklist).filter(Blacklist.token_id == decoded["jti"]).first()
-    )
+    blacklist = await blacklist_repository.retrieve_blacklist(token_id=decoded["jti"])
 
     # Token was blacklisted
     if blacklist is not None:
         raise HTTPException(status_code=401, detail="Bearer token is blacklisted.")
 
     return decoded
+
+AuthenticatedUser = Annotated[dict, Depends(validate_authorization)]
