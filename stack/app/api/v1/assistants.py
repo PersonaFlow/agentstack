@@ -1,8 +1,10 @@
-from fastapi import APIRouter, status, HTTPException, Depends
 import uuid
 import asyncio
+from typing import Optional
 from datetime import datetime
 import structlog
+from fastapi import APIRouter, status, HTTPException, Depends, Request
+
 from stack.app.repositories.assistant import (
     AssistantRepository,
     get_assistant_repository,
@@ -19,9 +21,9 @@ from stack.app.core.auth.request_validators import AuthenticatedUser
 from stack.app.core.configuration import get_settings
 from stack.app.vectordbs import get_vector_service
 from stack.app.schema.file import FileSchema
-from typing import Optional
 from stack.app.rag.ingest import get_ingest_tasks_from_config
 from stack.app.schema.rag import IngestRequestPayload
+from stack.app.core.auth.utils import get_header_user_id
 
 router = APIRouter()
 DEFAULT_TAG = "Assistants"
@@ -40,11 +42,15 @@ settings = get_settings()
 )
 async def create_assistant(
     auth: AuthenticatedUser,
+    request: Request,
     data: CreateAssistantSchema,
     assistant_repository: AssistantRepository = Depends(get_assistant_repository),
 ) -> Assistant:
     try:
-        assistant = await assistant_repository.create_assistant(data=data.model_dump())
+        user_id = get_header_user_id(request)
+        data_dict = data.model_dump()
+        data_dict['user_id'] = user_id
+        assistant = await assistant_repository.create_assistant(data=data_dict)
         return assistant
     except Exception as e:
         logger.exception(f"Error creating assistant: {str(e)}")
@@ -58,15 +64,17 @@ async def create_assistant(
     "",
     tags=[DEFAULT_TAG],
     response_model=list[Assistant],
-    operation_id="retrieve_assistants",
-    summary="Retrieve all assistants",
-    description="Retrieves a list of all assistants.",
+    operation_id="retrieve_user_assistants",
+    summary="Retrieve user assistants",
+    description="Retrieves a list of the user's assistants.",
 )
-async def retrieve_assistants(
+async def retrieve_user_assistants(
     auth: AuthenticatedUser,
+    request: Request,
     assistant_repository: AssistantRepository = Depends(get_assistant_repository),
 ) -> list[Assistant]:
-    assistants = await assistant_repository.retrieve_assistants()
+    user_id = get_header_user_id(request)
+    assistants = await assistant_repository.retrieve_assistants(filters={"user_id": user_id})
     return assistants
 
 
@@ -80,13 +88,17 @@ async def retrieve_assistants(
 )
 async def retrieve_assistant(
     auth: AuthenticatedUser,
+    request: Request,
     assistant_id: uuid.UUID,
     assistant_repository: AssistantRepository = Depends(get_assistant_repository),
 ) -> Assistant:
+    user_id = get_header_user_id(request)
     assistant = await assistant_repository.retrieve_assistant(assistant_id=assistant_id)
-    if assistant:
-        return assistant
-    raise HTTPException(status_code=404, detail="Assistant not found")
+    if assistant.user_id != user_id:
+        raise HTTPException(status_code=403, detail="User does not have access to this assistant.")
+    if not assistant:
+        raise HTTPException(status_code=404, detail="Assistant not found")
+    return assistant
 
 
 @router.patch(
@@ -99,10 +111,15 @@ async def retrieve_assistant(
 )
 async def update_assistant(
     auth: AuthenticatedUser,
+    request: Request,
     assistant_id: uuid.UUID,
     data: UpdateAssistantSchema,
     assistant_repository: AssistantRepository = Depends(get_assistant_repository),
 ) -> Assistant:
+    user_id = get_header_user_id(request)
+    assistant = await assistant_repository.retrieve_assistant(assistant_id=assistant_id)
+    if assistant.user_id != user_id:
+        raise HTTPException(status_code=403, detail="User does not have access to update this assistant.")
     assistant = await assistant_repository.update_assistant(
         assistant_id=assistant_id, data=data.model_dump()
     )
@@ -121,9 +138,14 @@ async def update_assistant(
 )
 async def delete_assistant(
     auth: AuthenticatedUser,
+    request: Request,
     assistant_id: uuid.UUID,
     assistant_repository: AssistantRepository = Depends(get_assistant_repository),
 ):
+    user_id = get_header_user_id(request)
+    assistant = await assistant_repository.retrieve_assistant(assistant_id=assistant_id)
+    if assistant.user_id != user_id:
+        raise HTTPException(status_code=403, detail="User does not have access to delete this assistant.")
     await assistant_repository.delete_assistant(assistant_id=assistant_id)
     return {"detail": "Assistant deleted successfully"}
 
@@ -138,23 +160,35 @@ async def delete_assistant(
 )
 async def create_assistant_file(
     auth: AuthenticatedUser,
+    request: Request,
     assistant_id: uuid.UUID,
     data: CreateAssistantFileSchema,
     assistant_repository: AssistantRepository = Depends(get_assistant_repository),
     file_repository: FileRepository = Depends(get_file_repository),
 ) -> CreateAssistantFileSchemaResponse:
     try:
+        file = await file_repository.retrieve_file(data.file_id)
+        if not file:
+            logger.warning(f"File not found: {data.file_id}")
+            raise HTTPException(status_code=404, detail="File not found")
         assistant = await assistant_repository.retrieve_assistant(
             assistant_id=assistant_id
         )
+        user_id = get_header_user_id(request)
         if not assistant:
-            logger.exception(f"Assistant not found: {assistant_id}")
+            logger.warning(f"Assistant not found: {assistant_id}")
             raise HTTPException(status_code=404, detail="Assistant not found")
 
-        # Commenting this out for testing purposes
-        # if data.file_id in [f.file_id for f in assistant.file_ids]:
-        #     logger.exception(f"File with id: {data.file_id} already added to assistant {assistant_id}")
-        #     raise HTTPException(status_code=400, detail="File already added to assistant")
+        if data.file_id in [f.file_id for f in assistant.file_ids]:
+            logger.warning(f"File with id: {data.file_id} already added to assistant {assistant_id}")
+            raise HTTPException(status_code=400, detail="File already added to assistant")
+        if assistant.user_id != user_id:
+            logger.warning(f"User {user_id} does not have access to assistant: {assistant_id}")
+            raise HTTPException(status_code=403, detail="User does not have access to this assistant.")
+        if file.user_id != user_id:
+            logger.warning(f"User {user_id} does not have access to file: {data.file_id}")
+            raise HTTPException(status_code=403, detail="User does not have access to this file.")
+
 
         # Old method - we'll bring back some version of this for the "recursive" chunking strategy
         # file_content = await file_repository.retrieve_file_content(data.file_id)
@@ -207,10 +241,17 @@ async def create_assistant_file(
 )
 async def delete_assistant_file(
     auth: AuthenticatedUser,
+    request: Request,
     assistant_id: uuid.UUID,
     file_id: uuid.UUID,
     assistant_repository: AssistantRepository = Depends(get_assistant_repository),
 ) -> Assistant:
+    user_id = get_header_user_id(request)
+    assistant = await assistant_repository.retrieve_assistant(assistant_id)
+    if not assistant:
+        raise HTTPException(status_code=404, detail="Assistant not found")
+    if assistant.user_id != user_id:
+        raise HTTPException(status_code=403, detail="User does not have access to this assistant.")
     try:
         service = get_vector_service()
         # delete the associated vector embeddings
@@ -239,6 +280,7 @@ async def delete_assistant_file(
 )
 async def retrieve_assistant_files(
     auth: AuthenticatedUser,
+    request: Request,
     assistant_id: uuid.UUID,
     limit: int = 20,
     order: str = "desc",
@@ -249,12 +291,18 @@ async def retrieve_assistant_files(
 ) -> list[FileSchema]:
     try:
         assistant = await assistant_repository.retrieve_assistant(assistant_id)
+
         if not assistant:
             raise HTTPException(status_code=404, detail="Assistant not found")
+        user_id = get_header_user_id(request)
+        if assistant.user_id != user_id:
+            raise HTTPException(status_code=403, detail="User does not have access to this assistant.")
+
         file_ids = assistant.file_ids or []
         files = await files_repository.retrieve_files_by_ids(
             file_ids=file_ids, limit=limit, order=order, before=before, after=after
         )
+
         return files
     except Exception as e:
         logger.exception(f"Error retrieving files for assistant: {str(e)}")
