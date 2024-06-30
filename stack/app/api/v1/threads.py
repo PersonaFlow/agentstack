@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status, HTTPException
+from fastapi import APIRouter, Depends, status, HTTPException, Request
 from typing import List
 from stack.app.repositories.thread import ThreadRepository, get_thread_repository
 from stack.app.repositories.message import MessageRepository, get_message_repository
@@ -16,6 +16,7 @@ from stack.app.schema.thread import (
 from stack.app.schema.message import Message
 from stack.app.core.auth.request_validators import AuthenticatedUser
 from stack.app.core.exception import NotFoundException
+from stack.app.core.auth.utils import get_header_user_id
 
 router = APIRouter()
 DEFAULT_TAG = "Threads"
@@ -32,34 +33,21 @@ DEFAULT_TAG = "Threads"
 )
 async def create_thread(
     auth: AuthenticatedUser,
+    request: Request,
     data: CreateThreadSchema,
     thread_repo: ThreadRepository = Depends(get_thread_repository),
     assistant_repo: AssistantRepository = Depends(get_assistant_repository),
     user_repo: UserRepository = Depends(get_user_repository),
 ) -> Thread:
+    user_id = get_header_user_id(request)
     assistant = await assistant_repo.retrieve_assistant(assistant_id=data.assistant_id)
     if not assistant:
         raise NotFoundException(f"Assistant with ID {data.assistant_id} not found")
-    user = await user_repo.retrieve_by_user_id(user_id=data.user_id)
-    if not user:
-        raise NotFoundException(f"User with ID {data.user_id} not found")
-    thread = await thread_repo.create_thread(data=data.model_dump())
+
+    thread_data = data.model_dump()
+    thread_data['user_id'] = user_id
+    thread = await thread_repo.create_thread(data=thread_data)
     return thread
-
-
-@router.get(
-    "",
-    tags=[DEFAULT_TAG],
-    response_model=List[Thread],
-    operation_id="retrieve_all_threads",
-    summary="Retrieve all threads",
-    description="Retrieves a list of all threads in the database. Should be used as an admin operation only.",
-)
-async def retrieve_threads(
-    auth: AuthenticatedUser, thread_repo: ThreadRepository = Depends(get_thread_repository)
-) -> List[Thread]:
-    threads = await thread_repo.retrieve_threads()
-    return threads
 
 
 @router.get(
@@ -72,10 +60,14 @@ async def retrieve_threads(
 )
 async def retrieve_thread(
     auth: AuthenticatedUser,
+    request: Request,
     thread_id: str,
     thread_repo: ThreadRepository = Depends(get_thread_repository),
 ) -> Thread:
+    user_id = get_header_user_id(request)
     thread = await thread_repo.retrieve_thread(thread_id=thread_id)
+    if user_id != thread.user_id:
+        raise HTTPException(status_code=403, detail="Forbidden")
     if not thread:
         raise NotFoundException(f"Thread with ID {thread_id} not found")
     return thread
@@ -91,16 +83,22 @@ async def retrieve_thread(
 )
 async def update_thread(
     auth: AuthenticatedUser,
+    request: Request,
     thread_id: str,
     data: UpdateThreadSchema,
     thread_repo: ThreadRepository = Depends(get_thread_repository),
 ) -> Thread:
-    thread = await thread_repo.update_thread(
-        thread_id=thread_id, data=data.model_dump()
-    )
+    user_id = get_header_user_id(request)
+    thread = await thread_repo.retrieve_thread(thread_id=thread_id)
     if not thread:
         raise NotFoundException(f"Thread with ID {thread_id} not found")
-    return thread
+    if user_id != thread.user_id:
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    update_thread = await thread_repo.update_thread(
+        thread_id=thread_id, data=data.model_dump()
+    )
+    return update_thread
 
 
 @router.delete(
@@ -113,28 +111,18 @@ async def update_thread(
 )
 async def delete_thread(
     auth: AuthenticatedUser,
+    request: Request,
     thread_id: str,
     thread_repo: ThreadRepository = Depends(get_thread_repository),
 ):
+    user_id = get_header_user_id(request)
+    thread = await thread_repo.retrieve_thread(thread_id=thread_id)
+    if not thread:
+        raise NotFoundException(f"Thread with ID {thread_id} not found")
+    if user_id != thread.user_id:
+        raise HTTPException(status_code=403, detail="Forbidden")
     await thread_repo.delete_thread(thread_id=thread_id)
     return {"detail": "Thread deleted successfully"}
-
-
-@router.get(
-    "/{thread_id}/messages",
-    tags=[DEFAULT_TAG],
-    response_model=List[Message],
-    operation_id="retrieve_messages_for_thread",
-    summary="Retrieve all messages by thread id",
-    description="Retrieves a list of all messages in a thread identified by its ID.",
-)
-async def retrieve_messages_by_thread_id(
-    auth: AuthenticatedUser,
-    thread_id: str,
-    message_repo: MessageRepository = Depends(get_message_repository),
-) -> List[Message]:
-    messages = await message_repo.retrieve_messages_by_thread_id(thread_id=thread_id)
-    return messages
 
 
 @router.get(
@@ -145,14 +133,18 @@ async def retrieve_messages_by_thread_id(
     description="Retrieves the state of a thread identified by its ID.",
 )
 async def retrieve_thread_state(
+    auth: AuthenticatedUser,
+    request: Request,
     thread_id: str,
     thread_repo: ThreadRepository = Depends(get_thread_repository),
     assistant_repo: AssistantRepository = Depends(get_assistant_repository),
 ):
-    # TODO: we should get user_id from token and include user_id in retrieve_thread filter
+    user_id = get_header_user_id(request)
     thread = await thread_repo.retrieve_thread(thread_id=thread_id)
     if not thread:
         raise HTTPException(status_code=404, detail="Thread not found")
+    if thread.user_id != user_id:
+        raise HTTPException(status_code=403, detail="Forbidden")
     assistant = await assistant_repo.retrieve_assistant(
         assistant_id=thread.assistant_id
     )
@@ -170,14 +162,19 @@ async def retrieve_thread_state(
     description="Adds the state of a thread identified by its ID.",
 )
 async def add_thread_state(
+    auth: AuthenticatedUser,
+    request: Request,
     thread_id: str,
     payload: ThreadPostRequest,
     thread_repo: ThreadRepository = Depends(get_thread_repository),
     assistant_repo: AssistantRepository = Depends(get_assistant_repository),
 ):
+    user_id = get_header_user_id(request)
     thread = await thread_repo.retrieve_thread(thread_id=thread_id)
     if not thread:
         raise HTTPException(status_code=404, detail="Thread not found")
+    if thread.user_id != user_id:
+        raise HTTPException(status_code=403, detail="Forbidden")
     assistant = await assistant_repo.retrieve_assistant(
         assistant_id=thread.assistant_id
     )
@@ -199,13 +196,18 @@ async def add_thread_state(
     description="Gets the history of the thread identified by its ID.",
 )
 async def get_thread_history(
+    auth: AuthenticatedUser,
+    request: Request,
     thread_id: str,
     thread_repo: ThreadRepository = Depends(get_thread_repository),
     assistant_repo: AssistantRepository = Depends(get_assistant_repository),
 ):
+    user_id = get_header_user_id(request)
     thread = await thread_repo.retrieve_thread(thread_id=thread_id)
     if not thread:
         raise HTTPException(status_code=404, detail="Thread not found")
+    if thread.user_id != user_id:
+        raise HTTPException(status_code=403, detail="Forbidden")
     assistant = await assistant_repo.retrieve_assistant(
         assistant_id=thread.assistant_id
     )

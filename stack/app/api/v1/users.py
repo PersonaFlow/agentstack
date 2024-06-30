@@ -89,7 +89,7 @@ async def delete_me(
     "/me/threads",
     tags=[DEFAULT_TAG],
     response_model=Union[List[Thread], GroupedThreads],
-    operation_id="retrieve_my_threads",
+    operation_id="retrieve_threads",
     summary="Retrieve threads by user ",
     description="""
                 GET endpoint for fetching all threads associated with the logged-in user.

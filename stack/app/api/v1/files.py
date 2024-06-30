@@ -9,11 +9,12 @@ from fastapi import (
     Query,
     UploadFile,
     status,
+    Request
 )
 import uuid
 from stack.app.repositories.file import get_file_repository, FileRepository
 
-# from stack.app.repositories.api_key import get_api_key_repository, ApiKeyRepository
+from stack.app.core.auth.utils import get_header_user_id
 from stack.app.schema.file import (
     FileSchema,
     UploadFileSchema,
@@ -51,12 +52,12 @@ logger = logging.getLogger(__name__)
 )
 async def upload_file(
     auth: AuthenticatedUser,
+    request: Request,
     file: UploadFile = File(..., description="The file to upload."),
     purpose: str = Form(
         ...,
         description="The purpose of the file: 'assistants', 'threads', or 'personas'.",
     ),
-    user_id: str = Form(..., description="The user id of the file owner."),
     filename: Optional[str] = Form(
         None, description="The preferred name for the file."
     ),
@@ -65,15 +66,14 @@ async def upload_file(
         description="Any additonal metadata to include for this file. This should be a JSON string.",
     ),
     files_repository: FileRepository = Depends(get_file_repository),
-    # api_key_repository: ApiKeyRepository = Depends(get_api_key_repository)
 ) -> FileSchema:
     try:
         if not file or not file.file:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, detail="File is required."
             )
-        # if user_id is None:
-        #     user_id = await api_key_repository.find_api_user(api_key)
+        user_id = get_header_user_id(request)
+        
         file_content = await file.read()
         mime_type = guess_mime_type(file_content)
         if not is_mime_type_supported(mime_type):
@@ -119,12 +119,11 @@ async def upload_file(
 )
 async def retrieve_files(
     auth: AuthenticatedUser,
-    user_id: Optional[str] = "",
+    request: Request,
     purpose: Optional[str] = Query(None),
     files_repository: FileRepository = Depends(get_file_repository),
-    # api_key_repository: ApiKeyRepository = Depends(get_api_key_repository)
 ) -> list[FileSchema]:
-    # user_id = await api_key_repository.find_api_user(api_key)
+    user_id = get_header_user_id(request)
     try:
         files = await files_repository.retrieve_files(user_id=user_id, purpose=purpose)
         return files
@@ -146,6 +145,7 @@ async def retrieve_files(
 )
 async def retrieve_file(
     auth: AuthenticatedUser,
+    request: Request,
     file_id: uuid.UUID,
     files_repository: FileRepository = Depends(get_file_repository),
 ) -> FileSchema:
@@ -175,14 +175,18 @@ async def retrieve_file(
 )
 async def delete_file(
     auth: AuthenticatedUser,
+    request: Request,
     file_id: uuid.UUID,
     files_repository: FileRepository = Depends(get_file_repository),
     assistant_repository: AssistantRepository = Depends(get_assistant_repository),
 ):
+    user_id = get_header_user_id(request)
     try:
         file: FileSchema = await files_repository.retrieve_file(file_id=file_id)
         if not file:
             raise HTTPException(status_code=404, detail="File not found")
+        if file.user_id != user_id:
+            raise HTTPException(status_code=403, detail="Forbidden")
         if file.purpose in [
             FilePurpose.ASSISTANTS,
             FilePurpose.THREADS,
@@ -233,6 +237,7 @@ async def delete_file(
 )
 async def retrieve_file_content(
     auth: AuthenticatedUser,
+    request: Request,
     file_id: uuid.UUID,
     files_repository: FileRepository = Depends(get_file_repository),
 ):

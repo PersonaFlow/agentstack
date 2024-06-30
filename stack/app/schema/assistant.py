@@ -118,9 +118,6 @@ class Assistant(BaseModel):
 
 class CreateAssistantSchema(BaseModel):
     name: str = Field(..., description="The name of the assistant.", min_length=1)
-    user_id: Optional[str] = Field(
-        None, description="The user id that created the assistant."
-    )
     config: dict = Field(
         ...,
         description="The assistant config, containing specific configuration parameters.",
