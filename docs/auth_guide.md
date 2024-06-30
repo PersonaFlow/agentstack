@@ -35,14 +35,14 @@ For more [details click here.](https://oauth.net/2/pkce/)
 
 To enable the additional PKCE auth flow, you will need to first ensure your auth provider is PKCE-compliant, then set the `PKCE_ENABLED` class attribute in your OIDCConnect auth strategy to `True`. 
 
-<!-- ### Enabling Refresh Tokens
+### Enabling Refresh Tokens
 
 To enable refresh tokens, you must implement the `get_refresh_token_params()` method in your auth strategy class. This should return a dictionary containing key-value pairs that contain the query parameters the auth provider needs to return a refresh token. For example, if your auth provider requires a `?scope=offline` query parameter, you should add:
 
 ```python
 def get_refresh_token_params(self):
     return {"scope": "offline"}
-``` -->
+```
 
 ## Implementing new Auth strategies
 

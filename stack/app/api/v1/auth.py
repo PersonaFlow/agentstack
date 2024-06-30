@@ -1,10 +1,9 @@
 from typing import Union
 
-from authlib.integrations.starlette_client import OAuthError
 from fastapi import APIRouter, Depends, HTTPException
 from starlette.requests import Request
 
-from stack.app.core.auth.auth_config import ENABLED_AUTH_STRATEGY_MAPPING
+from stack.app.core.auth.auth_config import ENABLED_AUTH_STRATEGY_MAPPING, get_auth_strategy
 from stack.app.repositories.blacklist import get_blacklist_repository, BlacklistRepository
 from stack.app.model.blacklist import Blacklist
 from stack.app.schema.auth import JWTResponse, ListAuthStrategy, Login, Logout
@@ -46,6 +45,11 @@ def get_strategies() -> list[ListAuthStrategy]:
                     if hasattr(strategy_instance, "get_pkce_enabled")
                     else False
                 ),
+                "refresh_token_params": (
+                    strategy_instance.get_refresh_token_params()
+                    if hasattr(strategy_instance, "get_refresh_token_params")
+                    else None
+                ),
             }
         )
 
@@ -68,12 +72,13 @@ async def login(
     strategy_name = login.strategy
     payload = login.payload
 
-    if not is_enabled_authentication_strategy(strategy_name):
+    strategy = get_auth_strategy(strategy_name)
+    if not strategy:
         raise HTTPException(
             status_code=422, detail=f"Invalid Authentication strategy: {strategy_name}."
         )
 
-    strategy = ENABLED_AUTH_STRATEGY_MAPPING[strategy_name]
+
     strategy_payload = strategy.get_required_payload()
     if not set(strategy_payload).issubset(payload.keys()):
         missing_keys = [key for key in strategy_payload if key not in payload.keys()]
@@ -89,7 +94,7 @@ async def login(
             detail=f"Error performing {strategy_name} authentication with payload: {payload}.",
         )
 
-    token = JWTService().create_and_encode_jwt(user)
+    token = JWTService().create_and_encode_jwt(user, strategy_name)
 
     return {"token": token}
 

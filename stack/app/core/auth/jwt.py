@@ -23,13 +23,14 @@ class JWTService:
         self.expiry = expiry
         self.issuer = issuer
 
-    def create_and_encode_jwt(self, user: dict) -> str:
+    def create_and_encode_jwt(self, user: dict, strategy_name: str) -> str:
         now = datetime.now(timezone.utc)
         payload = {
             "iss": self.issuer,
             "iat": now,
             "exp": now + timedelta(hours=self.expiry),
             "jti": str(uuid.uuid4()),
+            "strategy": strategy_name,
             "context": user,
         }
 
@@ -44,8 +45,14 @@ class JWTService:
             )
             return decoded_payload
         except jwt.ExpiredSignatureError:
-            logger.warning("Token has expired.")
-            return None
+            logger.warning("JWT Token has expired.")
+            decoded_payload = jwt.decode(
+                token,
+                self.secret_key,
+                algorithms=[self.algorithm],
+                options={"verify_exp": False},
+            )
+            return decoded_payload
         except jwt.InvalidTokenError:
-            logger.warning("Invalid token.")
+            logger.warning("JWT Token is invalid.")
             return None

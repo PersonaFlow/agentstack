@@ -1,3 +1,4 @@
+import asyncio
 from typing import Callable
 from contextlib import asynccontextmanager
 from asgi_correlation_id import CorrelationIdMiddleware
@@ -16,6 +17,7 @@ from stack.app.core.logger import init_logging
 from stack.app.core.struct_logger import init_structlogger
 from stack.app.middlewares.system_logger import SystemLoggerMiddleware
 from stack.app.utils.exceptions import UniqueConstraintViolationError
+from stack.app.core.auth.auth_config import get_auth_strategy_endpoints
 
 def create_async_engine_with_settings(settings: Settings) -> AsyncEngine:
     return create_async_engine(settings.INTERNAL_DATABASE_URI, echo=True)
@@ -62,6 +64,13 @@ def create_app(settings: Settings):
     if is_authentication_enabled():
         # Required to save temporary OAuth state in session
         _app.add_middleware(SessionMiddleware, secret_key=settings.AUTH_SECRET_KEY)
+
+    if is_authentication_enabled():
+        asyncio.create_task(get_auth_strategy_endpoints())
+        # Required to save temporary OAuth state in session
+        _app.add_middleware(
+            SessionMiddleware, secret_key=settings.AUTH_SECRET_KEY
+        )
 
     @_app.exception_handler(ValueError)
     async def value_error_exception_handler(request: Request, exc: ValueError):

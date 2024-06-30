@@ -40,43 +40,26 @@ class GoogleOAuth(BaseOAuthStrategy):
         return self.settings.google_client_id
 
     def get_pkce_enabled(self):
-        if hasattr(self, "PKCE_ENABLED"):
-            return self.PKCE_ENABLED
-        return False
+        return self.PKCE_ENABLED if hasattr(self, "PKCE_ENABLED") else False
 
     def get_authorization_endpoint(self):
-        if hasattr(self, "AUTHORIZATION_ENDPOINT"):
-            return self.AUTHORIZATION_ENDPOINT
-        return None
+        return self.AUTHORIZATION_ENDPOINT if hasattr(self, "AUTHORIZATION_ENDPOINT") else None
 
-    async def get_endpoints(self):
-        response = requests.get(self.WELL_KNOWN_ENDPOINT)
-        endpoints = response.json()
-        try:
-            self.TOKEN_ENDPOINT = endpoints["token_endpoint"]
-            self.USERINFO_ENDPOINT = endpoints["userinfo_endpoint"]
-            self.AUTHORIZATION_ENDPOINT = endpoints["authorization_endpoint"]
-        except Exception as e:
-            logging.error(
-                f"Error fetching `token_endpoint` and `userinfo_endpoint` from {endpoints}."
-            )
-            raise
+    # async def authorize(self, request: Request) -> dict | None:
+    #     """
+    #     Authenticates the current user using their Google account.
 
-    async def authorize(self, request: Request) -> dict | None:
-        """
-        Authenticates the current user using their Google account.
+    #     Args:
+    #         request (Request): Current request.
 
-        Args:
-            request (Request): Current request.
+    #     Returns:
+    #         Access token.
+    #     """
+    #     token = self.client.fetch_token(
+    #         url=self.TOKEN_ENDPOINT,
+    #         authorization_response=str(request.url),
+    #         redirect_uri=self.REDIRECT_URI,
+    #     )
+    #     user_info = self.client.get(self.USERINFO_ENDPOINT)
 
-        Returns:
-            Access token.
-        """
-        token = self.client.fetch_token(
-            url=self.TOKEN_ENDPOINT,
-            authorization_response=str(request.url),
-            redirect_uri=self.REDIRECT_URI,
-        )
-        user_info = self.client.get(self.USERINFO_ENDPOINT)
-
-        return user_info.json()
+    #     return user_info.json()
