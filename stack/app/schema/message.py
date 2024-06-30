@@ -60,9 +60,6 @@ class CreateMessageSchema(BaseModel):
     thread_id: str = Field(
         ..., description="The thread id to associate the message with.", min_length=1
     )
-    user_id: Optional[str] = Field(
-        ..., description="The user id associated with the message."
-    )
     assistant_id: str = Field(
         None, description="(Optional) The assistant id associated with the message."
     )

@@ -58,7 +58,6 @@ router = APIRouter()
 class CreateRunPayload(BaseModel):
     """Payload for creating a run."""
 
-    user_id: str
     assistant_id: Optional[str] = None
     thread_id: Optional[str] = None
     input: list[dict]
