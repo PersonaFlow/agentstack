@@ -7,6 +7,11 @@ from stack.app.schema.user import User, CreateUserSchema, UpdateUserSchema
 from stack.app.repositories.thread import ThreadRepository, get_thread_repository
 from stack.app.repositories.user import UserRepository, get_user_repository
 from stack.app.utils.group_threads import group_threads
+from stack.app.repositories.assistant import (
+    AssistantRepository,
+    get_assistant_repository,
+)
+from stack.app.schema.assistant import Assistant
 
 router = APIRouter()
 DEFAULT_TAG = "Users (Admin)"
@@ -150,3 +155,35 @@ async def retrieve_user_threads(
     return group_threads(records, timezoneOffset if timezoneOffset else 0)
 
 
+@router.get(
+    "/threads",
+    tags=[DEFAULT_TAG],
+    response_model=List[Thread],
+    operation_id="retrieve_all_threads",
+    summary="Retrieve all threads",
+    description="""Retrieves a list of all threads in the database.
+                Should be used as an admin operation. <br>
+                TODO: Add access control for this endpoint.
+                """,
+)
+async def retrieve_all_threads(
+    auth: AuthenticatedUser,
+    thread_repo: ThreadRepository = Depends(get_thread_repository)
+) -> List[Thread]:
+    threads = await thread_repo.retrieve_threads()
+    return threads
+
+@router.get(
+    "/assistants",
+    tags=[DEFAULT_TAG],
+    response_model=list[Assistant],
+    operation_id="retrieve_user_assistants",
+    summary="Retrieve user assistants",
+    description="Retrieves a list of the user's assistants.",
+)
+async def retrieve_user_assistants(
+    auth: AuthenticatedUser,
+    assistant_repository: AssistantRepository = Depends(get_assistant_repository),
+) -> list[Assistant]:
+    assistants = await assistant_repository.retrieve_assistants()
+    return assistants
