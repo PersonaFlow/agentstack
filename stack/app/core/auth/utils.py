@@ -41,7 +41,7 @@ def get_header_user_id(request: Request) -> str:
         _, token = authorization.split(" ")
         decoded = JWTService().decode_jwt(token)
 
-        return decoded["context"]["id"]
+        return decoded["context"]["user_id"]
     # Auth disabled
     else:
         user_id = request.headers.get("User-Id", "")

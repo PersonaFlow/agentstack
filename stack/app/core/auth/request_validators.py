@@ -44,10 +44,11 @@ async def validate_authorization(
             status_code=401,
             detail="Authorization: Bearer <token> required in request headers.",
         )
+    try:
+        decoded_token = JWTService().decode_jwt(token)
+    except ValueError as e:
+        raise HTTPException(status_code=401, detail=str(e))
 
-    decoded_token = JWTService().decode_jwt(token)
-
-    # 3. Check if JWT token can be decoded
     if decoded_token is None or any(
         [
             "context" not in decoded_token,
@@ -56,7 +57,8 @@ async def validate_authorization(
             "strategy" not in decoded_token,
         ]
     ):
-        raise HTTPException(status_code=401, detail="Bearer token is invalid.")
+        raise HTTPException(status_code=401, detail="Bearer token is invalid or missing required fields.")
+
 
     # 4. Check if token is blacklisted
     blacklist = await blacklist_repository.retrieve_blacklist(token_id=decoded_token["jti"])

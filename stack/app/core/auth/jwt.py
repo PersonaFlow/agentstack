@@ -43,16 +43,11 @@ class JWTService:
             decoded_payload = jwt.decode(
                 token, self.secret_key, algorithms=[self.algorithm]
             )
+            print((f"Successfully decoded token: {decoded_payload}"))
             return decoded_payload
         except jwt.ExpiredSignatureError:
             logger.warning("JWT Token has expired.")
-            decoded_payload = jwt.decode(
-                token,
-                self.secret_key,
-                algorithms=[self.algorithm],
-                options={"verify_exp": False},
-            )
-            return decoded_payload
-        except jwt.InvalidTokenError:
-            logger.warning("JWT Token is invalid.")
-            return None
+            raise ValueError("JWT Token has expired")
+        except jwt.InvalidTokenError as e:
+            logger.exception(f"JWT Token is invalid: {str(e)}")
+            raise ValueError(f"JWT Token is invalid: {str(e)}")
