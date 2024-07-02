@@ -63,7 +63,7 @@ async def validate_authorization(
     # 4. Check if token is blacklisted
     blacklist = await blacklist_repository.retrieve_blacklist(token_id=decoded_token["jti"])
 
-    if blacklist is not None:
+    if not blacklist:
         raise HTTPException(status_code=401, detail="Bearer token is blacklisted.")
 
      # 5. Check if token is expired - if so then try refresh logic
@@ -71,36 +71,37 @@ async def validate_authorization(
     strategy_name = decoded_token["strategy"]
     now = datetime.datetime.utcnow()
 
-    if now > expiry_datetime:
-        strategy = get_auth_strategy(strategy_name)
+    if now < expiry_datetime:
+        return decoded_token
 
-        if not strategy:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Tried refreshing token, but Auth strategy {strategy_name} is disabled or does not exist.",
-            )
+    strategy = get_auth_strategy(strategy_name)
 
-        if not hasattr(strategy, "refresh"):
-            raise HTTPException(
-                status_code=400,
-                detail=f"Tried refreshing token, but Auth strategy {strategy_name} does not have a refresh method implemented.",
-            )
+    if not strategy:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Tried refreshing token, but Auth strategy {strategy_name} is disabled or does not exist.",
+        )
 
-        try:
-            userinfo = strategy.refresh(request)
-            user = await user_repository.get_or_create_user(userinfo)
-            token = JWTService().create_and_encode_jwt(user, strategy_name)
+    if not hasattr(strategy, "refresh"):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Tried refreshing token, but Auth strategy {strategy_name} does not have a refresh method implemented.",
+        )
 
-            # Set new token in response
-            response.headers[UPDATE_TOKEN_HEADER] = token
+    try:
+        userinfo = strategy.refresh(request)
+        user = await user_repository.get_or_create_user(userinfo)
+        token = JWTService().create_and_encode_jwt(user, strategy_name)
 
-            return token
-        except Exception as e:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Could not create user and encode JWT token.",
-            )
+        # Set new token in response
+        response.headers[UPDATE_TOKEN_HEADER] = token
 
-    return decoded_token
+        return token
+    except Exception as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Could not create user and encode JWT token.",
+        )
+
 
 AuthenticatedUser = Annotated[dict, Depends(validate_authorization)]

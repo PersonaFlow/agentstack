@@ -94,10 +94,10 @@ async def retrieve_assistant(
 ) -> Assistant:
     user_id = get_header_user_id(request)
     assistant = await assistant_repository.retrieve_assistant(assistant_id=assistant_id)
-    if assistant.user_id != user_id:
-        raise HTTPException(status_code=403, detail="User does not have access to this assistant.")
     if not assistant:
         raise HTTPException(status_code=404, detail="Assistant not found")
+    if assistant.user_id != user_id:
+        raise HTTPException(status_code=403, detail="User does not have access to this assistant.")
     return assistant
 
 
@@ -118,6 +118,8 @@ async def update_assistant(
 ) -> Assistant:
     user_id = get_header_user_id(request)
     assistant = await assistant_repository.retrieve_assistant(assistant_id=assistant_id)
+    if not assistant:
+        raise HTTPException(status_code=404, detail="Assistant not found")
     if assistant.user_id != user_id:
         raise HTTPException(status_code=403, detail="User does not have access to update this assistant.")
     assistant = await assistant_repository.update_assistant(
@@ -144,6 +146,8 @@ async def delete_assistant(
 ):
     user_id = get_header_user_id(request)
     assistant = await assistant_repository.retrieve_assistant(assistant_id=assistant_id)
+    if not assistant:
+        raise HTTPException(status_code=404, detail="Assistant not found")
     if assistant.user_id != user_id:
         raise HTTPException(status_code=403, detail="User does not have access to delete this assistant.")
     await assistant_repository.delete_assistant(assistant_id=assistant_id)

@@ -1,11 +1,10 @@
-import bcrypt
 from fastapi import Request
 from stack.app.core.auth.auth_config import is_authentication_enabled, ENABLED_AUTH_STRATEGY_MAPPING
 from stack.app.core.auth.jwt import JWTService
 
 def is_enabled_authentication_strategy(strategy_name: str) -> bool:
     """
-    Check whether a given authentication strategy is enabled in config/auth.py
+    Check whether a given authentication strategy is enabled in auth_config.py
 
     Args:
         strategy_name (str): Name the of auth strategy.
@@ -14,10 +13,7 @@ def is_enabled_authentication_strategy(strategy_name: str) -> bool:
         bool: Whether that strategy is currently enabled
     """
     # Check the strategy is valid and enabled
-    if strategy_name not in ENABLED_AUTH_STRATEGY_MAPPING.keys():
-        return False
-
-    return True
+    return strategy_name in ENABLED_AUTH_STRATEGY_MAPPING.keys()
 
 
 def get_header_user_id(request: Request) -> str:
