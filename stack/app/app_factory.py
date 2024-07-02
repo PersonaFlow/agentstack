@@ -1,4 +1,3 @@
-import asyncio
 from typing import Callable
 from contextlib import asynccontextmanager
 from asgi_correlation_id import CorrelationIdMiddleware
@@ -95,7 +94,6 @@ def create_app(settings: Settings):
     )
 
     if is_authentication_enabled():
-        asyncio.create_task(get_auth_strategy_endpoints())
         # Required to save temporary OAuth state in session
         _app.add_middleware(
             SessionMiddleware, secret_key=settings.AUTH_SECRET_KEY
@@ -148,5 +146,10 @@ def create_app(settings: Settings):
     _app.settings = settings
     _app.include_router(api_router, prefix="/api/v1")
     _app.openapi = lambda: get_custom_openapi(_app, settings)
+
+    @_app.on_event("startup")
+    async def startup_event():
+        if is_authentication_enabled():
+            await get_auth_strategy_endpoints()
 
     return _app

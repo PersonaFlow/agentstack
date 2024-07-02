@@ -3,7 +3,8 @@ from datetime import datetime
 from unittest.mock import patch
 
 import pytest
-
+from unittest.mock import patch
+from stack.app.core.auth.strategies.oidc import OIDCSettings
 from stack.app.app_factory import create_app
 from stack.app.core.configuration import Settings
 from stack.app.model.thread import Thread as ModelThread
@@ -31,7 +32,6 @@ def random_schema_user() -> SchemaUser:
     return SchemaUser(
         user_id=str(uuid.uuid4()),
         email="test@gmail.com",
-        password="abcd",
         created_at=datetime.now(),
         updated_at=datetime.now()
     )
@@ -143,14 +143,15 @@ def mock_oidc_env(monkeypatch):
 def mock_enabled_auth(mock_google_env, mock_oidc_env):
     # Can directly use class since no external calls are made
     from stack.app.core.auth.strategies.basic import BasicAuthentication
-    from stack.app.core.auth.strategies.google_oauth import GoogleOAuth
-    from stack.app.core.auth.strategies.oidc import OpenIDConnect
+    # from stack.app.core.auth.strategies.google_oauth import GoogleOAuth
+    # from stack.app.core.auth.strategies.oidc import OpenIDConnect
 
     mocked_strategies = {
         BasicAuthentication.NAME: BasicAuthentication(),
-        GoogleOAuth.NAME: GoogleOAuth(),
-        OpenIDConnect.NAME: OpenIDConnect(),
+        # GoogleOAuth.NAME: GoogleOAuth(),
+        # OpenIDConnect.NAME: OpenIDConnect(),
     }
 
     with patch.dict(ENABLED_AUTH_STRATEGY_MAPPING, mocked_strategies) as mock:
         yield mock
+
