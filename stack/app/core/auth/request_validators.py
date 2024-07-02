@@ -6,8 +6,32 @@ from stack.app.repositories.blacklist import BlacklistRepository, get_blacklist_
 from stack.app.repositories.user import UserRepository, get_user_repository
 from stack.app.core.auth.jwt import JWTService
 from stack.app.core.auth.auth_config import get_auth_strategy
+from stack.app.core.auth.auth_config import is_authentication_enabled
+from stack.app.core.configuration import settings
+
 
 UPDATE_TOKEN_HEADER = "X-Toolkit-Auth-Update"
+
+async def get_default_user():
+    """
+    Returns a default user when authentication is disabled.
+    """
+    return {
+        "context": {
+            "user_id": settings.DEFAULT_USER_ID,
+            # Add any other default user properties here
+        }
+    }
+
+def get_auth_dependency():
+    """
+    Returns the appropriate dependency based on whether authentication is enabled.
+    """
+    if is_authentication_enabled():
+        return Depends(validate_authorization)
+    else:
+        return Depends(get_default_user)
+
 
 async def validate_authorization(
     request: Request,
@@ -104,4 +128,4 @@ async def validate_authorization(
         )
 
 
-AuthenticatedUser = Annotated[dict, Depends(validate_authorization)]
+AuthenticatedUser = Annotated[dict, get_auth_dependency()]

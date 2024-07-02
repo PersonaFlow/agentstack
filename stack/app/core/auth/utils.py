@@ -1,6 +1,7 @@
 from fastapi import Request
 from stack.app.core.auth.auth_config import is_authentication_enabled, ENABLED_AUTH_STRATEGY_MAPPING
 from stack.app.core.auth.jwt import JWTService
+from stack.app.core.configuration import settings
 
 def is_enabled_authentication_strategy(strategy_name: str) -> bool:
     """
@@ -30,6 +31,7 @@ def get_header_user_id(request: Request) -> str:
     Returns:
         str: User ID
     """
+    default_user_id = settings.DEFAULT_USER_ID
     # Check if Auth enabled
     if is_authentication_enabled():
         # Validation already performed, so just retrieve value
@@ -40,5 +42,5 @@ def get_header_user_id(request: Request) -> str:
         return decoded["context"]["user_id"]
     # Auth disabled
     else:
-        user_id = request.headers.get("User-Id", "")
+        user_id = request.headers.get("User-Id") or default_user_id
         return user_id

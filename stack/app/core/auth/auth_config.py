@@ -6,7 +6,7 @@ from stack.app.core.auth.strategies.oidc import OpenIDConnect
 # Add Auth strategy classes here to enable them
 # Ex: [BasicAuthentication]
 ENABLED_AUTH_STRATEGIES = [
-    BasicAuthentication,
+    # BasicAuthentication,
     # GoogleOAuth,
     # OpenIDConnect,
 ]
