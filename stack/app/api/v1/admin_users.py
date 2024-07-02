@@ -1,5 +1,5 @@
 from typing import List, Optional, Union
-from fastapi import APIRouter, status, Query, Depends
+from fastapi import APIRouter, status, Query, Depends, HTTPException
 from stack.app.core.auth.request_validators import AuthenticatedUser
 from stack.app.core.exception import NotFoundException
 from stack.app.schema.thread import Thread, GroupedThreads
@@ -35,8 +35,15 @@ async def create_user(
     data: CreateUserSchema,
     user_repo: UserRepository = Depends(get_user_repository),
 ) -> User:
-    user = await user_repo.create_user(data=data)
-    return user
+    # Check that the user does not exist first
+    existing_user = await user_repo.retrieve_by_user_id(user_id=data.user_id)
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"A user with user_id: {data.user_id} already exists",
+        )
+    created_user = await user_repo.create_user(data=data)
+    return created_user
 
 
 @router.get(
