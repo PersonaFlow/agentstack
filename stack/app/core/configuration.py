@@ -235,6 +235,9 @@ class Settings(BaseSettings):
         True if os.getenv("ENABLE_PHOENIX_TRACING", "false") == "true" else False
     )
 
+    # This will be used as the default user when auth is disabled and there is no User-Id passed in the request header
+    DEFAULT_USER_ID: str = os.getenv("DEFAULT_USER_ID", "default")
+
 
 def get_settings() -> Settings:
     return Settings()
