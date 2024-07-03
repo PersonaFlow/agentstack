@@ -99,8 +99,8 @@ async def retrieve_my_threads(
     auth: AuthenticatedUser,
     request: Request,
     thread_repo: ThreadRepository = Depends(get_thread_repository),
-    grouped: Optional[bool] = Query(None),
-    timezoneOffset: Optional[int] = Query(None),
+    grouped: Optional[bool] = Query(None, description="Group threads into date categories (eg. Today, Yesterday, etc.)"),
+    timezoneOffset: Optional[int] = Query(None, description="Timezone offset in minutes from UTC"),
 ):
     user_id = get_header_user_id(request)
     records = await thread_repo.retrieve_threads_by_user_id(user_id=user_id)

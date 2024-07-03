@@ -1,6 +1,6 @@
 from typing import Union
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from starlette.requests import Request
 
 from stack.app.core.auth.auth_config import ENABLED_AUTH_STRATEGY_MAPPING, get_auth_strategy
@@ -108,6 +108,7 @@ async def login(
 async def authorize(
     strategy: str,
     request: Request,
+    code: str = Query(None, description="Code returned by OAuth provider."),
     user_repository: UserRepository = Depends(get_user_repository),
 ):
     strategy_name = None
@@ -115,6 +116,11 @@ async def authorize(
         if enabled_strategy_name.lower() == strategy.lower():
             strategy_name = enabled_strategy_name
 
+    if not code:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Error calling /auth with invalid code query parameter.",
+        )
     if not strategy_name:
         raise HTTPException(
             status_code=400,
