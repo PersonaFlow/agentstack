@@ -62,7 +62,6 @@ export type TRunConfig = {
 };
 
 export type TRunRequest = {
-  user_id?: string;
   assistant_id: string;
   thread_id?: string;
   input: TRunInput[];
@@ -133,10 +132,6 @@ export type TThreadRequest = {
   name: string;
   kwargs?: {};
 };
-
-export interface TCreateThreadRequest extends TThreadRequest {
-  user_id: string;
-}
 
 export type TThreadState = {
   values: TMessage[];
@@ -211,7 +206,7 @@ export type TPurpose = "assistants" | "threads" | "personas";
 
 export type TFile = {
   id: string;
-  user_id: string;
+  user_id?: string;
   purpose: TPurpose;
   filename: string;
   bytes: number;
@@ -302,7 +297,6 @@ export type TQueryResponse = {
 export type TUploadFileRequest = {
   file: File;
   purpose: TPurpose;
-  user_id: string;
   filename: string;
   kwargs: string;
 };
@@ -315,7 +309,6 @@ export type TDeleteFileResponse = {
 };
 
 export type TGetFiles = {
-  user_id: string;
   purpose?: string;
 };
 

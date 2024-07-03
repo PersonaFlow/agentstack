@@ -3,7 +3,7 @@ from fastapi import APIRouter, status, Query, Depends, Request
 from stack.app.core.auth.request_validators import AuthenticatedUser
 from stack.app.core.exception import NotFoundException
 from stack.app.schema.thread import Thread, GroupedThreads
-from stack.app.schema.user import User, CreateUserSchema, UpdateUserSchema
+from stack.app.schema.user import User, UpdateUserSchema
 from stack.app.repositories.thread import ThreadRepository, get_thread_repository
 from stack.app.repositories.user import UserRepository, get_user_repository
 from stack.app.utils.group_threads import group_threads
