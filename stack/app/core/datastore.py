@@ -12,8 +12,9 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from stack.app.core.configuration import Settings, get_settings
-from typing import AsyncGenerator
-
+from typing import AsyncGenerator, Annotated, Any, Generator
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
 
 async def get_postgresql_session_provider(
     settings: Settings = Depends(get_settings),
@@ -23,4 +24,9 @@ async def get_postgresql_session_provider(
         async_engine, class_=AsyncSession, expire_on_commit=False
     )
     async with async_session_factory() as session:
+        yield session
+
+def get_session() -> Generator[Session, Any, None]:
+    engine = create_engine(Settings.INTERNAL_DATABASE_URI)
+    with Session(engine) as session:
         yield session

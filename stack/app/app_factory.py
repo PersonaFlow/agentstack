@@ -6,14 +6,19 @@ from fastapi.middleware import Middleware
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError, ResponseValidationError
-from starlette.exceptions import HTTPException as StarletteHTTPException
-from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
+from fastapi.openapi.utils import get_openapi
 
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.middleware.sessions import SessionMiddleware
+from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
+from stack.app.core.auth.auth_config import is_authentication_enabled
 from stack.app.api.v1 import api_router
 from stack.app.core.configuration import Settings
 from stack.app.core.logger import init_logging
 from stack.app.core.struct_logger import init_structlogger
 from stack.app.middlewares.system_logger import SystemLoggerMiddleware
+from stack.app.utils.exceptions import UniqueConstraintViolationError
+from stack.app.core.auth.auth_config import get_auth_strategy_endpoints
 
 
 def create_async_engine_with_settings(settings: Settings) -> AsyncEngine:
@@ -30,6 +35,36 @@ def get_lifespan(settings: Settings) -> Callable:
             await app.state.async_engine.dispose()
 
     return lifespan
+
+def get_custom_openapi(app: FastAPI, settings: Settings):
+    if app.openapi_schema:
+        return app.openapi_schema
+
+    openapi_schema = get_openapi(
+        title=settings.TITLE,
+        version=settings.VERSION,
+        description=settings.DESCRIPTION,
+        routes=app.routes,
+    )
+
+    # Add SecurityScheme for JWT
+    openapi_schema["components"] = openapi_schema.get("components", {})
+    openapi_schema["components"]["securitySchemes"] = {
+        "Bearer Auth": {
+            "type": "http",
+            "scheme": "bearer",
+            "bearerFormat": "JWT",
+        }
+    }
+
+    # Add security to all operations
+    for path in openapi_schema["paths"].values():
+        for operation in path.values():
+            operation["security"] = [{"Bearer Auth": []}]
+
+    openapi_schema["info"]["x-logo"] = {"url": "../../../assets/PersonaFlowIcon-512.png"}
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
 
 
 def create_app(settings: Settings):
@@ -57,6 +92,12 @@ def create_app(settings: Settings):
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    if is_authentication_enabled():
+        # Required to save temporary OAuth state in session
+        _app.add_middleware(
+            SessionMiddleware, secret_key=settings.AUTH_SECRET_KEY
+        )
 
     @_app.exception_handler(ValueError)
     async def value_error_exception_handler(request: Request, exc: ValueError):
@@ -95,7 +136,20 @@ def create_app(settings: Settings):
             content={"detail": exc.detail},
         )
 
+    @_app.exception_handler(UniqueConstraintViolationError)
+    async def unique_constraint_exception_handler(request: Request, exc: UniqueConstraintViolationError):
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"detail": exc.detail},
+        )
+
     _app.settings = settings
     _app.include_router(api_router, prefix="/api/v1")
+    _app.openapi = lambda: get_custom_openapi(_app, settings)
+
+    @_app.on_event("startup")
+    async def startup_event():
+        if is_authentication_enabled():
+            await get_auth_strategy_endpoints()
 
     return _app

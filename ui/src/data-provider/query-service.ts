@@ -73,7 +73,33 @@ export const useGenerateTitle = (payload: t.TGenerateTitle) => {
   });
 };
 
-// --Users--
+// --Me--
+export const useGetMe = () => {
+  return useQuery<t.TUser, Error>({
+    queryKey: [QueryKeys.user],
+    queryFn: async () => await dataService.getMe(),
+  });
+};
+
+export const useUpdateMe = (payload: t.TUser) => {
+  const queryClient = useQueryClient();
+  return useMutation<t.TUser, Error>({
+    mutationFn: async (): Promise<t.TUser> => {
+      return await dataService.updateMe(payload);
+    },
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: [QueryKeys.user] }),
+  });
+};
+
+export const useGetMyThreads = () => {
+  return useQuery<t.TThread[], Error>({
+    queryKey: [QueryKeys.userThreads],
+    queryFn: async () => await dataService.getMyThreads(),
+  });
+};
+
+// --Admin Users--
 export const useUsers = () => {
   return useQuery<t.TUser[], Error>({
     queryKey: [QueryKeys.users],
@@ -132,13 +158,6 @@ export const useUserThreads = (userId: string, grouped?: boolean) => {
   });
 };
 
-export const useUserStartup = (userId: string) => {
-  return useQuery<t.TUser, Error>({
-    queryKey: [QueryKeys.userStartup, userId],
-    queryFn: async () => await dataService.getUserStartup(userId),
-  });
-};
-
 export const useThreads = () => {
   return useQuery<t.TThread[], Error>({
     queryKey: [QueryKeys.threads],
@@ -148,8 +167,8 @@ export const useThreads = () => {
 
 export const useCreateThread = () => {
   const queryClient = useQueryClient();
-  return useMutation<t.TThread, Error, t.TCreateThreadRequest>({
-    mutationFn: async (payload: t.TCreateThreadRequest): Promise<t.TThread> => {
+  return useMutation<t.TThread, Error, t.TThreadRequest>({
+    mutationFn: async (payload: t.TThreadRequest): Promise<t.TThread> => {
       return await dataService.createThread(payload);
     },
     onSuccess: () => {
@@ -192,14 +211,6 @@ export const useDeleteThread = (threadId: string) => {
       queryClient.invalidateQueries({ queryKey: [QueryKeys.userThreads] });
       queryClient.invalidateQueries({ queryKey: [threadId] });
     },
-  });
-};
-
-export const useMessagesByThread = (threadId: string) => {
-  return useQuery<t.TMessage[], Error>({
-    queryKey: [QueryKeys.messagesByThread, QueryKeys.messages, threadId],
-    queryFn: async (): Promise<t.TMessage[]> =>
-      await dataService.getMessagesByThread(threadId),
   });
 };
 
@@ -363,13 +374,6 @@ export const useQueryData = (payload: t.TQuery) => {
   });
 };
 
-export const useQueryLCRetriever = (payload: t.TQuery) => {
-  return useMutation<string, Error>({
-    mutationFn: async (): Promise<string> =>
-      await dataService.queryLCRetriever(payload),
-  });
-};
-
 // --Files--
 export const useUploadFile = () => {
   const queryClient = useQueryClient();
@@ -382,11 +386,11 @@ export const useUploadFile = () => {
   });
 };
 
-export const useFiles = (userId: string, purpose?: t.TPurpose) => {
+export const useFiles = (purpose?: t.TPurpose) => {
   return useQuery<t.TFile[], Error>({
-    queryKey: [QueryKeys.files, userId, purpose],
+    queryKey: [QueryKeys.files, purpose],
     queryFn: async (): Promise<t.TFile[]> =>
-      await dataService.getFiles(userId, purpose),
+      await dataService.getFiles(purpose),
   });
 };
 

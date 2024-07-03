@@ -3,7 +3,7 @@ import os
 
 # from azure.monitor.opentelemetry import configure_azure_monitor
 from dotenv import load_dotenv
-from fastapi.openapi.utils import get_openapi
+from stack.app.core.auth.auth_config import is_authentication_enabled, get_auth_strategy_endpoints
 
 # from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
@@ -45,20 +45,14 @@ if settings.ENABLE_LANGSMITH_TRACING:
 app = create_app(settings)
 # FastAPIInstrumentor.instrument_app(app)
 
+@app.on_event("startup")
+async def startup_event():
+    """
+    Retrieves all the Auth provider endpoints if authentication is enabled.
+    """
+    if is_authentication_enabled():
+        await get_auth_strategy_endpoints()
 
-def get_custom_openapi():
-    if app.openapi_schema:
-        return app.openapi_schema
-
-    openapi_schema = get_openapi(
-        title=settings.TITLE,
-        version=settings.VERSION,
-        description=settings.DESCRIPTION,
-        routes=app.routes,
-    )
-    openapi_schema["info"]["x-logo"] = {"url": "../../assets/PersonaFlowIcon-512.png"}
-    app.openapi_schema = openapi_schema
-    return app.openapi_schema
 
 
 if __name__ == "__main__":

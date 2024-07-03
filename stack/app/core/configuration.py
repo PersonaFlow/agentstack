@@ -38,7 +38,7 @@ class LogLevelEnum(enum.Enum):
 # and do not need to load the.env file
 environment = os.getenv("ENVIRONMENT")
 if not environment:
-    env_path = "../../../.env.local"
+    env_path = "../../../.env"
     load_dotenv(env_path)
 
 
@@ -61,9 +61,12 @@ class Settings(BaseSettings):
     FILE_DATA_DIRECTORY: Path = BASE_DIR.parent.joinpath("file_data")
     PATCH_DIR: Path = BASE_DIR.parent.joinpath("patches")
 
-    # Key to be sent as x-api-key header to authenticate requests
-    # WARNING: Auth disabled if not provided
-    PERSONAFLOW_API_KEY: Optional[str] = os.getenv("PERSONAFLOW_API_KEY", None)
+    # Auth
+    JWT_ISSUER: Optional[str] = os.getenv("JWT_ISSUER", None)
+    JWT_ALGORITHM: Optional[str] = os.getenv("JWT_ALGORITHM", "HS256")
+    AUTH_SECRET_KEY: Optional[str] = os.getenv("AUTH_SECRET_KEY", None)
+    TOKEN_EXPIRY_HOURS: Optional[int] = os.getenv("TOKEN_EXPIRY_HOURS", 24)
+
 
     # Required if you intend to use reranking functionality to query documents
     COHERE_API_KEY: Optional[str] = os.getenv("COHERE_API_KEY", None)
@@ -231,6 +234,9 @@ class Settings(BaseSettings):
     ENABLE_PHOENIX_TRACING: bool = (
         True if os.getenv("ENABLE_PHOENIX_TRACING", "false") == "true" else False
     )
+
+    # This will be used as the default user when auth is disabled and there is no User-Id passed in the request header
+    DEFAULT_USER_ID: str = os.getenv("DEFAULT_USER_ID", "default")
 
 
 def get_settings() -> Settings:

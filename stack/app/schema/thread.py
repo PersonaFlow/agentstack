@@ -34,19 +34,12 @@ class CreateThreadSchema(BaseModel):
     assistant_id: uuid.UUID = Field(
         ..., description="(Optional) The assistant id associated with the thread."
     )
-    user_id: str = Field(..., description="The user id associated with the thread.")
     name: Optional[str] = Field(
         None, description="(Optional) The conversation title of the thread."
     )
     kwargs: Optional[dict] = Field(
         None, description="(Optional) Additional kwargs associated with the thread."
     )
-
-    @validator("user_id")
-    def must_not_be_empty(cls, v):
-        if not v:
-            raise ValueError("This field must not be empty")
-        return v
 
 
 class UpdateThreadSchema(BaseModel):
