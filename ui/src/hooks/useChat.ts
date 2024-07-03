@@ -70,9 +70,6 @@ export function useChatMessages(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stream?.status]);
 
-  console.log(messages);
-  console.log(stream?.messages);
-
   return useMemo(
     () => ({
       refreshMessages,
