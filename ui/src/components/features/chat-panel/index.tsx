@@ -15,7 +15,7 @@ export default function ChatPanel() {
   const [conversation, setConversation] = useAtom(conversationAtom);
   const [assistant] = useAtom(assistantAtom);
   const { id: threadId } = useParams();
-  const { data: threadState } = useThreadState(threadId);
+  const { data: threadState, isError } = useThreadState(threadId);
   const [userMessage, setUserMessage] = useState("");
   const { stream, startStream } = useStream();
   const { toast } = useToast();
@@ -40,12 +40,17 @@ export default function ChatPanel() {
     await startStream(input, "1234", threadId, assistant.id);
   };
 
-  if (!threadState) return <div>There was an issue fetching messages.</div>;
+  console.log(stream);
+
+  if (!threadState && isError)
+    return <div>There was an issue fetching messages.</div>;
 
   return (
     <div className="h-full w-full gap-4 flex flex-col">
       <MessagesContainer
-        messages={Array.isArray(threadState?.values) ? threadState?.values : []}
+        threadId={threadId}
+        stream={stream}
+        // messages={Array.isArray(threadState?.values) ? threadState?.values : []}
         composer={
           <Composer
             onChange={(e) => setUserMessage(e.target.value)}

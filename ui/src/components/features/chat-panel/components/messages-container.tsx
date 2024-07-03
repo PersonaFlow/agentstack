@@ -4,24 +4,29 @@ import MessageItem from "./message-item";
 import { useParams } from "next/navigation";
 import { ReactNode } from "react";
 import Spinner from "@/components/ui/spinner";
+import { useChatMessages } from "@/hooks/useChat";
 
 type Props = {
   isStreaming?: boolean;
-  messages?: TMessage[];
+  stream?: TMessage[];
   streamingMessage?: TMessage | null;
   onRetry?: VoidFunction;
   composer: ReactNode;
   conversationId?: string;
+  threadId: string;
 };
 
 export default function MessagesContainer({
   isStreaming,
-  messages,
+  stream,
   streamingMessage,
   onRetry,
   composer,
   conversationId,
+  threadId,
 }: Props) {
+  const { messages, next, refreshMessages } = useChatMessages(threadId, stream);
+
   return (
     <div className="h-full flex flex-col">
       <div className="p-6 overflow-y-scroll">
