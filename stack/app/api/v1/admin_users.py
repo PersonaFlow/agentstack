@@ -181,7 +181,7 @@ async def retrieve_all_threads(
     return threads
 
 @router.get(
-    "/assistants",
+    "/{user_id}/assistants",
     tags=[DEFAULT_TAG],
     response_model=list[Assistant],
     operation_id="retrieve_user_assistants",
@@ -190,7 +190,8 @@ async def retrieve_all_threads(
 )
 async def retrieve_user_assistants(
     auth: AuthenticatedUser,
+    user_id: str,
     assistant_repository: AssistantRepository = Depends(get_assistant_repository),
 ) -> list[Assistant]:
-    assistants = await assistant_repository.retrieve_assistants()
+    assistants = await assistant_repository.retrieve_assistants(filters={"user_id": user_id})
     return assistants
