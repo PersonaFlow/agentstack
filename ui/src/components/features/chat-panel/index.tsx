@@ -50,7 +50,6 @@ export default function ChatPanel() {
       <MessagesContainer
         threadId={threadId}
         stream={stream}
-        // messages={Array.isArray(threadState?.values) ? threadState?.values : []}
         composer={
           <Composer
             onChange={(e) => setUserMessage(e.target.value)}

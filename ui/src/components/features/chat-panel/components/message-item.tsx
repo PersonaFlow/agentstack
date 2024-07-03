@@ -14,9 +14,12 @@ export default function MessageItem({ message }: TMessageItemProps) {
       </div>
     );
   }
-  return (
-    <div className="py-2 px-3 text-base md:px-4 m-auto md:px-5 lg:px-1 xl:px-5">
-      <p>{message.content}</p>
-    </div>
-  );
+
+  if (message.type === MessageType.AI) {
+    return (
+      <div className="py-2 px-3 text-base md:px-4 m-auto md:px-5 lg:px-1 xl:px-5">
+        <p>{message.content}</p>
+      </div>
+    );
+  }
 }
