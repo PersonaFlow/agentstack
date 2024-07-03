@@ -1,5 +1,4 @@
 from unittest.mock import patch, MagicMock
-
 from starlette.testclient import TestClient
 
 from stack.app.app_factory import create_app
@@ -24,7 +23,6 @@ async def test__retrieve_users__responds_correctly(random_schema_user):
         response = client.get("/api/v1/users")
 
         # Assert
-
         assert method.call_count == 1
         assert response.status_code == 200
         data = response.json()

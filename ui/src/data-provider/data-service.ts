@@ -27,7 +27,23 @@ export function generateTitle(payload: t.TGenerateTitle): Promise<t.TThread> {
   });
 }
 
-// --Users--
+// -- Me --
+export function getMe(): Promise<t.TUser> {
+  return request.get(endpoints.me);
+}
+
+export function getMyThreads(): Promise<t.TThread[]> {
+  return request.get(endpoints.myThreads);
+}
+
+export function updateMe(payload: t.TUser): Promise<t.TUser> {
+  return request.patch(endpoints.me, {
+    ...payload,
+  });
+}
+
+
+// --Admin Users--
 export function getUsers(): Promise<t.TUser[]> {
   return request.get(endpoints.users());
 }
@@ -59,9 +75,6 @@ export function getUserThreads(
   return request.get(endpoints.userThreads(userId, grouped));
 }
 
-export function getUserStartup(userId: string): Promise<t.TUser> {
-  return request.get(endpoints.userStartup(userId));
-}
 
 // --Threads--
 export function getThreads(): Promise<t.TThread[]> {
@@ -69,7 +82,7 @@ export function getThreads(): Promise<t.TThread[]> {
 }
 
 export function createThread(
-  payload: t.TCreateThreadRequest,
+  payload: t.TThreadRequest,
 ): Promise<t.TThread> {
   return request.post(endpoints.threads(), {
     ...payload,
@@ -91,10 +104,6 @@ export function updateThread(
 
 export function deleteThread(threadId: string) {
   return request.delete(endpoints.threads(threadId));
-}
-
-export function getMessagesByThread(threadId: string): Promise<t.TMessage[]> {
-  return request.get(endpoints.threadMessages(threadId));
 }
 
 export function getThreadState(threadId: string): Promise<t.TThreadState> {
@@ -190,19 +199,13 @@ export function queryData(payload: t.TQuery): Promise<t.TQueryResponse> {
   });
 }
 
-export function queryLCRetriever(payload: t.TQuery): Promise<string> {
-  return request.post(endpoints.queryLCRetriever(), {
-    ...payload,
-  });
-}
-
 // --Files--
 export function uploadFile(payload: FormData): Promise<FormData> {
   return request.postMultiPart(endpoints.file(), payload);
 }
 
-export function getFiles(userId: string, purpose?: string): Promise<t.TFile[]> {
-  return request.get(endpoints.files(userId, purpose));
+export function getFiles(purpose?: string): Promise<t.TFile[]> {
+  return request.get(endpoints.files(purpose));
 }
 
 export function getFile(fileId: string): Promise<t.TFile> {

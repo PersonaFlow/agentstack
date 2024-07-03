@@ -2,7 +2,7 @@ import asyncio
 import aiohttp
 from fastapi import APIRouter, Depends, status
 from fastapi.exceptions import HTTPException
-from stack.app.api.annotations import ApiKey
+from stack.app.core.auth.request_validators import AuthenticatedUser
 from stack.app.schema.rag import (
     IngestRequestPayload,
     QueryRequestPayload,
@@ -38,7 +38,7 @@ DEFAULT_TAG = "RAG"
              """,
 )
 async def ingest(
-    api_key: ApiKey,
+    auth: AuthenticatedUser,
     payload: IngestRequestPayload,
     file_repository: FileRepository = Depends(get_file_repository),
     assistant_repository: AssistantRepository = Depends(get_assistant_repository),
@@ -104,7 +104,7 @@ async def notify_webhook(
               Query ingested documents using advanced RAG system with unstructured library. <br>
              """,
 )
-async def query(api_key: ApiKey, payload: QueryRequestPayload):
+async def query(auth: AuthenticatedUser, payload: QueryRequestPayload):
     try:
         chunks = await query_documents(payload=payload)
         response_payload = QueryResponsePayload(success=True, data=chunks)
@@ -122,7 +122,7 @@ async def query(api_key: ApiKey, payload: QueryRequestPayload):
 
 # Temp -> Used for testing the custom langchain retriever
 @router.post("/query-lc-retriever", tags=[DEFAULT_TAG])
-async def query_lc_retriever(api_key: ApiKey, payload: QueryRequestPayload):
+async def query_lc_retriever(auth: AuthenticatedUser, payload: QueryRequestPayload):
     metadata: dict = {}
     if payload.namespace:
         metadata["namespace"] = payload.namespace

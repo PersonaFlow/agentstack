@@ -4,7 +4,7 @@ from operator import itemgetter
 import structlog
 from langchain.pydantic_v1 import ValidationError
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 
 from langchain_core.runnables import RunnableConfig
@@ -14,7 +14,7 @@ from langchain.schema import AIMessage, HumanMessage, StrOutputParser
 from langchain.schema.runnable import RunnableMap
 
 from stack.app.agents.configurable_agent import agent, get_llm
-from stack.app.api.annotations import ApiKey
+from stack.app.core.auth.request_validators import AuthenticatedUser
 from stack.app.schema.thread import Thread
 from stack.app.repositories.assistant import (
     AssistantRepository,
@@ -26,6 +26,7 @@ from stack.app.schema.title import TitleRequest
 from stack.app.utils.stream import astream_state, to_sse
 from sse_starlette import EventSourceResponse
 from stack.app.core.configuration import get_settings
+from stack.app.core.auth.utils import get_header_user_id
 
 
 settings = get_settings()
@@ -58,7 +59,6 @@ router = APIRouter()
 class CreateRunPayload(BaseModel):
     """Payload for creating a run."""
 
-    user_id: str
     assistant_id: Optional[str] = None
     thread_id: Optional[str] = None
     input: list[dict]
@@ -69,6 +69,7 @@ async def _run_input_and_config(
     payload: CreateRunPayload,
     assistant_repository: AssistantRepository,
     thread_repository: ThreadRepository,
+    user_id: str
 ):
     if payload.thread_id and not payload.assistant_id:
         thread: Thread = thread_repository.retrieve_thread(payload.thread_id)
@@ -78,7 +79,7 @@ async def _run_input_and_config(
         thread = await thread_repository.create_thread(
             data={
                 "assistant_id": payload.assistant_id,
-                "user_id": payload.user_id,
+                "user_id": user_id,
             }
         )
         payload.thread_id = str(thread.id)
@@ -96,7 +97,7 @@ async def _run_input_and_config(
         "configurable": {
             **assistant.config["configurable"],
             **((payload.config or {}).get("configurable") or {}),
-            "user_id": payload.user_id,
+            "user_id": user_id,
             "thread_id": payload.thread_id,
             "assistant_id": payload.assistant_id,
         },
@@ -133,17 +134,15 @@ async def _run_input_and_config(
                 """,
 )
 async def stream_run(
-    api_key: ApiKey,
+    auth: AuthenticatedUser,
+    request: Request,
     payload: CreateRunPayload,
     assistant_repository: AssistantRepository = Depends(get_assistant_repository),
     thread_repository: ThreadRepository = Depends(get_thread_repository),
 ):
-    if settings.ENABLE_LANGSMITH_TRACING:
-        global trace_url
-        trace_url = None
-
+    user_id = get_header_user_id(request)
     input_, config = await _run_input_and_config(
-        payload, assistant_repository, thread_repository
+        payload, assistant_repository, thread_repository, user_id
     )
 
     return EventSourceResponse(to_sse(astream_state(agent, input_, config)))
@@ -158,14 +157,16 @@ async def stream_run(
     description="Create a run to be processed by the LLM.",
 )
 async def create_run(
-    api_key: ApiKey,
+    auth: AuthenticatedUser,
+    request: Request,
     payload: CreateRunPayload,
     background_tasks: BackgroundTasks,
     assistant_repository: AssistantRepository = Depends(get_assistant_repository),
     thread_repository: ThreadRepository = Depends(get_thread_repository),
 ):
+    user_id = get_header_user_id(request)
     input_, config = await _run_input_and_config(
-        payload, assistant_repository, thread_repository
+        payload, assistant_repository, thread_repository, user_id
     )
     background_tasks.add_task(agent.ainvoke, input_, config)
     return {"status": "ok"}
@@ -226,7 +227,7 @@ Conversation:
     description="Generates a title for the conversation by sending a list of interactions to the model.",
 )
 async def title_endpoint(
-    api_key: ApiKey,
+    auth: AuthenticatedUser,
     request: TitleRequest,
     thread_repository: ThreadRepository = Depends(get_thread_repository),
     assistant_repo: AssistantRepository = Depends(get_assistant_repository),

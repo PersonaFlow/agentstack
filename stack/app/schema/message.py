@@ -60,9 +60,6 @@ class CreateMessageSchema(BaseModel):
     thread_id: str = Field(
         ..., description="The thread id to associate the message with.", min_length=1
     )
-    user_id: Optional[str] = Field(
-        ..., description="The user id associated with the message."
-    )
     assistant_id: str = Field(
         None, description="(Optional) The assistant id associated with the message."
     )
@@ -80,7 +77,7 @@ class CreateMessageSchema(BaseModel):
         ..., description="A boolean flag indicating whether the message is an example."
     )
 
-    @field_validator("thread_id", "user_id", "content", "type")
+    @field_validator("thread_id", "content", "type")
     def must_not_be_empty(cls, v):
         if not v:
             raise ValueError("This field must not be empty")
