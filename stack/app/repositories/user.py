@@ -221,10 +221,10 @@ class UserRepository(BaseRepository):
             )
 
 
-    async def delete_user(self, object_id: uuid.UUID):
+    async def delete_user(self, user_id: str):
         """Removes a user from the database."""
         try:
-            user = await self.delete(model=User, object_id=object_id)
+            user = await self.delete(model=User, object_id=user_id)
             await self.postgresql_session.commit()
             return user
         except SQLAlchemyError as e:
@@ -232,7 +232,7 @@ class UserRepository(BaseRepository):
             logger.exception(
                 "Failed to delete user due to a database error",
                 exc_info=True,
-                object_id=object_id,
+                object_id=user_id,
             )
             raise HTTPException(status_code=400, detail="Failed to delete user.")
 

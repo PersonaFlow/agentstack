@@ -8,6 +8,7 @@ from stack.app.repositories.thread import ThreadRepository, get_thread_repositor
 from stack.app.repositories.user import UserRepository, get_user_repository
 from stack.app.utils.group_threads import group_threads
 from stack.app.core.auth.utils import get_header_user_id
+
 router = APIRouter()
 DEFAULT_TAG = "Users"
 
