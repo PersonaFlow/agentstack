@@ -1,10 +1,9 @@
 import uuid
 import bcrypt
-from asyncpg.exceptions import UniqueViolationError
 from sqlalchemy import select
 from stack.app.model.user import User
 from stack.app.repositories.base import BaseRepository
-from stack.app.schema.user import CreateUserSchema, UpdateUserSchema
+from stack.app.schema.user import CreateUpdateUserSchema
 from stack.app.utils.exceptions import UniqueConstraintViolationError
 import structlog
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
@@ -39,12 +38,12 @@ class UserRepository(BaseRepository):
         return bcrypt.hashpw(plain_text_password.encode("utf-8"), bcrypt.gensalt())
 
 
-    def _prepare_user_data(self, data: Union[CreateUserSchema, UpdateUserSchema]) -> dict:
+    def _prepare_user_data(self, data: CreateUpdateUserSchema) -> dict:
         """
         Prepare user data for database operations, handling password hashing.
 
         Args:
-            data (Union[CreateUserSchema, UpdateUserSchema]): User data.
+            data CreateUpdateUserSchema: User data.
 
         Returns:
             dict: Prepared user data with hashed password if applicable.
@@ -55,9 +54,13 @@ class UserRepository(BaseRepository):
         return values
 
 
-    async def create_user(self, data: CreateUserSchema):
+    async def create_user(self, data: CreateUpdateUserSchema):
         """Creates a new user in the database."""
         try:
+            user_data = data.dict(exclude={'password'})
+            if data.password:
+                user_data['hashed_password'] = self.hash_and_salt_password(data.password)
+            user = User(**user_data)
             values = self._prepare_user_data(data)
             user = await self.create(model=User, values=values)
             await self.postgresql_session.commit()
@@ -163,7 +166,7 @@ class UserRepository(BaseRepository):
             )
 
 
-    async def update_user(self, object_id: uuid.UUID, data: UpdateUserSchema):
+    async def update_user(self, object_id: uuid.UUID, data: CreateUpdateUserSchema):
         """Updates an existing user based on its UUID."""
         try:
             values = self._prepare_user_data(data)
@@ -190,7 +193,7 @@ class UserRepository(BaseRepository):
             raise HTTPException(status_code=400, detail="Failed to update user.")
 
 
-    async def update_by_user_id(self, user_id: str, data: UpdateUserSchema):
+    async def update_by_user_id(self, user_id: str, data: CreateUpdateUserSchema):
         """Updates an existing user based on their user_id."""
         try:
             values = self._prepare_user_data(data)
@@ -274,7 +277,7 @@ class UserRepository(BaseRepository):
 
         # Create User if DNE
         if not user:
-            db_user = CreateUserSchema(email=email)
+            db_user = CreateUpdateUserSchema(email=email)
             user = self.create_user(db_user)
 
         return user
