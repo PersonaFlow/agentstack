@@ -3,7 +3,7 @@ from fastapi import APIRouter, status, Query, Depends, HTTPException
 from stack.app.core.auth.request_validators import AuthenticatedUser
 from stack.app.core.exception import NotFoundException
 from stack.app.schema.thread import Thread, GroupedThreads
-from stack.app.schema.user import User, CreateUserSchema, UpdateUserSchema
+from stack.app.schema.user import User, CreateUpdateUserSchema
 from stack.app.repositories.thread import ThreadRepository, get_thread_repository
 from stack.app.repositories.user import UserRepository, get_user_repository
 from stack.app.utils.group_threads import group_threads
@@ -32,7 +32,7 @@ DEFAULT_TAG = "Users (Admin)"
 )
 async def create_user(
     auth: AuthenticatedUser,
-    data: CreateUserSchema,
+    data: CreateUpdateUserSchema,
     user_repo: UserRepository = Depends(get_user_repository),
 ) -> User:
     # Check that the user does not exist first
@@ -103,7 +103,7 @@ async def retrieve_user(
 async def update_user(
     auth: AuthenticatedUser,
     user_id: str,
-    data: UpdateUserSchema,
+    data: CreateUpdateUserSchema,
     user_repo: UserRepository = Depends(get_user_repository),
 ) -> User:
     record = await user_repo.update_by_user_id(user_id=user_id, data=data)
