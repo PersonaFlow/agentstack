@@ -173,24 +173,24 @@ async def create_assistant_file(
     try:
         file = await file_repository.retrieve_file(data.file_id)
         if not file:
-            logger.warning(f"File not found: {data.file_id}")
+            logger.exception(f"File not found: {data.file_id}")
             raise HTTPException(status_code=404, detail="File not found")
         assistant = await assistant_repository.retrieve_assistant(
             assistant_id=assistant_id
         )
         user_id = get_header_user_id(request)
         if not assistant:
-            logger.warning(f"Assistant not found: {assistant_id}")
+            logger.exception(f"Assistant not found: {assistant_id}")
             raise HTTPException(status_code=404, detail="Assistant not found")
 
         if data.file_id in [f.file_id for f in assistant.file_ids]:
-            logger.warning(f"File with id: {data.file_id} already added to assistant {assistant_id}")
+            logger.exception(f"File with id: {data.file_id} already added to assistant {assistant_id}")
             raise HTTPException(status_code=400, detail="File already added to assistant")
         if assistant.user_id != user_id:
-            logger.warning(f"User {user_id} does not have access to assistant: {assistant_id}")
+            logger.exception(f"User {user_id} does not have access to assistant: {assistant_id}")
             raise HTTPException(status_code=403, detail="User does not have access to this assistant.")
         if file.user_id != user_id:
-            logger.warning(f"User {user_id} does not have access to file: {data.file_id}")
+            logger.exception(f"User {user_id} does not have access to file: {data.file_id}")
             raise HTTPException(status_code=403, detail="User does not have access to this file.")
 
 
@@ -203,8 +203,8 @@ async def create_assistant_file(
         #     logger.exception(f"Error ingesting file: {data.file_id}")
         #     raise HTTPException(status_code=500, detail="An error occurred while ingesting the file.")
 
-        file_model = await file_repository.retrieve_file(data.file_id)
-        files_to_ingest = [FileSchema.model_validate(file_model)]
+        # TODO: Should we expand the API to accept a list of file_id's?
+        files_to_ingest = [FileSchema.model_validate(file)]
 
         config = IngestRequestPayload(
             files=[data.file_id],
