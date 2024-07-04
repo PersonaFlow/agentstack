@@ -10,7 +10,8 @@ target(
     dependencies=[
       "//:reqs#asyncpg",
       "//:reqs#python-multipart",
-      "//:reqs#pytest-asyncio"
+      "//:reqs#pytest-asyncio",
+      "//:reqs#itsdangerous"
     ]
 )
 
