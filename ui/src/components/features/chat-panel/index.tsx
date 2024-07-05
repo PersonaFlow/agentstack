@@ -40,8 +40,6 @@ export default function ChatPanel() {
     await startStream(input, "1234", threadId, assistant.id);
   };
 
-  console.log(stream);
-
   if (!threadState && isError)
     return <div>There was an issue fetching messages.</div>;
 
