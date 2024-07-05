@@ -10,12 +10,17 @@ import { useToast } from "@/components/ui/use-toast";
 import { useStream } from "@/hooks/useStream";
 import { useState } from "react";
 import { MessageType } from "@/data-provider/types";
+import Spinner from "@/components/ui/spinner";
 
 export default function ChatPanel() {
   const [conversation, setConversation] = useAtom(conversationAtom);
   const [assistant] = useAtom(assistantAtom);
   const { id: threadId } = useParams();
-  const { data: threadState, isError } = useThreadState(threadId);
+  const {
+    data: threadState,
+    isError,
+    isLoading: isLoadingThreads,
+  } = useThreadState(threadId);
   const [userMessage, setUserMessage] = useState("");
   const { stream, startStream } = useStream();
   const { toast } = useToast();
@@ -28,7 +33,6 @@ export default function ChatPanel() {
       });
       return;
     }
-    setUserMessage("");
     const input = [
       {
         content: userMessage,
@@ -36,6 +40,8 @@ export default function ChatPanel() {
         example: false,
       },
     ];
+
+    setUserMessage("");
 
     await startStream(input, "1234", threadId, assistant.id);
   };
@@ -45,6 +51,7 @@ export default function ChatPanel() {
 
   return (
     <div className="h-full w-full gap-4 flex flex-col">
+      {isLoadingThreads && <Spinner />}
       <MessagesContainer
         threadId={threadId}
         stream={stream}
