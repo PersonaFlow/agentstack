@@ -5,6 +5,7 @@ type TMessageItemProps = {
 };
 
 export default function MessageItem({ message }: TMessageItemProps) {
+  console.log(message);
   if (message.type === MessageType.HUMAN) {
     return (
       <div className="flex w-full flex-col gap-1 items-end">

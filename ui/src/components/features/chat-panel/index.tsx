@@ -36,14 +36,14 @@ export default function ChatPanel() {
     const input = [
       {
         content: userMessage,
-        role: MessageType.HUMAN,
+        type: MessageType.HUMAN,
         example: false,
       },
     ];
 
-    setUserMessage("");
-
     await startStream(input, "1234", threadId, assistant.id);
+
+    setUserMessage("");
   };
 
   if (!threadState && isError)
