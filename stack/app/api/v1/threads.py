@@ -66,11 +66,15 @@ async def retrieve_thread(
 ) -> Thread:
     user_id = get_header_user_id(request)
     thread = await thread_repo.retrieve_thread(thread_id=thread_id)
+
+    if not thread:
+        raise HTTPException(status_code=404, detail="Thread not found")
+
     if user_id != thread.user_id:
         raise HTTPException(status_code=403, detail="Forbidden")
-    if not thread:
-        raise NotFoundException(f"Thread with ID {thread_id} not found")
+
     return thread
+   
 
 
 @router.patch(
