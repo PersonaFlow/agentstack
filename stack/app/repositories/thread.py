@@ -159,36 +159,23 @@ class ThreadRepository(BaseRepository):
             state = await agent.aget_state(
                 {
                     "configurable": {
-                        **assistant.config["configurable"],
+                        **(assistant.config.get("configurable", {})),
                         "thread_id": thread_id,
-                        "assistant_id": assistant.id,
+                        "assistant_id": str(assistant.id),
                     }
                 }
             )
+
             return {
-                "values": state.values,
-                "next": state.next,
+                "values": list(getattr(state, 'values', [])),
+                "next": list(getattr(state, 'next', []))
             }
-        except TypeError as e:
-            logger.exception(f"Type Error: {e}")
-            raise HTTPException(
-                status_code=500,
-                detail="Failed to retrieve thread state.",
-            )
-        except SQLAlchemyError as e:
-            logger.exception(
-                f"Failed to retrieve checkpoints due to a database error: {e}",
-                exc_info=True,
-            )
-            raise HTTPException(
-                status_code=500,
-                detail="Failed to retrieve threads for the specified user.",
-            )
+
         except Exception as e:
-            logger.exception(f"Unexpected error: {e}")
+            logger.exception(f"Error in get_thread_state: {e}")
             raise HTTPException(
                 status_code=500,
-                detail="Failed to retrieve thread state .",
+                detail=f"Failed to retrieve thread state: {str(e)}",
             )
 
     async def update_thread_state(
