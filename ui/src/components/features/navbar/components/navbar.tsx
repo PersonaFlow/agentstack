@@ -1,6 +1,9 @@
 "use client";
 import Spinner from "@/components/ui/spinner";
-import { useCreateThread, useUserThreads } from "@/data-provider/query-service";
+import {
+  useCreateThread,
+  useGetMyThreads,
+} from "@/data-provider/query-service";
 import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -13,10 +16,8 @@ import { useAtom } from "jotai";
 import { assistantAtom } from "@/store";
 
 export default function Navbar() {
-  const { data: threadsData, isLoading: threadsLoading } = useUserThreads(
-    "1234",
-    true,
-  );
+  const { data: threadsData, isLoading: threadsLoading } =
+    useGetMyThreads(true);
 
   const [filteredThreads, setFilteredThreads] = useState(threadsData || {});
   const [open, setOpen] = useState(true);
