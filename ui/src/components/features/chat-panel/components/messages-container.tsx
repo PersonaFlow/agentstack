@@ -52,8 +52,8 @@ export default function MessagesContainer({
   return (
     <div className="h-full flex flex-col">
       <div className="p-6 overflow-y-scroll" ref={divRef}>
-        {messages?.map((message) => (
-          <MessageItem message={message} key={message.id} />
+        {messages?.map((message, index) => (
+          <MessageItem message={message} key={`${message.id}-${index}`} />
         ))}
       </div>
       {composer}

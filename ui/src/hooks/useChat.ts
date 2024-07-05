@@ -1,18 +1,19 @@
 import { TMessage } from "@/data-provider/types";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { mergeMessagesById } from "./useStream";
+import { useThreadState } from "@/data-provider/query-service";
 
-async function getState(threadId: string) {
-  const { values, next } = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_API_URL}/api/v1/threads/${threadId}/state`,
-    {
-      headers: {
-        Accept: "application/json",
-      },
-    },
-  ).then((r) => (r.ok ? r.json() : Promise.reject(r.statusText)));
-  return { values, next };
-}
+// async function getState(threadId: string) {
+//   const { values, next } = await fetch(
+//     `${process.env.NEXT_PUBLIC_BASE_API_URL}/api/v1/threads/${threadId}/state`,
+//     {
+//       headers: {
+//         Accept: "application/json",
+//       },
+//     },
+//   ).then((r) => (r.ok ? r.json() : Promise.reject(r.statusText)));
+//   return { values, next };
+// }
 
 function usePrevious<T>(value: T): T | undefined {
   const ref = useRef<T>();
@@ -31,9 +32,12 @@ export function useChatMessages(
   const [next, setNext] = useState<string[]>([]);
   const prevStreamStatus = usePrevious(stream?.status);
 
+  const { data: threadData } = useThreadState(threadId);
+
   const refreshMessages = useCallback(async () => {
-    if (threadId) {
-      const { values, next } = await getState(threadId);
+    if (threadId && threadData) {
+      console.log(threadData?.values);
+      const { values, next } = threadData;
       const messages = values
         ? Array.isArray(values)
           ? values
@@ -42,7 +46,7 @@ export function useChatMessages(
       setMessages(messages);
       setNext(next);
     }
-  }, [threadId]);
+  }, [threadId, threadData]);
 
   useEffect(() => {
     refreshMessages();
