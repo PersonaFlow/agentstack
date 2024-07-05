@@ -41,9 +41,9 @@ export default function ChatPanel() {
       },
     ];
 
-    await startStream(input, "1234", threadId, assistant.id);
-
     setUserMessage("");
+
+    await startStream(input, "", threadId, assistant.id);
   };
 
   if (!threadState && isError)

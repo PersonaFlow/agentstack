@@ -3,18 +3,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { mergeMessagesById } from "./useStream";
 import { useThreadState } from "@/data-provider/query-service";
 
-// async function getState(threadId: string) {
-//   const { values, next } = await fetch(
-//     `${process.env.NEXT_PUBLIC_BASE_API_URL}/api/v1/threads/${threadId}/state`,
-//     {
-//       headers: {
-//         Accept: "application/json",
-//       },
-//     },
-//   ).then((r) => (r.ok ? r.json() : Promise.reject(r.statusText)));
-//   return { values, next };
-// }
-
 function usePrevious<T>(value: T): T | undefined {
   const ref = useRef<T>();
   useEffect(() => {

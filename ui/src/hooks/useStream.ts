@@ -15,7 +15,7 @@ export const useStream = () => {
     ) => {
       const controller = new AbortController();
       setController(controller);
-      setCurrent({ status: "inflight", messages: input || [] });
+      setCurrent({ status: "inflight", messages: [] });
 
       await fetchEventSource(
         `${process.env.NEXT_PUBLIC_BASE_API_URL}/api/v1/runs/stream`,
