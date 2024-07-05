@@ -20,7 +20,7 @@ async def test__list_auth_strategies__responds_correctly():
 
     with patch.dict(ENABLED_AUTH_STRATEGY_MAPPING, mock_strategies):
         # Act
-        response = client.get("/api/v1/auth_strategies")
+        response = client.get("/api/v1/auth/auth_strategies")
 
     # Assert
     assert response.status_code == 200
@@ -53,7 +53,7 @@ async def test__list_auth_strategies__no_strategies():
     # Arrange
     with patch.dict(ENABLED_AUTH_STRATEGY_MAPPING, {}, clear=True):
         # Act
-        response = client.get("/api/v1/auth_strategies")
+        response = client.get("/api/v1/auth/auth_strategies")
 
     # Assert
     assert response.status_code == 200

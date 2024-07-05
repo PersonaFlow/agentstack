@@ -45,21 +45,3 @@ class GoogleOAuth(BaseOAuthStrategy):
     def get_authorization_endpoint(self):
         return self.AUTHORIZATION_ENDPOINT if hasattr(self, "AUTHORIZATION_ENDPOINT") else None
 
-    # async def authorize(self, request: Request) -> dict | None:
-    #     """
-    #     Authenticates the current user using their Google account.
-
-    #     Args:
-    #         request (Request): Current request.
-
-    #     Returns:
-    #         Access token.
-    #     """
-    #     token = self.client.fetch_token(
-    #         url=self.TOKEN_ENDPOINT,
-    #         authorization_response=str(request.url),
-    #         redirect_uri=self.REDIRECT_URI,
-    #     )
-    #     user_info = self.client.get(self.USERINFO_ENDPOINT)
-
-    #     return user_info.json()
