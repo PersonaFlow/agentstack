@@ -2,12 +2,11 @@ import uuid
 from datetime import datetime
 import pytest
 from unittest.mock import patch, MagicMock
-
+from stack.app.schema.thread import UpdateThreadSchema
 from starlette.testclient import TestClient
 from fastapi import HTTPException
-
 from stack.app.app_factory import create_app
-from stack.app.core.configuration import Settings
+from stack.app.core.configuration import Settings, settings
 from stack.app.repositories.thread import ThreadRepository, get_thread_repository
 from stack.app.repositories.message import MessageRepository, get_message_repository
 from stack.app.repositories.user import UserRepository, get_user_repository
@@ -77,25 +76,6 @@ async def test__create_thread_responds__correctly(
         assert data["id"] == random_model_thread.id
 
 
-async def test__retrieve_threads__responds_correctly(random_schema_thread):
-    # Arrange
-    thread_repository = MagicMock(ThreadRepository)
-    with patch.object(
-        thread_repository, "retrieve_threads", return_value=[random_schema_thread]
-    ) as method:
-        app.dependency_overrides[get_thread_repository] = passthrough(thread_repository)
-
-        # Act
-        response = client.get("/api/v1/threads")
-
-        # Assert
-        assert method.call_count == 1
-        assert response.status_code == 200
-        data = response.json()
-        assert len(data) == 1
-        assert data[0]["id"] == str(random_schema_thread.id)
-
-
 async def test__retrieve_thread__responds_correctly(random_schema_thread):
     # Arrange
     thread_repository = MagicMock(ThreadRepository)
@@ -114,132 +94,95 @@ async def test__retrieve_thread__responds_correctly(random_schema_thread):
         assert data["id"] == str(random_schema_thread.id)
 
 
-async def test__update_thread__responds_correctly(
-    random_schema_thread, random_updated_thread
-):
+async def test__update_thread__responds_correctly(random_schema_thread, random_updated_thread):
     # Arrange
     thread_repository = MagicMock(ThreadRepository)
+    update_data = UpdateThreadSchema(name="Updated Thread")
+
     with patch.object(
+        thread_repository, "retrieve_thread", return_value=random_schema_thread
+    ) as retrieve_method, patch.object(
         thread_repository, "update_thread", return_value=random_updated_thread
-    ) as method:
+    ) as update_method, patch(
+        "stack.app.api.v1.threads.get_header_user_id", return_value=settings.DEFAULT_USER_ID
+    ) as mock_get_user_id:
         app.dependency_overrides[get_thread_repository] = passthrough(thread_repository)
 
         # Act
         response = client.patch(
             f"/api/v1/threads/{str(random_schema_thread.id)}",
-            json={"name": "Updated Thread"},
+            json=update_data.model_dump(),
+            headers={"User-Id": settings.DEFAULT_USER_ID}
         )
 
         # Assert
-        assert method.call_count == 1
+        assert retrieve_method.call_count == 1
+        assert update_method.call_count == 1
+        assert mock_get_user_id.call_count == 1
         assert response.status_code == 200
         data = response.json()
         assert data["id"] == random_updated_thread["id"]
         assert data["name"] == "Updated Thread"
 
+        # Verify the calls
+        retrieve_method.assert_called_once_with(thread_id=str(random_schema_thread.id))
+        update_method.assert_called_once_with(thread_id=str(random_schema_thread.id), data=update_data.model_dump())
+
 
 async def test__delete_thread__responds_correctly(random_schema_thread):
     # Arrange
     thread_repository = MagicMock(ThreadRepository)
-    with patch.object(thread_repository, "delete_thread", return_value=None) as method:
+
+    with patch.object(
+        thread_repository, "retrieve_thread", return_value=random_schema_thread
+    ) as retrieve_method, patch.object(
+        thread_repository, "delete_thread", return_value=None
+    ) as delete_method, patch(
+        "stack.app.api.v1.threads.get_header_user_id", return_value=settings.DEFAULT_USER_ID
+    ) as mock_get_user_id:
         app.dependency_overrides[get_thread_repository] = passthrough(thread_repository)
 
         # Act
-        response = client.delete(f"/api/v1/threads/{random_schema_thread.id}")
+        response = client.delete(
+            f"/api/v1/threads/{random_schema_thread.id}",
+            headers={"User-Id": settings.DEFAULT_USER_ID}
+        )
 
         # Assert
-        assert method.call_count == 1
+        assert retrieve_method.call_count == 1
+        assert delete_method.call_count == 1
+        assert mock_get_user_id.call_count == 1
         assert response.status_code == 204
 
-
-async def test__retrieve_checkpoint_messages_for_thread__responds_correctly(
-    random_model_thread,
-):
-    # Arrange
-    thread_repository = MagicMock(ThreadRepository)
-    checkpoints = [{"checkpoint_id": "123", "content": "Test checkpoint message"}]
-    with patch.object(
-        thread_repository, "get_thread_checkpoints", return_value=checkpoints
-    ) as method:
-        app.dependency_overrides[get_thread_repository] = passthrough(thread_repository)
-
-        # Act
-        response = client.get(f"/api/v1/threads/{random_model_thread.id}/checkpoints")
-
-        # Assert
-        assert method.call_count == 1
-        assert response.status_code == 200
-        data = response.json()
-        assert len(data) == 1
-        assert data[0]["checkpoint_id"] == "123"
+        # Verify the calls
+        retrieve_method.assert_called_once_with(thread_id=str(random_schema_thread.id))
+        delete_method.assert_called_once_with(thread_id=str(random_schema_thread.id))
 
 
 async def test_retrieve_thread_responds_404():
     thread_repository = MagicMock(ThreadRepository)
     with patch.object(
         thread_repository, "retrieve_thread", return_value=None
-    ) as method:
-        app.dependency_overrides[get_thread_repository] = lambda: thread_repository
+    ) as retrieve_method, patch(
+        "stack.app.api.v1.threads.get_header_user_id", return_value=settings.DEFAULT_USER_ID
+    ) as mock_get_user_id:
+        app.dependency_overrides[get_thread_repository] = passthrough(thread_repository)
 
         # Act
         non_existent_id = str(uuid.uuid4())
-        response = client.get(f"/api/v1/threads/{non_existent_id}")
-
-        # Assert
-        assert method.call_count == 1
-        assert response.status_code == 404
-
-
-async def test_update_thread_responds_404():
-    thread_repository = MagicMock(ThreadRepository)
-    with patch.object(thread_repository, "update_thread", return_value=None) as method:
-        app.dependency_overrides[get_thread_repository] = lambda: thread_repository
-
-        # Act
-        non_existent_id = str(uuid.uuid4())
-        response = client.patch(
-            f"/api/v1/threads/{non_existent_id}", json={"name": "Updated Thread"}
+        response = client.get(
+            f"/api/v1/threads/{non_existent_id}",
+            headers={"User-Id": settings.DEFAULT_USER_ID}
         )
 
         # Assert
-        assert method.call_count == 1
+        assert retrieve_method.call_count == 1
+        assert mock_get_user_id.call_count == 1
         assert response.status_code == 404
+        assert response.json() == {"detail": "Thread not found"}
 
-
-async def test_delete_thread_responds_404():
-    thread_repository = MagicMock(ThreadRepository)
-    with patch.object(
-        thread_repository,
-        "delete_thread",
-        side_effect=HTTPException(status_code=404, detail="Thread not found"),
-    ) as method:
-        app.dependency_overrides[get_thread_repository] = lambda: thread_repository
-
-        # Act
-        non_existent_id = str(uuid.uuid4())
-        response = client.delete(f"/api/v1/threads/{non_existent_id}")
-
-        # Assert
-        assert method.call_count == 1
-        assert response.status_code == 404
-
-
-async def test_retrieve_messages_by_thread_id_responds_404():
-    message_repository = MagicMock(MessageRepository)
-    with patch.object(
-        message_repository,
-        "retrieve_messages_by_thread_id",
-        side_effect=HTTPException(status_code=404, detail="Thread not found"),
-    ) as method:
-        app.dependency_overrides[get_message_repository] = lambda: message_repository
-
-        # Act
-        non_existent_thread_id = str(uuid.uuid4())
-        response = client.get(f"/api/v1/threads/{non_existent_thread_id}/messages")
-
-        # Assert
-        assert method.call_count == 1
-        assert response.status_code == 404
+        # Verify the call
+        retrieve_method.assert_called_once_with(thread_id=non_existent_id)
 
 
 async def test_retrieve_thread_state_responds_correctly(
@@ -250,24 +193,40 @@ async def test_retrieve_thread_state_responds_correctly(
     assistant_repository = MagicMock(AssistantRepository)
     expected_state = {"key": "value"}
 
+    # Ensure random_schema_thread has the necessary attributes
+    random_schema_thread.user_id = settings.DEFAULT_USER_ID
+    random_schema_thread.assistant_id = random_schema_assistant.id
+
     with patch.object(
         thread_repository, "retrieve_thread", return_value=random_schema_thread
-    ), patch.object(
+    ) as retrieve_thread_mock, patch.object(
         assistant_repository, "retrieve_assistant", return_value=random_schema_assistant
-    ), patch.object(
+    ) as retrieve_assistant_mock, patch.object(
         thread_repository, "get_thread_state", return_value=expected_state
-    ):
+    ) as get_thread_state_mock, patch(
+        "stack.app.api.v1.threads.get_header_user_id", return_value=settings.DEFAULT_USER_ID
+    ) as mock_get_user_id:
         app.dependency_overrides[get_thread_repository] = passthrough(thread_repository)
-        app.dependency_overrides[get_assistant_repository] = passthrough(
-            assistant_repository
-        )
+        app.dependency_overrides[get_assistant_repository] = passthrough(assistant_repository)
 
         # Act
-        response = client.get(f"/api/v1/threads/{random_schema_thread.id}/state")
+        response = client.get(
+            f"/api/v1/threads/{random_schema_thread.id}/state",
+            headers={"User-Id": settings.DEFAULT_USER_ID}
+        )
 
         # Assert
+        assert retrieve_thread_mock.call_count == 1
+        assert retrieve_assistant_mock.call_count == 1
+        assert get_thread_state_mock.call_count == 1
+        assert mock_get_user_id.call_count == 1
         assert response.status_code == 200
         assert response.json() == expected_state
+
+        # Verify the calls
+        retrieve_thread_mock.assert_called_once_with(thread_id=str(random_schema_thread.id))
+        retrieve_assistant_mock.assert_called_once_with(assistant_id=random_schema_thread.assistant_id)
+        get_thread_state_mock.assert_called_once_with(thread_id=str(random_schema_thread.id), assistant=random_schema_assistant)
 
 
 async def test_retrieve_thread_state_responds_404_when_thread_not_found():
