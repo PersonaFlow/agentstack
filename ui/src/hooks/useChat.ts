@@ -36,7 +36,6 @@ export function useChatMessages(
 
   const refreshMessages = useCallback(async () => {
     if (threadId && threadData) {
-      console.log(threadData?.values);
       const { values, next } = threadData;
       const messages = values
         ? Array.isArray(values)
@@ -57,8 +56,8 @@ export function useChatMessages(
 
   useEffect(() => {
     async function fetchMessages() {
-      if (threadId) {
-        const { values, next } = await getState(threadId);
+      if (threadId && threadData) {
+        const { values, next } = threadData;
         const messages = Array.isArray(values) ? values : values.messages;
         setMessages(messages);
         setNext(next);
@@ -72,7 +71,7 @@ export function useChatMessages(
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stream?.status]);
+  }, [stream?.status, threadData]);
 
   return useMemo(
     () => ({
