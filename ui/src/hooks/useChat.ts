@@ -57,8 +57,7 @@ export function useChatMessages(
   useEffect(() => {
     async function fetchMessages() {
       if (threadId && threadData) {
-        const { values, next } = threadData;
-        const messages = Array.isArray(values) ? values : values.messages;
+        const { values: messages, next } = threadData;
         setMessages(messages);
         setNext(next);
         stopStream?.(true);
