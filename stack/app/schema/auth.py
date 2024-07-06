@@ -21,5 +21,6 @@ class ListAuthStrategy(BaseModel):
     authorization_endpoint: str | None
     pkce_enabled: bool
 
+
 class JWTResponse(BaseModel):
     token: str

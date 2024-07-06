@@ -66,7 +66,10 @@ class AssistantRepository(BaseRepository):
     async def retrieve_assistants(
         self, filters: Optional[dict[str, Any]] = None
     ) -> list[Assistant]:
-        """Fetches all assistants."""
+        """Fetches all assistants.
+
+        May include filters for narrowing results.
+        """
         try:
             records = await self.retrieve_all(model=Assistant, filters=filters)
             return records

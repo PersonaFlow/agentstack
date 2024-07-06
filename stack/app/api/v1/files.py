@@ -9,7 +9,7 @@ from fastapi import (
     Query,
     UploadFile,
     status,
-    Request
+    Request,
 )
 import uuid
 from stack.app.repositories.file import get_file_repository, FileRepository
@@ -73,7 +73,7 @@ async def upload_file(
                 status_code=status.HTTP_400_BAD_REQUEST, detail="File is required."
             )
         user_id = get_header_user_id(request)
-        
+
         file_content = await file.read()
         mime_type = guess_mime_type(file_content)
         if not is_mime_type_supported(mime_type):

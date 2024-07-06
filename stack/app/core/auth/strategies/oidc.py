@@ -13,9 +13,7 @@ class OIDCSettings(AuthStrategySettings):
 
 
 class OpenIDConnect(BaseOAuthStrategy):
-    """
-    OpenID Connect strategy.
-    """
+    """OpenID Connect strategy."""
 
     NAME = "OIDC"
     PKCE_ENABLED = True
@@ -42,5 +40,8 @@ class OpenIDConnect(BaseOAuthStrategy):
         return self.PKCE_ENABLED if hasattr(self, "PKCE_ENABLED") else False
 
     def get_authorization_endpoint(self):
-        return self.AUTHORIZATION_ENDPOINT if hasattr(self, "AUTHORIZATION_ENDPOINT") else None
-
+        return (
+            self.AUTHORIZATION_ENDPOINT
+            if hasattr(self, "AUTHORIZATION_ENDPOINT")
+            else None
+        )

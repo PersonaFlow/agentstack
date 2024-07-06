@@ -36,6 +36,7 @@ def get_lifespan(settings: Settings) -> Callable:
 
     return lifespan
 
+
 def get_custom_openapi(app: FastAPI, settings: Settings):
     if app.openapi_schema:
         return app.openapi_schema
@@ -62,7 +63,9 @@ def get_custom_openapi(app: FastAPI, settings: Settings):
         for operation in path.values():
             operation["security"] = [{"Bearer Auth": []}]
 
-    openapi_schema["info"]["x-logo"] = {"url": "../../../assets/PersonaFlowIcon-512.png"}
+    openapi_schema["info"]["x-logo"] = {
+        "url": "../../../assets/PersonaFlowIcon-512.png"
+    }
     app.openapi_schema = openapi_schema
     return app.openapi_schema
 
@@ -95,9 +98,7 @@ def create_app(settings: Settings):
 
     if is_authentication_enabled():
         # Required to save temporary OAuth state in session
-        _app.add_middleware(
-            SessionMiddleware, secret_key=settings.AUTH_SECRET_KEY
-        )
+        _app.add_middleware(SessionMiddleware, secret_key=settings.AUTH_SECRET_KEY)
 
     @_app.exception_handler(ValueError)
     async def value_error_exception_handler(request: Request, exc: ValueError):
@@ -137,7 +138,9 @@ def create_app(settings: Settings):
         )
 
     @_app.exception_handler(UniqueConstraintViolationError)
-    async def unique_constraint_exception_handler(request: Request, exc: UniqueConstraintViolationError):
+    async def unique_constraint_exception_handler(
+        request: Request, exc: UniqueConstraintViolationError
+    ):
         return JSONResponse(
             status_code=exc.status_code,
             content={"detail": exc.detail},

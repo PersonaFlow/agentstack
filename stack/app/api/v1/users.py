@@ -3,11 +3,12 @@ from fastapi import APIRouter, status, Query, Depends, Request
 from stack.app.core.auth.request_validators import AuthenticatedUser
 from stack.app.core.exception import NotFoundException
 from stack.app.schema.thread import Thread, GroupedThreads
-from stack.app.schema.user import User, UpdateUserSchema
+from stack.app.schema.user import User, CreateUpdateUserSchema
 from stack.app.repositories.thread import ThreadRepository, get_thread_repository
 from stack.app.repositories.user import UserRepository, get_user_repository
 from stack.app.utils.group_threads import group_threads
 from stack.app.core.auth.utils import get_header_user_id
+
 router = APIRouter()
 DEFAULT_TAG = "Users"
 
@@ -49,7 +50,7 @@ async def retrieve_me(
 async def update_me(
     auth: AuthenticatedUser,
     request: Request,
-    data: UpdateUserSchema,
+    data: CreateUpdateUserSchema,
     user_repo: UserRepository = Depends(get_user_repository),
 ) -> User:
     user_id = get_header_user_id(request)
@@ -66,7 +67,7 @@ async def update_me(
     operation_id="delete_me",
     summary="Delete a specific user ",
     description=(
-            """
+        """
                 DELETE endpoint for removing the logged-in user from the system.
                 This will do a cascade delete on all threads and messages, but will not
                 effect assistants created by the user.
@@ -99,12 +100,16 @@ async def retrieve_my_threads(
     auth: AuthenticatedUser,
     request: Request,
     thread_repo: ThreadRepository = Depends(get_thread_repository),
-    grouped: Optional[bool] = Query(None, description="Group threads into date categories (eg. Today, Yesterday, etc.)"),
-    timezoneOffset: Optional[int] = Query(None, description="Timezone offset in minutes from UTC"),
+    grouped: Optional[bool] = Query(
+        None,
+        description="Group threads into date categories (eg. Today, Yesterday, etc.)",
+    ),
+    timezoneOffset: Optional[int] = Query(
+        None, description="Timezone offset in minutes from UTC"
+    ),
 ):
     user_id = get_header_user_id(request)
     records = await thread_repo.retrieve_threads_by_user_id(user_id=user_id)
     if not grouped:
         return records
     return group_threads(records, timezoneOffset if timezoneOffset else 0)
-

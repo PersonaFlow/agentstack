@@ -15,11 +15,9 @@ class GoogleOAuthSettings(AuthStrategySettings):
 
 
 class GoogleOAuth(BaseOAuthStrategy):
-    """
-    Google OAuth2.0 strategy.
-    """
+    """Google OAuth2.0 strategy."""
 
-    NAME = "Google"
+    NAME = "google"
     WELL_KNOWN_ENDPOINT = "https://accounts.google.com/.well-known/openid-configuration"
 
     def __init__(self):
@@ -43,23 +41,8 @@ class GoogleOAuth(BaseOAuthStrategy):
         return self.PKCE_ENABLED if hasattr(self, "PKCE_ENABLED") else False
 
     def get_authorization_endpoint(self):
-        return self.AUTHORIZATION_ENDPOINT if hasattr(self, "AUTHORIZATION_ENDPOINT") else None
-
-    # async def authorize(self, request: Request) -> dict | None:
-    #     """
-    #     Authenticates the current user using their Google account.
-
-    #     Args:
-    #         request (Request): Current request.
-
-    #     Returns:
-    #         Access token.
-    #     """
-    #     token = self.client.fetch_token(
-    #         url=self.TOKEN_ENDPOINT,
-    #         authorization_response=str(request.url),
-    #         redirect_uri=self.REDIRECT_URI,
-    #     )
-    #     user_info = self.client.get(self.USERINFO_ENDPOINT)
-
-    #     return user_info.json()
+        return (
+            self.AUTHORIZATION_ENDPOINT
+            if hasattr(self, "AUTHORIZATION_ENDPOINT")
+            else None
+        )

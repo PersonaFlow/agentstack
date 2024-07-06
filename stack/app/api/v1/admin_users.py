@@ -3,7 +3,7 @@ from fastapi import APIRouter, status, Query, Depends, HTTPException
 from stack.app.core.auth.request_validators import AuthenticatedUser
 from stack.app.core.exception import NotFoundException
 from stack.app.schema.thread import Thread, GroupedThreads
-from stack.app.schema.user import User, CreateUserSchema, UpdateUserSchema
+from stack.app.schema.user import User, CreateUpdateUserSchema
 from stack.app.repositories.thread import ThreadRepository, get_thread_repository
 from stack.app.repositories.user import UserRepository, get_user_repository
 from stack.app.utils.group_threads import group_threads
@@ -32,7 +32,7 @@ DEFAULT_TAG = "Users (Admin)"
 )
 async def create_user(
     auth: AuthenticatedUser,
-    data: CreateUserSchema,
+    data: CreateUpdateUserSchema,
     user_repo: UserRepository = Depends(get_user_repository),
 ) -> User:
     # Check that the user does not exist first
@@ -58,8 +58,7 @@ async def create_user(
             """,
 )
 async def retrieve_users(
-    auth: AuthenticatedUser,
-    user_repo: UserRepository = Depends(get_user_repository)
+    auth: AuthenticatedUser, user_repo: UserRepository = Depends(get_user_repository)
 ) -> List[User]:
     records = await user_repo.retrieve_users()
     return records
@@ -103,7 +102,7 @@ async def retrieve_user(
 async def update_user(
     auth: AuthenticatedUser,
     user_id: str,
-    data: UpdateUserSchema,
+    data: CreateUpdateUserSchema,
     user_repo: UserRepository = Depends(get_user_repository),
 ) -> User:
     record = await user_repo.update_by_user_id(user_id=user_id, data=data)
@@ -119,7 +118,7 @@ async def update_user(
     operation_id="delete_user",
     summary="Delete a specific user ",
     description=(
-            """
+        """
                 DELETE endpoint at `/users/{user_id}` for removing a specific user using its `user_id`.
                 USAGE: Admins can use this endpoint to delete a specific user.
                 TODO: Add access control for this endpoint.
@@ -175,13 +174,14 @@ async def retrieve_user_threads(
 )
 async def retrieve_all_threads(
     auth: AuthenticatedUser,
-    thread_repo: ThreadRepository = Depends(get_thread_repository)
+    thread_repo: ThreadRepository = Depends(get_thread_repository),
 ) -> List[Thread]:
     threads = await thread_repo.retrieve_threads()
     return threads
 
+
 @router.get(
-    "/assistants",
+    "/{user_id}/assistants",
     tags=[DEFAULT_TAG],
     response_model=list[Assistant],
     operation_id="retrieve_user_assistants",
@@ -190,7 +190,10 @@ async def retrieve_all_threads(
 )
 async def retrieve_user_assistants(
     auth: AuthenticatedUser,
+    user_id: str,
     assistant_repository: AssistantRepository = Depends(get_assistant_repository),
 ) -> list[Assistant]:
-    assistants = await assistant_repository.retrieve_assistants()
+    assistants = await assistant_repository.retrieve_assistants(
+        filters={"user_id": user_id}
+    )
     return assistants
