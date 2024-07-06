@@ -14,10 +14,13 @@ jobs:
           named-caches-hash: ${{ hashFiles('constraints.txt', 'poetry.lock') }}
       - name: Pants lint
         if: '!cancelled()'
-        run: pants lint ::
+        run: |
+          pants lint ::
       - name: Pants check
         if: '!cancelled()'
-        run: pants check ::
+        run: |
+          pants check ::
       - name: Pants test
         if: '!cancelled()'
-        run: pants test ::
+        run: |
+          pants test ::
