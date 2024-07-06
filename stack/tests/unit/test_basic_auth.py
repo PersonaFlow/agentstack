@@ -1,12 +1,10 @@
 import pytest
 from unittest.mock import patch, MagicMock
-from stack.app.core.auth import auth_config
 from stack.app.core.auth.jwt import JWTService
 from stack.app.repositories.blacklist import (
     BlacklistRepository,
     get_blacklist_repository,
 )
-from stack.app.repositories.user import UserRepository, get_user_repository
 from stack.app.core.auth.strategies.basic import BasicAuthentication
 from stack.tests.unit.conftest import passthrough
 from stack.app.app_factory import create_app
@@ -15,11 +13,6 @@ from starlette.testclient import TestClient
 
 app = create_app(Settings())
 client = TestClient(app)
-
-# @pytest.fixture(autouse=True)
-# def mock_auth_config():
-#     with patch.object(auth_config, "ENABLED_AUTH_STRATEGY_MAPPING", {"Basic": BasicAuthentication()}):
-#         yield
 
 
 @pytest.fixture(autouse=True)
