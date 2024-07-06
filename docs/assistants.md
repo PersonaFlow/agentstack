@@ -46,7 +46,7 @@ In this example, there are three assistant architectures: agent, chatbot, and ch
 }
 ```
 
-Some may find the keys in the `configurable` object peculiar. Although it may seem complex to wrap your head around at first, it actually simplifies things considerably as it allows for the assistant configuration to be bound to predefined schemas for each architecture while being able to scale as new LangGraph agent pipelines are added without having to support a continuously expanding assistants table.
+Some may find the keys in the `configurable` object peculiar. Although it may seem complex to wrap your head around at first, it actually simplifies things considerably as it allows for the assistant configuration to be bound to predefined schemas for each architecture while being able to scale as new LangGraph agent pipelines are added without having to support a continuously expanding assistants model.
 
 ## Tools
 
