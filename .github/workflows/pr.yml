@@ -1,0 +1,23 @@
+name: Manual Workflow
+
+on: workflow_dispatch
+
+jobs:
+  pr-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pants init
+        uses: pantsbuild/actions/init-pants@main
+        with:
+          # cache0 makes it easy to bust the cache if needed
+          gha-cache-key: cache0-py${{ matrix.python_version }}
+          named-caches-hash: ${{ hashFiles('constraints.txt', 'poetry.lock') }}
+      - name: Pants lint
+        if: '!cancelled()'
+        run: pants lint ::
+      - name: Pants check
+        if: '!cancelled()'
+        run: pants check ::
+      - name: Pants test
+        if: '!cancelled()'
+        run: pants test ::
