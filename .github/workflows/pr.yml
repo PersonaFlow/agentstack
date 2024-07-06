@@ -23,7 +23,7 @@ jobs:
         uses: pantsbuild/actions/init-pants@main
         with:
           # cache0 makes it easy to bust the cache if needed
-          gha-cache-key: cache0-py${{ matrix.python_version }}
+          gha-cache-key: cache0-py-${{ github.head_ref || github.ref_name }}-${{ matrix.python_version }}
           named-caches-hash: ${{ hashFiles('constraints.txt', 'poetry.lock') }}
       - name: Pants lint
         if: '!cancelled()'
