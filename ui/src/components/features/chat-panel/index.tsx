@@ -10,12 +10,17 @@ import { useToast } from "@/components/ui/use-toast";
 import { useStream } from "@/hooks/useStream";
 import { useState } from "react";
 import { MessageType } from "@/data-provider/types";
+import Spinner from "@/components/ui/spinner";
 
 export default function ChatPanel() {
   const [conversation, setConversation] = useAtom(conversationAtom);
   const [assistant] = useAtom(assistantAtom);
   const { id: threadId } = useParams();
-  const { data: threadState } = useThreadState(threadId);
+  const {
+    data: threadState,
+    isError,
+    isLoading: isLoadingThreads,
+  } = useThreadState(threadId);
   const [userMessage, setUserMessage] = useState("");
   const { stream, startStream } = useStream();
   const { toast } = useToast();
@@ -28,24 +33,28 @@ export default function ChatPanel() {
       });
       return;
     }
-    setUserMessage("");
     const input = [
       {
         content: userMessage,
-        role: MessageType.HUMAN,
+        type: MessageType.HUMAN,
         example: false,
       },
     ];
 
-    await startStream(input, "1234", threadId, assistant.id);
+    setUserMessage("");
+
+    await startStream(input, "", threadId, assistant.id);
   };
 
-  if (!threadState) return <div>There was an issue fetching messages.</div>;
+  if (!threadState && isError)
+    return <div>There was an issue fetching messages.</div>;
 
   return (
     <div className="h-full w-full gap-4 flex flex-col">
+      {isLoadingThreads && <Spinner />}
       <MessagesContainer
-        messages={Array.isArray(threadState?.values) ? threadState?.values : []}
+        threadId={threadId}
+        stream={stream}
         composer={
           <Composer
             onChange={(e) => setUserMessage(e.target.value)}

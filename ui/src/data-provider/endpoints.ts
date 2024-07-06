@@ -12,17 +12,14 @@ export const title = `${BASE_PATH}/runs/title`;
 // -- Me --
 export const me = `${BASE_PATH}/users/me`;
 
-export const myThreads = `${BASE_PATH}/users//me/threads`;
-
+export const myThreads = (grouped?: boolean) => {
+  const timezoneOffset = new Date().getTimezoneOffset();
+  return `${BASE_PATH}/users/me/threads?grouped=${grouped}&timezoneOffset=${timezoneOffset}`;
+};
 
 // --Admin Users--
 export const users = (userId?: string) =>
   `${BASE_PATH}/admin/users/${formatParam(userId)}`;
-
-export const userThreads = (userId: string, grouped?: boolean) => {
-  const timezoneOffset = new Date().getTimezoneOffset();
-  return `${BASE_PATH}/admin/users/${userId}/threads?grouped=${grouped}&timezoneOffset=${timezoneOffset}`;
-};
 
 // --Threads--
 export const threads = (threadId?: string) =>
@@ -55,8 +52,7 @@ export const ingest = () => `${BASE_PATH}/rag/ingest`;
 export const query = () => `${BASE_PATH}/rag/query`;
 
 // --Files--
-export const files = (purpose?: string) =>
-  `${BASE_PATH}/files`;
+export const files = (purpose?: string) => `${BASE_PATH}/files`;
 
 export const file = (fileId?: string, purpose?: string) =>
   `${BASE_PATH}/files/${formatParam(fileId)}`;
