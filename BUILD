@@ -14,8 +14,3 @@ target(
       "//:reqs#itsdangerous"
     ]
 )
-
-python_requirements(
-    name="reqs0",
-    source="pytest-requirements.txt",
-)

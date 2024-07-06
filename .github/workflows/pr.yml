@@ -1,0 +1,39 @@
+name: PR Check
+
+#on: workflow_dispatch
+on:
+  pull_request:
+  push:
+    branches:
+      - main  # or whatever your default branch is named
+
+jobs:
+  pr-check:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Pants init
+        uses: pantsbuild/actions/init-pants@main
+        with:
+          # cache0 makes it easy to bust the cache if needed
+          gha-cache-key: cache0-py-${{ github.head_ref || github.ref_name }}-${{ matrix.python_version }}
+          named-caches-hash: ${{ hashFiles('constraints.txt', 'poetry.lock') }}
+      - name: Pants lint
+        if: '!cancelled()'
+        run: |
+          pants lint ::
+#      - name: Pants check
+#        if: '!cancelled()'
+#        run: |
+#          pants check ::
+#      - name: Pants test
+#        if: '!cancelled()'
+#        run: |
+#          pants test ::
