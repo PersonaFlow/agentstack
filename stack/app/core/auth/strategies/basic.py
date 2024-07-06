@@ -7,16 +7,13 @@ from stack.app.repositories.user import UserRepository
 
 
 class BasicAuthentication(BaseAuthenticationStrategy):
-    """
-    Basic email/password strategy.
-    """
+    """Basic email/password strategy."""
 
-    NAME = "Basic"
+    NAME = "basic"
 
     @staticmethod
     def get_required_payload() -> List[str]:
-        """
-        Retrieves the required /login payload for the Auth strategy.
+        """Retrieves the required /login payload for the Auth strategy.
 
         Returns:
             List[str]: List of required variables.
@@ -24,8 +21,8 @@ class BasicAuthentication(BaseAuthenticationStrategy):
         return ["email", "password"]
 
     def check_password(self, plain_text_password: str, hashed_password: bytes) -> bool:
-        """
-        Checks that the input plain text password corresponds to a hashed password.
+        """Checks that the input plain text password corresponds to a hashed
+        password.
 
         Args:
             plain_text_password (str): Password to check.
@@ -36,11 +33,11 @@ class BasicAuthentication(BaseAuthenticationStrategy):
         """
         return bcrypt.checkpw(plain_text_password.encode("utf-8"), hashed_password)
 
-
-    async def login(self, user_repository: UserRepository, payload: dict[str, str]) -> dict | None:
-        """
-        Logs user in, checking if the hashed input password corresponds to the
-        one stored in the DB.
+    async def login(
+        self, user_repository: UserRepository, payload: dict[str, str]
+    ) -> dict | None:
+        """Logs user in, checking if the hashed input password corresponds to
+        the one stored in the DB.
 
         Args:
             user_repository (UserRepository): UserRepository

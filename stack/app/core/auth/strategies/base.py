@@ -6,9 +6,10 @@ import requests
 import structlog
 
 logger = structlog.get_logger(__name__)
+
+
 class BaseOAuthStrategy:
-    """
-    Base strategy for OAuth, abstract class that should be inherited from.
+    """Base strategy for OAuth, abstract class that should be inherited from.
 
     Attributes:
         NAME (str): The name of the strategy.
@@ -39,33 +40,24 @@ class BaseOAuthStrategy:
         ):
             raise ValueError(f"{self.__name__} must have NAME parameter(s) defined.")
 
-
     @abstractmethod
     def get_pkce_enabled(self, **kwargs: Any):
-        """
-        Retrieves whether the OAuth app supports PKCE and should be enabled
-        during authorization.
-        """
+        """Retrieves whether the OAuth app supports PKCE and should be enabled
+        during authorization."""
         ...
 
     @abstractmethod
     def get_client_id(self, **kwargs: Any):
-        """
-        Retrieves the OAuth app's client ID
-        """
+        """Retrieves the OAuth app's client ID."""
         ...
 
     @abstractmethod
     def get_authorization_endpoint(self, **kwargs: Any):
-        """
-        Retrieves the OAuth app's authorization endpoint.
-        """
+        """Retrieves the OAuth app's authorization endpoint."""
         ...
 
     async def get_endpoints(self, **kwargs: Any):
-        """
-        Retrieves the /token and /userinfo endpoints.
-        """
+        """Retrieves the /token and /userinfo endpoints."""
         try:
             response = requests.get(self.WELL_KNOWN_ENDPOINT)
             endpoints = response.json()
@@ -77,8 +69,7 @@ class BaseOAuthStrategy:
             raise
 
     async def authorize(self, request: Request) -> dict | None:
-        """
-        Authorizes and fetches access token, then retrieves user info.
+        """Authorizes and fetches access token, then retrieves user info.
 
         Args:
             request (Request): Current request.
@@ -115,8 +106,8 @@ class BaseOAuthStrategy:
             return None
 
     async def refresh(self, request: Request) -> dict | None:
-        """
-        Uses refresh token to generate a new access token, then returns user info.
+        """Uses refresh token to generate a new access token, then returns user
+        info.
 
         Args:
             request (Request): Current request.
@@ -143,9 +134,10 @@ class BaseOAuthStrategy:
             logger.exception(f"Error during token refresh: {e}")
             raise
 
+
 class BaseAuthenticationStrategy:
-    """
-    Base strategy for authentication, abstract class that should be inherited from.
+    """Base strategy for authentication, abstract class that should be
+    inherited from.
 
     Attributes:
         NAME (str): The name of the strategy.
@@ -155,15 +147,10 @@ class BaseAuthenticationStrategy:
 
     @staticmethod
     def get_required_payload(self) -> List[str]:
-        """
-        The required /login payload for the Auth strategy
-        """
+        """The required /login payload for the Auth strategy."""
         ...
 
     @abstractmethod
     async def login(self, **kwargs: Any):
-        """
-        Check email/password credentials and return JWT token.
-        """
+        """Check email/password credentials and return JWT token."""
         ...
-

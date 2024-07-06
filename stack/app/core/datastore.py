@@ -16,6 +16,7 @@ from typing import AsyncGenerator, Annotated, Any, Generator
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
+
 async def get_postgresql_session_provider(
     settings: Settings = Depends(get_settings),
 ) -> AsyncGenerator[AsyncSession, None]:
@@ -25,6 +26,7 @@ async def get_postgresql_session_provider(
     )
     async with async_session_factory() as session:
         yield session
+
 
 def get_session() -> Generator[Session, Any, None]:
     engine = create_engine(Settings.INTERNAL_DATABASE_URI)

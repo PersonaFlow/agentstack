@@ -3,8 +3,9 @@ from pydantic_settings import BaseSettings
 
 
 class AuthStrategySettings(BaseSettings):
-    """
-    Settings class used to grab environment variables directly from .env file.
+    """Settings class used to grab environment variables directly from .env
+    file.
+
     Uppercase env variables converted to class parameters.
     """
 

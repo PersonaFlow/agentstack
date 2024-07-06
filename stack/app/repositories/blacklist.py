@@ -9,10 +9,12 @@ import structlog
 
 logger = structlog.get_logger()
 
+
 async def get_blacklist_repository(
     session: AsyncSession = Depends(get_postgresql_session_provider),
 ):
     return BlacklistRepository(postgresql_session=session)
+
 
 class BlacklistRepository(BaseRepository):
     def __init__(self, postgresql_session):
@@ -57,5 +59,3 @@ class BlacklistRepository(BaseRepository):
             raise HTTPException(
                 status_code=400, detail=f"Failed to retrieve blacklist."
             ) from e
-
-

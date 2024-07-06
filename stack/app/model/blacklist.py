@@ -10,9 +10,8 @@ from sqlalchemy import DateTime, LargeBinary, String, text, ForeignKey
 
 
 class Blacklist(Base):
-    """
-    Table that contains the list of JWT access tokens that are blacklisted during logout.
-    """
+    """Table that contains the list of JWT access tokens that are blacklisted
+    during logout."""
 
     __tablename__ = "blacklist"
     __table_args__ = {"schema": settings.INTERNAL_DATABASE_SCHEMA}
