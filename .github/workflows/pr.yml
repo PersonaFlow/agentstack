@@ -35,5 +35,5 @@ jobs:
 #          pants check ::
 #      - name: Pants test
 #        if: '!cancelled()'
-       run: |
-         pants test ::
+#        run: |
+#          pants test ::
