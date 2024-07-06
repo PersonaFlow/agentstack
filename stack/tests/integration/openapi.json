@@ -1669,6 +1669,9 @@
     },
     "/api/v1/auth/{strategy}/auth": {
       "post": {
+        "tags": [
+          "Authentication"
+        ],
         "summary": "Authorize",
         "description": "Callback authorization endpoint used for OAuth providers after authenticating on the provider's login screen.",
         "operationId": "authorize",
