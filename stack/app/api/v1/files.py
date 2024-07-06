@@ -54,8 +54,8 @@ async def upload_file(
     auth: AuthenticatedUser,
     request: Request,
     file: UploadFile = File(..., description="The file to upload."),
-    purpose: str = Form(
-        ...,
+    purpose: Optional[str] = Form(
+        None,
         description="The purpose of the file: 'assistants', 'threads', or 'personas'.",
     ),
     filename: Optional[str] = Form(
