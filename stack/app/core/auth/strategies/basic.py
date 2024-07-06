@@ -11,7 +11,7 @@ class BasicAuthentication(BaseAuthenticationStrategy):
     Basic email/password strategy.
     """
 
-    NAME = "Basic"
+    NAME = "basic"
 
     @staticmethod
     def get_required_payload() -> List[str]:

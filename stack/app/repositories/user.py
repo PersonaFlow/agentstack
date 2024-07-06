@@ -25,7 +25,7 @@ class UserRepository(BaseRepository):
     def __init__(self, postgresql_session):
         self.postgresql_session = postgresql_session
 
-    def hash_and_salt_password(plain_text_password: str) -> bytes:
+    def hash_and_salt_password(self, plain_text_password: str) -> bytes:
         """
         Hashes a given plain-text password with a randomly generated salt.
 

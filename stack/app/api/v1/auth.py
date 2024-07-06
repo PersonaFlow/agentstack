@@ -91,7 +91,7 @@ async def login(
     if not user:
         raise HTTPException(
             status_code=401,
-            detail=f"Error performing {strategy_name} authentication with payload: {payload}.",
+            detail=f"Error performing {strategy_name} authentication: Invalid credentials.",
         )
 
     token = JWTService().create_and_encode_jwt(user, strategy_name)
