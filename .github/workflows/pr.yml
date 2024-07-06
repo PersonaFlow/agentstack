@@ -1,4 +1,4 @@
-name: Manual Workflow
+name: PR Check
 
 #on: workflow_dispatch
 on:
