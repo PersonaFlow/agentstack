@@ -35,6 +35,7 @@ async def test__retrieve_me__responds_correctly(random_schema_user):
         data = response.json()
         assert data["user_id"] == random_schema_user.user_id
 
+
 async def test__update_me__responds_correctly(random_schema_user):
     # Arrange
     user_repository = MagicMock(UserRepository)
@@ -44,13 +45,18 @@ async def test__update_me__responds_correctly(random_schema_user):
         app.dependency_overrides[get_user_repository] = passthrough(user_repository)
 
         # Act
-        response = client.patch("/api/v1/users/me", json={"username": "new_username"}, headers={"User-Id": settings.DEFAULT_USER_ID})
+        response = client.patch(
+            "/api/v1/users/me",
+            json={"username": "new_username"},
+            headers={"User-Id": settings.DEFAULT_USER_ID},
+        )
 
         # Assert
         assert method.call_count == 1
         assert response.status_code == 200
         data = response.json()
         assert data["user_id"] == random_schema_user.user_id
+
 
 async def test__delete_me__responds_correctly(random_schema_user):
     # Arrange
@@ -61,11 +67,14 @@ async def test__delete_me__responds_correctly(random_schema_user):
         app.dependency_overrides[get_user_repository] = passthrough(user_repository)
 
         # Act
-        response = client.delete("/api/v1/users/me", headers={"User-Id": settings.DEFAULT_USER_ID})
+        response = client.delete(
+            "/api/v1/users/me", headers={"User-Id": settings.DEFAULT_USER_ID}
+        )
 
         # Assert
         assert method.call_count == 1
         assert response.status_code == 204
+
 
 async def test__retrieve_my_threads__responds_correctly(random_model_thread):
     # Arrange
@@ -78,7 +87,9 @@ async def test__retrieve_my_threads__responds_correctly(random_model_thread):
         app.dependency_overrides[get_thread_repository] = passthrough(thread_repository)
 
         # Act
-        response = client.get("/api/v1/users/me/threads", headers={"User-Id": settings.DEFAULT_USER_ID})
+        response = client.get(
+            "/api/v1/users/me/threads", headers={"User-Id": settings.DEFAULT_USER_ID}
+        )
 
         # Assert
         assert method.call_count == 1

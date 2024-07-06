@@ -67,7 +67,7 @@ async def update_me(
     operation_id="delete_me",
     summary="Delete a specific user ",
     description=(
-            """
+        """
                 DELETE endpoint for removing the logged-in user from the system.
                 This will do a cascade delete on all threads and messages, but will not
                 effect assistants created by the user.
@@ -100,12 +100,16 @@ async def retrieve_my_threads(
     auth: AuthenticatedUser,
     request: Request,
     thread_repo: ThreadRepository = Depends(get_thread_repository),
-    grouped: Optional[bool] = Query(None, description="Group threads into date categories (eg. Today, Yesterday, etc.)"),
-    timezoneOffset: Optional[int] = Query(None, description="Timezone offset in minutes from UTC"),
+    grouped: Optional[bool] = Query(
+        None,
+        description="Group threads into date categories (eg. Today, Yesterday, etc.)",
+    ),
+    timezoneOffset: Optional[int] = Query(
+        None, description="Timezone offset in minutes from UTC"
+    ),
 ):
     user_id = get_header_user_id(request)
     records = await thread_repo.retrieve_threads_by_user_id(user_id=user_id)
     if not grouped:
         return records
     return group_threads(records, timezoneOffset if timezoneOffset else 0)
-

@@ -67,7 +67,6 @@ class Settings(BaseSettings):
     AUTH_SECRET_KEY: Optional[str] = os.getenv("AUTH_SECRET_KEY", "secret")
     TOKEN_EXPIRY_HOURS: Optional[int] = os.getenv("TOKEN_EXPIRY_HOURS", 24)
 
-
     # Required if you intend to use reranking functionality to query documents
     COHERE_API_KEY: Optional[str] = os.getenv("COHERE_API_KEY", None)
     MIXTRAL_FIREWORKS_API_KEY: Optional[str] = os.getenv(

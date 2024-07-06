@@ -1,11 +1,15 @@
 from fastapi import Request
-from stack.app.core.auth.auth_config import is_authentication_enabled, ENABLED_AUTH_STRATEGY_MAPPING
+from stack.app.core.auth.auth_config import (
+    is_authentication_enabled,
+    ENABLED_AUTH_STRATEGY_MAPPING,
+)
 from stack.app.core.auth.jwt import JWTService
 from stack.app.core.configuration import settings
 
+
 def is_enabled_authentication_strategy(strategy_name: str) -> bool:
-    """
-    Check whether a given authentication strategy is enabled in auth_config.py
+    """Check whether a given authentication strategy is enabled in
+    auth_config.py.
 
     Args:
         strategy_name (str): Name the of auth strategy.
@@ -18,8 +22,8 @@ def is_enabled_authentication_strategy(strategy_name: str) -> bool:
 
 
 def get_header_user_id(request: Request) -> str:
-    """
-    Retrieves the user_id from request headers, will work whether authentication is enabled or not.
+    """Retrieves the user_id from request headers, will work whether
+    authentication is enabled or not.
 
     (Auth disabled): retrieves the User-Id header value
     (Auth enabled): retrieves the Authorization header, and decodes the value

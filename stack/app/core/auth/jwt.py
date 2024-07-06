@@ -9,8 +9,9 @@ from stack.app.core.configuration import Settings, get_settings
 logger = structlog.get_logger()
 
 settings = get_settings()
-class JWTService:
 
+
+class JWTService:
     def __init__(self, settings: Settings = None):
         self.settings = settings or get_settings()
         self.secret_key = self.settings.AUTH_SECRET_KEY
@@ -35,7 +36,6 @@ class JWTService:
         token = jwt.encode(payload, self.secret_key, self.algorithm)
 
         return token
-
 
     def decode_jwt(self, token: str) -> dict:
         try:

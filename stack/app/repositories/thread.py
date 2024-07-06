@@ -167,8 +167,8 @@ class ThreadRepository(BaseRepository):
             )
 
             return {
-                "values": list(getattr(state, 'values', [])),
-                "next": list(getattr(state, 'next', []))
+                "values": list(getattr(state, "values", [])),
+                "next": list(getattr(state, "next", [])),
             }
 
         except Exception as e:

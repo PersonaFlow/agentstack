@@ -49,7 +49,7 @@ async def create_assistant(
     try:
         user_id = get_header_user_id(request)
         data_dict = data.model_dump()
-        data_dict['user_id'] = user_id
+        data_dict["user_id"] = user_id
         assistant = await assistant_repository.create_assistant(data=data_dict)
         return assistant
     except Exception as e:
@@ -74,7 +74,9 @@ async def retrieve_user_assistants(
     assistant_repository: AssistantRepository = Depends(get_assistant_repository),
 ) -> list[Assistant]:
     user_id = get_header_user_id(request)
-    assistants = await assistant_repository.retrieve_assistants(filters={"user_id": user_id})
+    assistants = await assistant_repository.retrieve_assistants(
+        filters={"user_id": user_id}
+    )
     return assistants
 
 
@@ -97,7 +99,9 @@ async def retrieve_assistant(
     if not assistant:
         raise HTTPException(status_code=404, detail="Assistant not found")
     if assistant.user_id != user_id:
-        raise HTTPException(status_code=403, detail="User does not have access to this assistant.")
+        raise HTTPException(
+            status_code=403, detail="User does not have access to this assistant."
+        )
     return assistant
 
 
@@ -121,7 +125,10 @@ async def update_assistant(
     if not assistant:
         raise HTTPException(status_code=404, detail="Assistant not found")
     if assistant.user_id != user_id:
-        raise HTTPException(status_code=403, detail="User does not have access to update this assistant.")
+        raise HTTPException(
+            status_code=403,
+            detail="User does not have access to update this assistant.",
+        )
     assistant = await assistant_repository.update_assistant(
         assistant_id=assistant_id, data=data.model_dump()
     )
@@ -149,7 +156,10 @@ async def delete_assistant(
     if not assistant:
         raise HTTPException(status_code=404, detail="Assistant not found")
     if assistant.user_id != user_id:
-        raise HTTPException(status_code=403, detail="User does not have access to delete this assistant.")
+        raise HTTPException(
+            status_code=403,
+            detail="User does not have access to delete this assistant.",
+        )
     await assistant_repository.delete_assistant(assistant_id=assistant_id)
     return {"detail": "Assistant deleted successfully"}
 
@@ -184,15 +194,26 @@ async def create_assistant_file(
             raise HTTPException(status_code=404, detail="Assistant not found")
 
         if data.file_id in [f.file_id for f in assistant.file_ids]:
-            logger.exception(f"File with id: {data.file_id} already added to assistant {assistant_id}")
-            raise HTTPException(status_code=400, detail="File already added to assistant")
+            logger.exception(
+                f"File with id: {data.file_id} already added to assistant {assistant_id}"
+            )
+            raise HTTPException(
+                status_code=400, detail="File already added to assistant"
+            )
         if assistant.user_id != user_id:
-            logger.exception(f"User {user_id} does not have access to assistant: {assistant_id}")
-            raise HTTPException(status_code=403, detail="User does not have access to this assistant.")
+            logger.exception(
+                f"User {user_id} does not have access to assistant: {assistant_id}"
+            )
+            raise HTTPException(
+                status_code=403, detail="User does not have access to this assistant."
+            )
         if file.user_id != user_id:
-            logger.exception(f"User {user_id} does not have access to file: {data.file_id}")
-            raise HTTPException(status_code=403, detail="User does not have access to this file.")
-
+            logger.exception(
+                f"User {user_id} does not have access to file: {data.file_id}"
+            )
+            raise HTTPException(
+                status_code=403, detail="User does not have access to this file."
+            )
 
         # Old method - we'll bring back some version of this for the "recursive" chunking strategy
         # file_content = await file_repository.retrieve_file_content(data.file_id)
@@ -255,7 +276,9 @@ async def delete_assistant_file(
     if not assistant:
         raise HTTPException(status_code=404, detail="Assistant not found")
     if assistant.user_id != user_id:
-        raise HTTPException(status_code=403, detail="User does not have access to this assistant.")
+        raise HTTPException(
+            status_code=403, detail="User does not have access to this assistant."
+        )
     try:
         service = get_vector_service()
         # delete the associated vector embeddings
@@ -300,7 +323,9 @@ async def retrieve_assistant_files(
             raise HTTPException(status_code=404, detail="Assistant not found")
         user_id = get_header_user_id(request)
         if assistant.user_id != user_id:
-            raise HTTPException(status_code=403, detail="User does not have access to this assistant.")
+            raise HTTPException(
+                status_code=403, detail="User does not have access to this assistant."
+            )
 
         file_ids = assistant.file_ids or []
         files = await files_repository.retrieve_files_by_ids(

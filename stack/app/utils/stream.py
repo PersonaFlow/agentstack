@@ -80,7 +80,7 @@ async def to_sse(messages_stream: MessagesStream) -> AsyncIterator[dict]:
                 }
     except Exception as e:
         logger.exception(f"error in stream: {e}", exc_info=True)
-        yield { 
+        yield {
             "event": "error",
             "data": orjson.dumps(
                 {"status_code": 500, "message": f"Internal Server Error: {e}"}

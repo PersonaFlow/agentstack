@@ -2,6 +2,7 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 from typing import Optional
 
+
 class UserBase(BaseModel):
     """Base model for user data."""
 
@@ -26,6 +27,7 @@ class UserBase(BaseModel):
     class Config:
         from_attributes = True
 
+
 class User(UserBase):
     """Model representing a registered user in the application."""
 
@@ -42,10 +44,12 @@ class User(UserBase):
             datetime: lambda v: v.replace(microsecond=0).isoformat(),
         }
 
+
 class CreateUpdateUserSchema(UserBase):
-    password: Optional[str] = Field(None, description="(Optional) Password for the new user account.")
+    password: Optional[str] = Field(
+        None, description="(Optional) Password for the new user account."
+    )
     user_id: Optional[str] = Field(
         None,
         description="Identifier for the user to be used across the application. Can be used for correlating local user with external systems. Autogenerates if none is provided.",
     )
-

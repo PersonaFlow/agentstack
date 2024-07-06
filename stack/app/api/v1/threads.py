@@ -45,7 +45,7 @@ async def create_thread(
         raise NotFoundException(f"Assistant with ID {data.assistant_id} not found")
 
     thread_data = data.model_dump()
-    thread_data['user_id'] = user_id
+    thread_data["user_id"] = user_id
     thread = await thread_repo.create_thread(data=thread_data)
     return thread
 
@@ -74,7 +74,6 @@ async def retrieve_thread(
         raise HTTPException(status_code=403, detail="Forbidden")
 
     return thread
-   
 
 
 @router.patch(

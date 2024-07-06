@@ -13,7 +13,10 @@ from stack.app.core.auth.request_validators import validate_authorization
 from stack.app.core.auth.strategies.basic import BasicAuthentication
 from stack.app.core.auth.strategies.google_oauth import GoogleOAuth
 from stack.app.core.auth.strategies.oidc import OpenIDConnect
-from stack.app.repositories.blacklist import BlacklistRepository, get_blacklist_repository
+from stack.app.repositories.blacklist import (
+    BlacklistRepository,
+    get_blacklist_repository,
+)
 from stack.tests.unit.conftest import passthrough
 
 app = create_app(Settings())
@@ -23,29 +26,34 @@ client = TestClient(app)
 # def test_validate_authorization(token=Depends(validate_authorization)):
 #     return {}
 
+
 @pytest.fixture
 def mock_settings():
     mock_settings = Settings(
         AUTH_SECRET_KEY="test",
         JWT_ALGORITHM="HS256",
         TOKEN_EXPIRY_HOURS=1,
-        JWT_ISSUER="test_issuer"
+        JWT_ISSUER="test_issuer",
     )
     # This ensures that accessing any attribute not explicitly set
     # will return None instead of fetching from env or defaults
     mock_settings.__getattr__ = lambda _: None
     return mock_settings
 
+
 @pytest.fixture(autouse=True)
 def patch_settings(mock_settings):
     with patch("stack.app.core.configuration.Settings", return_value=mock_settings):
         yield
 
+
 @app.get("/test-auth")
 async def test_auth(token: dict = Depends(validate_authorization)):
     return {"message": "Authentication successful"}
 
+
 freezegun.configure(extend_ignore_list=["transformers"])
+
 
 @pytest.fixture
 def mock_get_auth_strategy():
@@ -60,8 +68,12 @@ async def test__validate_authorization__valid_token(mock_settings):
     jwt_service = JWTService(settings=mock_settings)
     blacklist_repository = MagicMock(BlacklistRepository)
 
-    with patch.object(blacklist_repository, "retrieve_blacklist", return_value=None) as method:
-        app.dependency_overrides[get_blacklist_repository] = passthrough(blacklist_repository)
+    with patch.object(
+        blacklist_repository, "retrieve_blacklist", return_value=None
+    ) as method:
+        app.dependency_overrides[get_blacklist_repository] = passthrough(
+            blacklist_repository
+        )
 
     token = jwt_service.create_and_encode_jwt(user, "test_strategy")
 
@@ -96,7 +108,9 @@ async def test__validate_authorization__no_bearer():
 
 async def test__validate_authorization__invalid_token():
     # Act
-    response = client.get("/test-auth", headers={"Authorization": "Bearer invalid_token"})
+    response = client.get(
+        "/test-auth", headers={"Authorization": "Bearer invalid_token"}
+    )
 
     # Assert
     assert response.status_code == 401
@@ -104,20 +118,26 @@ async def test__validate_authorization__invalid_token():
 
 
 async def test__validate_authorization__blacklisted_token():
-  # Arrange
+    # Arrange
     user = {"user_id": "test"}
     token = JWTService().create_and_encode_jwt(user, "test_strategy")
     decoded = JWTService().decode_jwt(token)
 
     mock_blacklist_repository = MagicMock(BlacklistRepository)
 
-    with patch.object(mock_blacklist_repository, "retrieve_blacklist", return_value=None) as method:
-        app.dependency_overrides[get_blacklist_repository] = passthrough(mock_blacklist_repository)
-        response = client.get("/test-auth", headers={"Authorization": f"Bearer {token}"})
+    with patch.object(
+        mock_blacklist_repository, "retrieve_blacklist", return_value=None
+    ) as method:
+        app.dependency_overrides[get_blacklist_repository] = passthrough(
+            mock_blacklist_repository
+        )
+        response = client.get(
+            "/test-auth", headers={"Authorization": f"Bearer {token}"}
+        )
 
     # Assert
     assert method.call_count == 1
-    assert method.call_args[1]['token_id'] == decoded["jti"]
+    assert method.call_args[1]["token_id"] == decoded["jti"]
     assert response.status_code == 401
     assert response.json() == {"detail": "Bearer token is blacklisted."}
 
@@ -130,13 +150,19 @@ async def test__validate_authorization__expired_token_refresh_not_implemented():
 
     # Act
     with freezegun.freeze_time("2024-02-01 00:00:00"):
-        with patch.object(JWTService, 'decode_jwt', return_value={
-            "exp": int(datetime(2024, 1, 2).timestamp()),
-            "strategy": BasicAuthentication.NAME,
-            "context": user,
-            "jti": "test_jti"
-        }):
-            response = client.get("/test-auth", headers={"Authorization": f"Bearer {token}"})
+        with patch.object(
+            JWTService,
+            "decode_jwt",
+            return_value={
+                "exp": int(datetime(2024, 1, 2).timestamp()),
+                "strategy": BasicAuthentication.NAME,
+                "context": user,
+                "jti": "test_jti",
+            },
+        ):
+            response = client.get(
+                "/test-auth", headers={"Authorization": f"Bearer {token}"}
+            )
 
     # Assert
     assert response.status_code == 401
@@ -153,16 +179,16 @@ async def test__validate_authorization__expired_token_strategy_dne():
 
     # Act
     with freezegun.freeze_time("2024-02-01 00:00:00"):
-        response = client.get("/test-auth", headers={"Authorization": f"Bearer {token}"})
+        response = client.get(
+            "/test-auth", headers={"Authorization": f"Bearer {token}"}
+        )
 
     # Assert
     assert response.status_code == 401
     # assert response.json() == {
     #     "detail": "JWT Token has expired and no refresh strategy is available."
     # }
-    assert response.json() == {
-        "detail": "JWT Token has expired"
-    }
+    assert response.json() == {"detail": "JWT Token has expired"}
 
 
 # TODO: I think these fail because the settings env vars need to be mocked but ran out of time, see mock_settings fixture for example
@@ -248,4 +274,3 @@ async def test__validate_authorization__expired_token_strategy_dne():
 
 #     # Assert
 #     assert response.status_code == 200
-

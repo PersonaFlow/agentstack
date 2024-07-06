@@ -78,7 +78,7 @@ async def test__create_user__responds_correctly(random_model_user):
         first_name=random_model_user.first_name,
         last_name=random_model_user.last_name,
         created_at=random_model_user.created_at,
-        updated_at=random_model_user.updated_at
+        updated_at=random_model_user.updated_at,
     )
 
     with patch.object(
@@ -96,7 +96,7 @@ async def test__create_user__responds_correctly(random_model_user):
                 "email": random_model_user.email,
                 "username": random_model_user.username,
                 "first_name": random_model_user.first_name,
-                "last_name": random_model_user.last_name
+                "last_name": random_model_user.last_name,
             },
         )
 
@@ -119,7 +119,8 @@ async def test__update_user__responds_correctly(random_model_user):
 
         # Act
         response = client.patch(
-            f"/api/v1/admin/users/{random_model_user.user_id}", json={"user_name": "asdf"}
+            f"/api/v1/admin/users/{random_model_user.user_id}",
+            json={"user_name": "asdf"},
         )
 
         # Assert
@@ -188,7 +189,9 @@ async def test__retrieve_user_threads__responds_correctly(random_model_thread):
         app.dependency_overrides[get_thread_repository] = passthrough(thread_repository)
 
         # Act
-        response = client.get(f"/api/v1/admin/users/{random_model_thread.user_id}/threads")
+        response = client.get(
+            f"/api/v1/admin/users/{random_model_thread.user_id}/threads"
+        )
 
         # Assert
         assert method.call_count == 1

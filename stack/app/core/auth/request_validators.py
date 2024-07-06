@@ -2,7 +2,10 @@ from datetime import datetime, timezone
 from fastapi import Depends, HTTPException, Request, Response
 from typing import Annotated
 
-from stack.app.repositories.blacklist import BlacklistRepository, get_blacklist_repository
+from stack.app.repositories.blacklist import (
+    BlacklistRepository,
+    get_blacklist_repository,
+)
 from stack.app.repositories.user import UserRepository, get_user_repository
 from stack.app.core.auth.jwt import JWTService
 from stack.app.core.auth.auth_config import get_auth_strategy
@@ -12,10 +15,9 @@ from stack.app.core.configuration import settings
 
 UPDATE_TOKEN_HEADER = "X-Toolkit-Auth-Update"
 
+
 async def get_default_user():
-    """
-    Returns a default user when authentication is disabled.
-    """
+    """Returns a default user when authentication is disabled."""
     return {
         "context": {
             "user_id": settings.DEFAULT_USER_ID,
@@ -23,10 +25,10 @@ async def get_default_user():
         }
     }
 
+
 def get_auth_dependency():
-    """
-    Returns the appropriate dependency based on whether authentication is enabled.
-    """
+    """Returns the appropriate dependency based on whether authentication is
+    enabled."""
     if is_authentication_enabled():
         return Depends(validate_authorization)
     else:
@@ -39,9 +41,8 @@ async def validate_authorization(
     blacklist_repository: BlacklistRepository = Depends(get_blacklist_repository),
     user_repository: UserRepository = Depends(get_user_repository),
 ) -> dict:
-    """
-    Validate that the request has the `Authorization` header, used for requests
-    that require authentication.
+    """Validate that the request has the `Authorization` header, used for
+    requests that require authentication.
 
     Args:
         request (Request): The request to validate
@@ -81,16 +82,20 @@ async def validate_authorization(
             "strategy" not in decoded_token,
         ]
     ):
-        raise HTTPException(status_code=401, detail="Bearer token is invalid or missing required fields.")
-
+        raise HTTPException(
+            status_code=401,
+            detail="Bearer token is invalid or missing required fields.",
+        )
 
     # 4. Check if token is blacklisted
-    blacklist = await blacklist_repository.retrieve_blacklist(token_id=decoded_token["jti"])
+    blacklist = await blacklist_repository.retrieve_blacklist(
+        token_id=decoded_token["jti"]
+    )
 
     if not blacklist:
         raise HTTPException(status_code=401, detail="Bearer token is blacklisted.")
 
-     # 5. Check if token is expired - if so then try refresh logic
+    # 5. Check if token is expired - if so then try refresh logic
     expiry_datetime = datetime.fromtimestamp(decoded_token["exp"], tz=timezone.utc)
     strategy_name = decoded_token["strategy"]
     now = datetime.now(timezone.utc)
@@ -123,7 +128,6 @@ async def validate_authorization(
             )
 
     return decoded_token
-
 
 
 AuthenticatedUser = Annotated[dict, get_auth_dependency()]

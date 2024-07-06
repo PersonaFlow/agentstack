@@ -69,7 +69,7 @@ async def _run_input_and_config(
     payload: CreateRunPayload,
     assistant_repository: AssistantRepository,
     thread_repository: ThreadRepository,
-    user_id: str
+    user_id: str,
 ):
     if payload.thread_id and not payload.assistant_id:
         thread: Thread = thread_repository.retrieve_thread(payload.thread_id)

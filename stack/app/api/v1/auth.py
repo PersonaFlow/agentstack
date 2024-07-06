@@ -3,8 +3,14 @@ from typing import Union
 from fastapi import APIRouter, Depends, HTTPException, Query
 from starlette.requests import Request
 
-from stack.app.core.auth.auth_config import ENABLED_AUTH_STRATEGY_MAPPING, get_auth_strategy
-from stack.app.repositories.blacklist import get_blacklist_repository, BlacklistRepository
+from stack.app.core.auth.auth_config import (
+    ENABLED_AUTH_STRATEGY_MAPPING,
+    get_auth_strategy,
+)
+from stack.app.repositories.blacklist import (
+    get_blacklist_repository,
+    BlacklistRepository,
+)
 from stack.app.model.blacklist import Blacklist
 from stack.app.schema.auth import JWTResponse, ListAuthStrategy, Login, Logout
 from stack.app.core.auth.jwt import JWTService
@@ -40,7 +46,7 @@ def get_strategies() -> list[ListAuthStrategy]:
                     if hasattr(strategy_instance, "get_authorization_endpoint")
                     else None
                 ),
-                 "pkce_enabled": (
+                "pkce_enabled": (
                     strategy_instance.get_pkce_enabled()
                     if hasattr(strategy_instance, "get_pkce_enabled")
                     else False
@@ -78,7 +84,6 @@ async def login(
             status_code=422, detail=f"Invalid Authentication strategy: {strategy_name}."
         )
 
-
     strategy_payload = strategy.get_required_payload()
     if not set(strategy_payload).issubset(payload.keys()):
         missing_keys = [key for key in strategy_payload if key not in payload.keys()]
@@ -97,6 +102,7 @@ async def login(
     token = JWTService().create_and_encode_jwt(user, strategy_name)
 
     return {"token": token}
+
 
 @router.post(
     "/{strategy}/auth",
@@ -172,4 +178,3 @@ async def logout(
         blacklist_repository.create_blacklist(db_blacklist)
 
     return {}
-

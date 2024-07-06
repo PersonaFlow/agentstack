@@ -58,8 +58,7 @@ async def create_user(
             """,
 )
 async def retrieve_users(
-    auth: AuthenticatedUser,
-    user_repo: UserRepository = Depends(get_user_repository)
+    auth: AuthenticatedUser, user_repo: UserRepository = Depends(get_user_repository)
 ) -> List[User]:
     records = await user_repo.retrieve_users()
     return records
@@ -119,7 +118,7 @@ async def update_user(
     operation_id="delete_user",
     summary="Delete a specific user ",
     description=(
-            """
+        """
                 DELETE endpoint at `/users/{user_id}` for removing a specific user using its `user_id`.
                 USAGE: Admins can use this endpoint to delete a specific user.
                 TODO: Add access control for this endpoint.
@@ -175,10 +174,11 @@ async def retrieve_user_threads(
 )
 async def retrieve_all_threads(
     auth: AuthenticatedUser,
-    thread_repo: ThreadRepository = Depends(get_thread_repository)
+    thread_repo: ThreadRepository = Depends(get_thread_repository),
 ) -> List[Thread]:
     threads = await thread_repo.retrieve_threads()
     return threads
+
 
 @router.get(
     "/{user_id}/assistants",
@@ -193,5 +193,7 @@ async def retrieve_user_assistants(
     user_id: str,
     assistant_repository: AssistantRepository = Depends(get_assistant_repository),
 ) -> list[Assistant]:
-    assistants = await assistant_repository.retrieve_assistants(filters={"user_id": user_id})
+    assistants = await assistant_repository.retrieve_assistants(
+        filters={"user_id": user_id}
+    )
     return assistants

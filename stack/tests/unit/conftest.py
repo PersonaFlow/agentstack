@@ -33,7 +33,7 @@ def random_schema_user() -> SchemaUser:
         user_id=settings.DEFAULT_USER_ID,
         email="test@gmail.com",
         created_at=datetime.now(),
-        updated_at=datetime.now()
+        updated_at=datetime.now(),
     )
 
 
@@ -43,7 +43,7 @@ def random_model_user() -> ModelUser:
         user_id=str(uuid.uuid4()),
         email="test@gmail.com",
         created_at=datetime.now(),
-        updated_at=datetime.now()
+        updated_at=datetime.now(),
     )
 
 
@@ -122,4 +122,3 @@ def random_model_message() -> MessageModel:
         created_at=datetime.now(),
         updated_at=datetime.now(),
     )
-
