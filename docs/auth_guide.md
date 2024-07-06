@@ -2,7 +2,7 @@
 
 ## Adding Auth strategies
 
-By default, the Toolkit does not enforce any authentication strategies, but they can be enabled from `stack/app/core/auth/auth_config.py`.
+The system does not enforce any authentication strategies by default, but they can be enabled in the `ENABLED_AUTH_STRATEGIES from `stack/app/core/auth/auth_config.py`.
 
 This is the current list of implemented Auth strategies:
 

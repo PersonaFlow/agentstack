@@ -1,1 +1,4159 @@
-{"openapi":"3.1.0","info":{"title":"PersonaFlow","version":"0.1.0"},"paths":{"/api/v1/runs/stream":{"post":{"tags":["Runs"],"summary":"Stream an LLM run.","description":"Endpoint to stream an LLM response. If the thread_id is not provided, a new thread will be created as long as the assistant_id is included. <br>\n                Note that the input should be a list of messages in the format: <br>\n                content: string <br>\n                role: string <br>\n                additional_kwargs: dict <br>\n                example: bool <br>","operationId":"stream_run","requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/CreateRunPayload"}}},"required":true},"responses":{"200":{"description":"Successful Response"},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}},"security":[{"APIKeyHeader":[]}]}},"/api/v1/runs":{"post":{"tags":["Runs"],"summary":"Create a run","description":"Create a run to be processed by the LLM.","operationId":"create_run","requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/CreateRunPayload"}}},"required":true},"responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"type":"object","title":"Response Create Run"}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}},"security":[{"APIKeyHeader":[]}]}},"/api/v1/runs/input_schema":{"get":{"tags":["Runs"],"summary":"Return the input schema of the runnable.","description":"Return the input schema of the runnable.","operationId":"get_input_schema","responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"type":"object","title":"Response Get Input Schema"}}}}}}},"/api/v1/runs/output_schema":{"get":{"tags":["Runs"],"summary":"Return the output schema of the runnable.","description":"Return the output schema of the runnable.","operationId":"get_output_schema","responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"type":"object","title":"Response Get Output Schema"}}}}}}},"/api/v1/runs/config_schema":{"get":{"tags":["Runs"],"summary":"Return the config schema of the runnable.","description":"Return the config schema of the runnable.","operationId":"get_config_schema","responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"type":"object","title":"Response Get Config Schema"}}}}}}},"/api/v1/runs/title":{"post":{"tags":["Runs"],"summary":"Generate a title to name the thread.","description":"Generates a title for the conversation by sending a list of interactions to the model.","operationId":"generate_title","requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/TitleRequest"}}},"required":true},"responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Thread"}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}},"security":[{"APIKeyHeader":[]}]}},"/api/v1/users":{"get":{"tags":["Users"],"summary":"List all users ","description":"GET endpoint at `/users` for listing all users.","operationId":"retrieve_all_users","responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"items":{"$ref":"#/components/schemas/User"},"type":"array","title":"Response Retrieve All Users"}}}}},"security":[{"APIKeyHeader":[]}]},"post":{"tags":["Users"],"summary":"Create a new user","description":"POST endpoint at `/users` for creating a new user.\n                If `user_id` is not present, the database will auto-generate a new UUID for the field.\n                This is intended to allow for internal users to be correlated with external systems while not exposing the internal database record id for the user.","operationId":"create_user","requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/CreateUserSchema"}}},"required":true},"responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"$ref":"#/components/schemas/User"}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}},"security":[{"APIKeyHeader":[]}]}},"/api/v1/users/{user_id}":{"get":{"tags":["Users"],"summary":"Retrieve a specific user ","description":"GET endpoint at `/users/{user_id}` for fetching details of a specific user using its user_id.","operationId":"retrieve_user","security":[{"APIKeyHeader":[]}],"parameters":[{"name":"user_id","in":"path","required":true,"schema":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"User Id"}}],"responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"$ref":"#/components/schemas/User"}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}}},"patch":{"tags":["Users"],"summary":"Update a specific user ","description":"PATCH endpoint at `/{user_id}` for updating the details of a specific user.","operationId":"update_user","security":[{"APIKeyHeader":[]}],"parameters":[{"name":"user_id","in":"path","required":true,"schema":{"type":"string","title":"User Id"}}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/UpdateUserSchema"}}}},"responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"$ref":"#/components/schemas/User"}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}}},"delete":{"tags":["Users"],"summary":"Delete a specific user ","description":"DELETE endpoint at `/users/{user_id}` for removing a specific user using its `user_id`.","operationId":"delete_user","security":[{"APIKeyHeader":[]}],"parameters":[{"name":"user_id","in":"path","required":true,"schema":{"type":"string","title":"User Id"}}],"responses":{"204":{"description":"Successful Response"},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}}}},"/api/v1/users/{user_id}/threads":{"get":{"tags":["Users"],"summary":"Retrieve threads by user ","description":"GET endpoint at `/users/{user_id}/threads` for fetching all threads associated with a specific user using its id. <br>","operationId":"retrieve_user_threads","security":[{"APIKeyHeader":[]}],"parameters":[{"name":"user_id","in":"path","required":true,"schema":{"type":"string","title":"User Id"}},{"name":"grouped","in":"query","required":false,"schema":{"anyOf":[{"type":"boolean"},{"type":"null"}],"title":"Grouped"}},{"name":"timezoneOffset","in":"query","required":false,"schema":{"anyOf":[{"type":"integer"},{"type":"null"}],"title":"Timezoneoffset"}}],"responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"anyOf":[{"type":"array","items":{"$ref":"#/components/schemas/Thread"}},{"$ref":"#/components/schemas/GroupedThreads"}],"title":"Response Retrieve User Threads"}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}}}},"/api/v1/users/{user_id}/startup":{"get":{"tags":["Users"],"summary":"Create a new local user if it does not exist, then return the startup configuration for the user.","description":"Gets the startup configuration for the user. <br>\n                        **Important**: Creates the local user with the provided `user_id` if the user has not used the service before. <br>\n                        Primary purpose is to establish the user in the local database then return any configuration information to the client.","operationId":"startup","parameters":[{"name":"user_id","in":"path","required":true,"schema":{"type":"string","title":"User Id"}}],"responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"$ref":"#/components/schemas/User"}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}}}},"/api/v1/threads":{"get":{"tags":["Threads"],"summary":"Retrieve all threads","description":"Retrieves a list of all threads in the database. Should be used as an admin operation only.","operationId":"retrieve_all_threads","responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"items":{"$ref":"#/components/schemas/Thread"},"type":"array","title":"Response Retrieve All Threads"}}}}},"security":[{"APIKeyHeader":[]}]},"post":{"tags":["Threads"],"summary":"Create a new thread","description":"Creates a new thread with the provided information. This can optionally be obtained from the api_key. If it is not set in the request, it will attempt to get it from the api_key.","operationId":"create_thread","requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/CreateThreadSchema"}}},"required":true},"responses":{"201":{"description":"Successful Response","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Thread"}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}},"security":[{"APIKeyHeader":[]}]}},"/api/v1/threads/{thread_id}":{"get":{"tags":["Threads"],"summary":"Retrieve a specific thread","description":"Retrieves detailed information about a thread identified by its ID.","operationId":"retrieve_thread","security":[{"APIKeyHeader":[]}],"parameters":[{"name":"thread_id","in":"path","required":true,"schema":{"type":"string","title":"Thread Id"}}],"responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Thread"}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}}},"patch":{"tags":["Threads"],"summary":"Update a specific thread","description":"Updates the information of a thread identified by its ID.","operationId":"update_thread","security":[{"APIKeyHeader":[]}],"parameters":[{"name":"thread_id","in":"path","required":true,"schema":{"type":"string","title":"Thread Id"}}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/UpdateThreadSchema"}}}},"responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Thread"}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}}},"delete":{"tags":["Threads"],"summary":"Delete a specific thread","description":"Deletes a thread identified by its ID from the database.","operationId":"delete_thread","security":[{"APIKeyHeader":[]}],"parameters":[{"name":"thread_id","in":"path","required":true,"schema":{"type":"string","title":"Thread Id"}}],"responses":{"204":{"description":"Successful Response"},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}}}},"/api/v1/threads/{thread_id}/messages":{"get":{"tags":["Threads"],"summary":"Retrieve all messages by thread id","description":"Retrieves a list of all messages in a thread identified by its ID.","operationId":"retrieve_messages_for_thread","security":[{"APIKeyHeader":[]}],"parameters":[{"name":"thread_id","in":"path","required":true,"schema":{"type":"string","title":"Thread Id"}}],"responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"type":"array","items":{"$ref":"#/components/schemas/Message"},"title":"Response Retrieve Messages For Thread"}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}}}},"/api/v1/threads/{thread_id}/state":{"get":{"tags":["Threads"],"summary":"Retrieve thread state","description":"Retrieves the state of a thread identified by its ID.","operationId":"retrieve_thread_state","parameters":[{"name":"thread_id","in":"path","required":true,"schema":{"type":"string","title":"Thread Id"}}],"responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}}},"post":{"tags":["Threads"],"summary":"Add thread state","description":"Adds the state of a thread identified by its ID.","operationId":"add_thread_state","parameters":[{"name":"thread_id","in":"path","required":true,"schema":{"type":"string","title":"Thread Id"}}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ThreadPostRequest"}}}},"responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}}}},"/api/v1/threads/{thread_id}/history":{"get":{"tags":["Threads"],"summary":"Get thread history","description":"Gets the history of the thread identified by its ID.","operationId":"get_thread_history","parameters":[{"name":"thread_id","in":"path","required":true,"schema":{"type":"string","title":"Thread Id"}}],"responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}}}},"/api/v1/messages":{"post":{"tags":["Messages"],"summary":"Create a new message","description":"Creates a new message within a thread.","operationId":"create_message","requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/CreateMessageSchema"}}},"required":true},"responses":{"201":{"description":"Successful Response","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Message"}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}},"security":[{"APIKeyHeader":[]}]}},"/api/v1/messages/{message_id}":{"patch":{"tags":["Messages"],"summary":"Update a specific message","description":"Updates the details of a specific message by its ID.","operationId":"update_message","security":[{"APIKeyHeader":[]}],"parameters":[{"name":"message_id","in":"path","required":true,"schema":{"type":"string","title":"Message Id"}}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/UpdateMessageSchema"}}}},"responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Message"}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}}},"delete":{"tags":["Messages"],"summary":"Delete a specific message","description":"Deletes a specific message by its ID from the database.","operationId":"delete_message","security":[{"APIKeyHeader":[]}],"parameters":[{"name":"message_id","in":"path","required":true,"schema":{"type":"string","title":"Message Id"}}],"responses":{"204":{"description":"Successful Response"},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}}}},"/api/v1/assistants":{"get":{"tags":["Assistants"],"summary":"Retrieve all assistants","description":"Retrieves a list of all assistants.","operationId":"retrieve_assistants","responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"items":{"$ref":"#/components/schemas/Assistant"},"type":"array","title":"Response Retrieve Assistants"}}}}},"security":[{"APIKeyHeader":[]}]},"post":{"tags":["Assistants"],"summary":"Create a new assistant","description":"Creates a new assistant with the specified details.","operationId":"create_assistant","requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/CreateAssistantSchema"}}},"required":true},"responses":{"201":{"description":"Successful Response","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Assistant"}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}},"security":[{"APIKeyHeader":[]}]}},"/api/v1/assistants/{assistant_id}":{"get":{"tags":["Assistants"],"summary":"Retrieve a specific assistant","description":"Retrieves detailed information about a specific assistant by its ID.","operationId":"retrieve_assistant","security":[{"APIKeyHeader":[]}],"parameters":[{"name":"assistant_id","in":"path","required":true,"schema":{"type":"string","format":"uuid","title":"Assistant Id"}}],"responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Assistant"}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}}},"patch":{"tags":["Assistants"],"summary":"Update a specific assistant","description":"Updates the details of a specific assistant by its ID.","operationId":"update_assistant","security":[{"APIKeyHeader":[]}],"parameters":[{"name":"assistant_id","in":"path","required":true,"schema":{"type":"string","format":"uuid","title":"Assistant Id"}}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/UpdateAssistantSchema"}}}},"responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Assistant"}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}}},"delete":{"tags":["Assistants"],"summary":"Delete a specific assistant","description":"Deletes a specific assistant by its ID from the database.","operationId":"delete_assistant","security":[{"APIKeyHeader":[]}],"parameters":[{"name":"assistant_id","in":"path","required":true,"schema":{"type":"string","format":"uuid","title":"Assistant Id"}}],"responses":{"204":{"description":"Successful Response"},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}}}},"/api/v1/assistants/{assistant_id}/files":{"post":{"tags":["Assistants"],"summary":"Add an uploaded file to an assistant for RAG.","description":"Convenience method to add an uploaded file to an assistant for RAG ingestion and retrieval","operationId":"create_assistant_file","security":[{"APIKeyHeader":[]}],"parameters":[{"name":"assistant_id","in":"path","required":true,"schema":{"type":"string","format":"uuid","title":"Assistant Id"}}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/CreateAssistantFileSchema"}}}},"responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"$ref":"#/components/schemas/CreateAssistantFileSchemaResponse"}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}}},"get":{"tags":["Assistants"],"summary":"Retrieve file information for all files associated with an assistant","description":"Returns a list of file objects for all files associated with an assistant.","operationId":"retrieve_assistant_files","security":[{"APIKeyHeader":[]}],"parameters":[{"name":"assistant_id","in":"path","required":true,"schema":{"type":"string","format":"uuid","title":"Assistant Id"}},{"name":"limit","in":"query","required":false,"schema":{"type":"integer","default":20,"title":"Limit"}},{"name":"order","in":"query","required":false,"schema":{"type":"string","default":"desc","title":"Order"}},{"name":"before","in":"query","required":false,"schema":{"anyOf":[{"type":"string","format":"date-time"},{"type":"null"}],"title":"Before"}},{"name":"after","in":"query","required":false,"schema":{"anyOf":[{"type":"string","format":"date-time"},{"type":"null"}],"title":"After"}}],"responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"type":"array","items":{"$ref":"#/components/schemas/FileSchema"},"title":"Response Retrieve Assistant Files"}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}}}},"/api/v1/assistants/{assistant_id}/files/{file_id}":{"delete":{"tags":["Assistants"],"summary":"Remove a file from an assistant","description":"Removes a file from an assistant by its ID. This also deletes the corresponding documents from the vector store.","operationId":"delete_assistant_file","security":[{"APIKeyHeader":[]}],"parameters":[{"name":"assistant_id","in":"path","required":true,"schema":{"type":"string","format":"uuid","title":"Assistant Id"}},{"name":"file_id","in":"path","required":true,"schema":{"type":"string","format":"uuid","title":"File Id"}}],"responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Assistant"}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}}}},"/api/v1/rag/ingest":{"post":{"tags":["RAG"],"summary":"Ingest files to be indexed and queried.","description":"Upload files for ingesting using the advanced RAG system.","operationId":"ingest_data_from_files","requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/IngestRequestPayload"}}},"required":true},"responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"type":"object","title":"Response Ingest Data From Files"}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}},"security":[{"APIKeyHeader":[]}]}},"/api/v1/rag/query":{"post":{"tags":["RAG"],"summary":"Query documents","description":"Query ingested documents using advanced RAG system with unstructured library. <br>","operationId":"query_documents","requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/QueryRequestPayload"}}},"required":true},"responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"$ref":"#/components/schemas/QueryResponsePayload"}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}},"security":[{"APIKeyHeader":[]}]}},"/api/v1/rag/query-lc-retriever":{"post":{"tags":["RAG"],"summary":"Query Lc Retriever","operationId":"query_lc_retriever_api_v1_rag_query_lc_retriever_post","requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/QueryRequestPayload"}}},"required":true},"responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}},"security":[{"APIKeyHeader":[]}]}},"/api/v1/files":{"post":{"tags":["Files"],"summary":"Upload a file","description":"Uploads a file that can be used across various endpoints. <br> NOTE: MUST INCLUDE `user_id`","operationId":"upload_file","security":[{"APIKeyHeader":[]}],"requestBody":{"required":true,"content":{"multipart/form-data":{"schema":{"$ref":"#/components/schemas/Body_upload_file"}}}},"responses":{"201":{"description":"Successful Response","content":{"application/json":{"schema":{"$ref":"#/components/schemas/FileSchema"}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}}},"get":{"tags":["Files"],"summary":"Retrieve files","description":"Retrieves a list of files.","operationId":"retrieve_files_for_user","security":[{"APIKeyHeader":[]}],"parameters":[{"name":"user_id","in":"query","required":false,"schema":{"anyOf":[{"type":"string"},{"type":"null"}],"default":"","title":"User Id"}},{"name":"purpose","in":"query","required":false,"schema":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Purpose"}}],"responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"type":"array","items":{"$ref":"#/components/schemas/FileSchema"},"title":"Response Retrieve Files For User"}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}}}},"/api/v1/files/{file_id}":{"get":{"tags":["Files"],"summary":"Retrieve file information","description":"Retrieves information about a specific file by its ID.","operationId":"retrieve_file","security":[{"APIKeyHeader":[]}],"parameters":[{"name":"file_id","in":"path","required":true,"schema":{"type":"string","format":"uuid","title":"File Id"}}],"responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"$ref":"#/components/schemas/FileSchema"}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}}},"delete":{"tags":["Files"],"summary":"Delete a specific file","description":"Deletes a specific file by its ID from the database and file system. When a file is deleted, it is also removed from any assistants that may be using it and all associated embeddings are deleted from the vector store.","operationId":"delete_file","security":[{"APIKeyHeader":[]}],"parameters":[{"name":"file_id","in":"path","required":true,"schema":{"type":"string","format":"uuid","title":"File Id"}}],"responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"$ref":"#/components/schemas/DeleteFileResponse"}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}}}},"/api/v1/files/{file_id}/content":{"get":{"tags":["Files"],"summary":"Retrieve the content of a specific file","description":"Retrieves the content of a specific file by its ID. Returns a downloadable file.","operationId":"retrieve_file_content","security":[{"APIKeyHeader":[]}],"parameters":[{"name":"file_id","in":"path","required":true,"schema":{"type":"string","format":"uuid","title":"File Id"}}],"responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}}}},"/api/v1/health_check":{"get":{"tags":["Health Check"],"summary":"Health Check","operationId":"health_check_api_v1_health_check_get","responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{}}}}}}}},"components":{"schemas":{"AgentType":{"type":"string","enum":["GPT 3.5 Turbo","GPT 4 Turbo","GPT 4o","GPT 4 (Azure OpenAI)","Claude 2","Claude 2 (Amazon Bedrock)","GEMINI","Ollama"],"title":"AgentType"},"Assistant":{"properties":{"id":{"type":"string","format":"uuid","title":"Id","description":"A unique identifier for the assistant. It's a UUID type and is automatically generated by the database."},"user_id":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"User Id","description":"The user id that created the assistant."},"name":{"type":"string","minLength":1,"title":"Name","description":"The name of the assistant."},"config":{"allOf":[{"$ref":"#/components/schemas/RunnableConfigurableAlternativesConfig"}],"description":"The assistant config, containing specific configuration parameters."},"kwargs":{"anyOf":[{"type":"object"},{"type":"null"}],"title":"Kwargs","description":"The assistant kwargs, containing any additional information about the assistant such as public vs internal, etc."},"file_ids":{"anyOf":[{"items":{"type":"string"},"type":"array"},{"type":"null"}],"title":"File Ids","description":"A list of file IDs to be associated with this assistant for use with Retrieval."},"public":{"anyOf":[{"type":"boolean"},{"type":"null"}],"title":"Public","description":"Whether the assistant is public.","default":false},"created_at":{"type":"string","format":"date-time","title":"Created At","description":"Created date"},"updated_at":{"type":"string","format":"date-time","title":"Updated At","description":"Last updated date"}},"type":"object","required":["id","name","config","created_at","updated_at"],"title":"Assistant"},"BaseDocumentChunk":{"properties":{"id":{"type":"string","title":"Id"},"document_id":{"type":"string","title":"Document Id"},"page_content":{"type":"string","title":"Page Content"},"file_id":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"File Id"},"namespace":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Namespace"},"source":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Source"},"source_type":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Source Type"},"chunk_index":{"anyOf":[{"type":"integer"},{"type":"null"}],"title":"Chunk Index"},"title":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Title"},"purpose":{"anyOf":[{"$ref":"#/components/schemas/ContextType"},{"type":"null"}]},"token_count":{"anyOf":[{"type":"integer"},{"type":"null"}],"title":"Token Count"},"page_number":{"anyOf":[{"type":"integer"},{"type":"null"}],"title":"Page Number"},"metadata":{"anyOf":[{"type":"object"},{"type":"null"}],"title":"Metadata"},"dense_embedding":{"anyOf":[{"items":{"type":"number"},"type":"array"},{"type":"null"}],"title":"Dense Embedding"}},"type":"object","required":["id","document_id","page_content"],"title":"BaseDocumentChunk"},"Body_upload_file":{"properties":{"file":{"type":"string","format":"binary","title":"File","description":"The file to upload."},"purpose":{"type":"string","title":"Purpose","description":"The purpose of the file: 'assistants', 'threads', or 'personas'."},"user_id":{"type":"string","title":"User Id","description":"The user id of the file owner."},"filename":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Filename","description":"The preferred name for the file."},"kwargs":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Kwargs","description":"Any additonal metadata to include for this file. This should be a JSON string."}},"type":"object","required":["file","purpose","user_id"],"title":"Body_upload_file"},"BotType":{"type":"string","enum":["chatbot","chat_retrieval","agent"],"title":"BotType"},"ChatMessage":{"properties":{"content":{"type":"string","title":"Content"},"type":{"type":"string","title":"Type"}},"type":"object","required":["content","type"],"title":"ChatMessage"},"Configurable":{"properties":{"type":{"allOf":[{"$ref":"#/components/schemas/BotType"}],"title":"Bot Type","description":"The type of bot.","default":"agent"},"agent_type":{"allOf":[{"$ref":"#/components/schemas/AgentType"}],"title":"Agent Type","description":"The type of agent, applicable if the bot type is 'agent'.","default":"GPT 3.5 Turbo"},"interrupt_before_action":{"anyOf":[{"type":"boolean"},{"type":"null"}],"title":"Tool Confirmation","description":"If set to True, you'll be prompted to continue before each tool is executed. If False, tools will be executed automatically by the agent.","default":false},"retrieval_description":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Retrieval Description","description":"Tool description providing instructions to the LLM for it's use.","default":"Can be used to look up information that was uploaded for this assistant."},"system_message":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Instructions","description":"Instructions for the assistant.","default":"You are a helpful assistant."},"tools":{"anyOf":[{"items":{"$ref":"#/components/schemas/Tools"},"type":"array"},{"type":"null"}],"title":"Tools","description":"List of tools available for the agent.","default":[]},"llm_type":{"anyOf":[{"$ref":"#/components/schemas/LLMType"},{"type":"null"}],"title":"LLM Type","description":"The type of language model, applicable if the bot type is 'chat_retrieval' or 'chatbot'.","default":"GPT 3.5 Turbo"}},"type":"object","title":"Configurable"},"ContextType":{"type":"string","enum":["assistants","threads","rag","personas"],"title":"ContextType","description":"Context where files or generated embeddings are used."},"CreateAssistantFileSchema":{"properties":{"file_id":{"type":"string","title":"File Id","description":"The file ID to be associated with the assistant."}},"type":"object","required":["file_id"],"title":"CreateAssistantFileSchema"},"CreateAssistantFileSchemaResponse":{"properties":{"file_id":{"type":"string","title":"File Id","description":"The file ID to be associated with the assistant."},"assistant_id":{"type":"string","title":"Assistant Id","description":"The assistant ID to which the file was associated."}},"type":"object","required":["file_id","assistant_id"],"title":"CreateAssistantFileSchemaResponse"},"CreateAssistantSchema":{"properties":{"name":{"type":"string","minLength":1,"title":"Name","description":"The name of the assistant."},"user_id":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"User Id","description":"The user id that created the assistant."},"config":{"type":"object","title":"Config","description":"The assistant config, containing specific configuration parameters."},"kwargs":{"anyOf":[{"type":"object"},{"type":"null"}],"title":"Kwargs","description":"The assistant kwargs, containing any additional information about the assistant such as public vs internal, etc."},"file_ids":{"anyOf":[{"items":{"type":"string"},"type":"array"},{"type":"null"}],"title":"File Ids","description":"A list of file IDs to be associated with this assistant for use with Retrieval."},"public":{"anyOf":[{"type":"boolean"},{"type":"null"}],"title":"Public","description":"Whether the assistant is public.","default":false}},"type":"object","required":["name","config"],"title":"CreateAssistantSchema"},"CreateMessageSchema":{"properties":{"thread_id":{"type":"string","minLength":1,"title":"Thread Id","description":"The thread id to associate the message with."},"user_id":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"User Id","description":"The user id associated with the message."},"assistant_id":{"type":"string","title":"Assistant Id","description":"(Optional) The assistant id associated with the message."},"content":{"type":"string","minLength":1,"title":"Content","description":"The content of the message."},"type":{"type":"string","minLength":1,"title":"Type","description":"The type of message - eg. 'AI', 'Human', 'Function', 'Tool'."},"additional_kwargs":{"anyOf":[{"type":"object"},{"type":"null"}],"title":"Additional Kwargs","description":"(Optional) Additional keyword arguments associated with the message."},"example":{"type":"boolean","title":"Example","description":"A boolean flag indicating whether the message is an example."}},"type":"object","required":["thread_id","user_id","content","type","example"],"title":"CreateMessageSchema"},"CreateRunPayload":{"properties":{"user_id":{"type":"string","title":"User Id"},"assistant_id":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Assistant Id"},"thread_id":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Thread Id"},"input":{"items":{"type":"object"},"type":"array","title":"Input"},"config":{"anyOf":[{"$ref":"#/components/schemas/RunnableConfig"},{"type":"null"}]}},"type":"object","required":["user_id","input"],"title":"CreateRunPayload","description":"Payload for creating a run."},"CreateThreadSchema":{"properties":{"assistant_id":{"type":"string","format":"uuid","title":"Assistant Id","description":"(Optional) The assistant id associated with the thread."},"user_id":{"type":"string","title":"User Id","description":"The user id associated with the thread."},"name":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Name","description":"(Optional) The conversation title of the thread."},"kwargs":{"anyOf":[{"type":"object"},{"type":"null"}],"title":"Kwargs","description":"(Optional) Additional kwargs associated with the thread."}},"type":"object","required":["assistant_id","user_id"],"title":"CreateThreadSchema"},"CreateUserSchema":{"properties":{"user_id":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"User Id","description":"Identifier for the user to be used across the application. Can be used for correlating local user with external systems. Autogenerates if none is provided."},"username":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Username","description":"(Optional) The username chosen by the user. It's a string type and does not need to be unique across the userbase."},"email":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Email","description":"(Optional) The email address associated with the user's account. It's a string type and is expected to be unique across the userbase"},"first_name":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"First Name","description":"(Optional) The first name of the user."},"last_name":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Last Name","description":"(Optional) The last name of the user."},"kwargs":{"anyOf":[{"type":"object"},{"type":"null"}],"title":"Kwargs","description":"(Optional) Additional kwargs associated with the user."}},"type":"object","title":"CreateUserSchema"},"DeleteFileResponse":{"properties":{"file_id":{"type":"string","format":"uuid","title":"File Id","description":"The ID of the file that was deleted."},"num_of_deleted_chunks":{"anyOf":[{"type":"integer"},{"type":"null"}],"title":"Num Of Deleted Chunks","description":"The number of chunks deleted from the vector store for this file."},"num_of_assistants":{"type":"integer","title":"Num Of Assistants","description":"The number of assistants that were using this file, of which the file was removed."},"assistants":{"items":{"type":"object"},"type":"array","title":"Assistants","description":"A list of the IDs and names of the asistants that were using this file, of which the file was removed."}},"type":"object","required":["file_id","num_of_assistants","assistants"],"title":"DeleteFileResponse"},"DocumentProcessorConfig":{"properties":{"summarize":{"type":"boolean","title":"Summarize","description":"Create a separate collection of document summaries","default":false},"encoder":{"allOf":[{"$ref":"#/components/schemas/EncoderConfig"}],"description":"Embeddings provider coniguration. If not provided, this comes from the env config.","default":{"provider":"openai","encoder_model":"text-embedding-3-small","dimensions":1536}},"unstructured":{"allOf":[{"$ref":"#/components/schemas/UnstructuredConfig"}],"description":"UnstructuredIO configuration. If not provided, this comes from the env config.","default":{"partition_strategy":"auto","hi_res_model_name":"detectron2_onnx","process_tables":false}},"splitter":{"allOf":[{"$ref":"#/components/schemas/SplitterConfig"}],"description":"Document partition manager configuration. If not provided, this comes from the env config.","default":{"name":"semantic","min_tokens":30,"max_tokens":800,"rolling_window_size":1,"prefix_titles":true,"prefix_summary":true}}},"type":"object","title":"DocumentProcessorConfig"},"EncoderConfig":{"properties":{"provider":{"allOf":[{"$ref":"#/components/schemas/EncoderProvider"}],"description":"Embedding provider","default":"openai"},"encoder_model":{"type":"string","title":"Encoder Model","description":"Model name for the encoder","default":"text-embedding-3-small"},"dimensions":{"type":"integer","title":"Dimensions","description":"Dimension of the encoder output","default":1536}},"type":"object","title":"EncoderConfig"},"EncoderProvider":{"type":"string","enum":["cohere","openai","huggingface","azure_openai","mistral","ollama"],"title":"EncoderProvider"},"FileSchema":{"properties":{"id":{"type":"string","format":"uuid","title":"Id","description":"A unique identifier for the file. It's a UUID type and is automatically generated by the database."},"user_id":{"type":"string","title":"User Id","description":"The ID of the user who created the file."},"purpose":{"allOf":[{"$ref":"#/components/schemas/ContextType"}],"description":"The context for file: eg. 'assistants', 'rag', 'threads', or 'personas'."},"filename":{"type":"string","title":"Filename","description":"The preferred name for the file."},"bytes":{"type":"integer","title":"Bytes","description":"The file size in bytes, calculated when the file is uploaded."},"mime_type":{"type":"string","title":"Mime Type","description":"The mime type of the file."},"source":{"type":"string","title":"Source","description":"The source of the file. For local files, this will be the local file path plus filename and extension."},"kwargs":{"type":"object","title":"Kwargs","description":"Any additional kwargs for the file."},"created_at":{"type":"string","format":"date-time","title":"Created At","description":"Created date"},"updated_at":{"type":"string","format":"date-time","title":"Updated At","description":"Last updated date"}},"type":"object","required":["id","user_id","purpose","filename","bytes","mime_type","source","kwargs","created_at","updated_at"],"title":"FileSchema"},"GroupedThreads":{"properties":{"Today":{"anyOf":[{"items":{"$ref":"#/components/schemas/Thread"},"type":"array"},{"type":"null"}],"title":"Today"},"Yesterday":{"anyOf":[{"items":{"$ref":"#/components/schemas/Thread"},"type":"array"},{"type":"null"}],"title":"Yesterday"},"Past 7 Days":{"anyOf":[{"items":{"$ref":"#/components/schemas/Thread"},"type":"array"},{"type":"null"}],"title":"Past 7 Days"},"Past 30 Days":{"anyOf":[{"items":{"$ref":"#/components/schemas/Thread"},"type":"array"},{"type":"null"}],"title":"Past 30 Days"},"This Year":{"anyOf":[{"items":{"$ref":"#/components/schemas/Thread"},"type":"array"},{"type":"null"}],"title":"This Year"},"Previous Years":{"anyOf":[{"items":{"$ref":"#/components/schemas/Thread"},"type":"array"},{"type":"null"}],"title":"Previous Years"}},"type":"object","title":"GroupedThreads","description":"Grouped threads by time period."},"HTTPValidationError":{"properties":{"detail":{"items":{"$ref":"#/components/schemas/ValidationError"},"type":"array","title":"Detail"}},"type":"object","title":"HTTPValidationError"},"IngestRequestPayload":{"properties":{"files":{"items":{"type":"string","format":"uuid"},"type":"array","title":"Files","description":"An array of file ids to ingest"},"purpose":{"anyOf":[{"$ref":"#/components/schemas/ContextType"},{"type":"null"}],"description":"Context of where the embeddings will be used.","default":"assistants"},"index_name":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Index Name","description":"Name of the vector database follection to ingest the files into. If not provided, the `VECTOR_DB_COLLECTION_NAME` env var is used.","default":"documents"},"namespace":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Namespace","description":"Context of the embeddings: This is the assistant_id, thread_id, file_id, or random uuid that is used for filtering the results."},"vector_database":{"anyOf":[{"$ref":"#/components/schemas/VectorDatabase"},{"type":"null"}],"description":"Vector database to store the embeddings. If not provided, this comes from the env config.","default":{"type":"qdrant","config":{"api_key":"123456789","host":"http://localhost:6333"}}},"document_processor":{"anyOf":[{"$ref":"#/components/schemas/DocumentProcessorConfig"},{"type":"null"}],"description":"Document processor configuration. If not provided, this comes from the env config.","default":{"summarize":false,"encoder":{"dimensions":1536,"encoder_model":"text-embedding-3-small","provider":"openai"},"unstructured":{"hi_res_model_name":"detectron2_onnx","partition_strategy":"auto","process_tables":false},"splitter":{"max_tokens":800,"min_tokens":30,"name":"semantic","prefix_summary":true,"prefix_titles":true,"rolling_window_size":1}}},"webhook_url":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Webhook Url","description":"Webhook url to send the notification to when the ingestion is completed."}},"type":"object","required":["files"],"title":"IngestRequestPayload"},"LLMType":{"type":"string","enum":["GPT 3.5 Turbo","GPT 4","GPT 4o","GPT 4 (Azure OpenAI)","Claude 2","Claude 2 (Amazon Bedrock)","GEMINI","Mixtral","Ollama"],"title":"LLMType"},"Message":{"properties":{"id":{"type":"string","format":"uuid","title":"Id","description":"A unique identifier for the message. It's a UUID type and is automatically generated by the database."},"thread_id":{"anyOf":[{"type":"string","format":"uuid"},{"type":"null"}],"title":"Thread Id","description":"The thread id associated with the message."},"user_id":{"type":"string","title":"User Id","description":"The user id associated with the message."},"assistant_id":{"anyOf":[{"type":"string","format":"uuid"},{"type":"null"}],"title":"Assistant Id","description":"(Optional) The assistant id associated with the message."},"content":{"type":"string","title":"Content","description":"The content of the message."},"type":{"allOf":[{"$ref":"#/components/schemas/MessageType"}],"description":"The type of message - eg. 'AI', 'Human', 'Function', 'Tool'."},"additional_kwargs":{"anyOf":[{"type":"object"},{"type":"null"}],"title":"Additional Kwargs","description":"(Optional) Additional keyword arguments associated with the message."},"example":{"type":"boolean","title":"Example","description":"A boolean flag indicating whether the message is an example."},"created_at":{"type":"string","format":"date-time","title":"Created At","description":"The date and time when the message was created."},"updated_at":{"type":"string","format":"date-time","title":"Updated At","description":"The date and time when the message was last updated."}},"type":"object","required":["id","thread_id","user_id","content","type","example","created_at","updated_at"],"title":"Message"},"MessageType":{"type":"string","enum":["AI","Human","Function","Tool"],"title":"MessageType"},"QueryRequestPayload":{"properties":{"input":{"type":"string","title":"Input","description":"Input text to query"},"namespace":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Namespace","description":"Context of the query: This is the assistant_id, thread_id, file_id, or random uuid that is used for filtering the results."},"context":{"anyOf":[{"$ref":"#/components/schemas/ContextType"},{"type":"null"}],"description":"Context of where the embeddings will be used.","default":"assistants"},"index_name":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Index Name","description":"Name of the vector database follection to query from. If not provided, the `VECTOR_DB_COLLECTION_NAME` env var is used.","default":"documents"},"vector_database":{"anyOf":[{"$ref":"#/components/schemas/VectorDatabase"},{"type":"null"}],"description":"Vector database to query from. If not provided, this comes from the env config.","default":{"type":"qdrant","config":{"api_key":"123456789","host":"http://localhost:6333"}}},"encoder":{"anyOf":[{"$ref":"#/components/schemas/EncoderConfig"},{"type":"null"}],"description":"Embeddings provider configuration. If not provided, this comes from the env config.","default":{"provider":"openai","encoder_model":"text-embedding-3-small","dimensions":1536}},"enable_rerank":{"anyOf":[{"type":"boolean"},{"type":"null"}],"title":"Enable Rerank","description":"Enable reranking of the results. *NOTE: `COHERE_API_KEY` env var is required to use this feature.*","default":false},"interpreter_mode":{"anyOf":[{"type":"boolean"},{"type":"null"}],"title":"Interpreter Mode","description":"Enable code interpreter mode.","default":false},"exclude_fields":{"anyOf":[{"items":{"type":"string"},"type":"array"},{"type":"null"}],"title":"Exclude Fields","description":"List of fields to exclude from the results."}},"type":"object","required":["input"],"title":"QueryRequestPayload"},"QueryResponsePayload":{"properties":{"success":{"type":"boolean","title":"Success"},"data":{"items":{"$ref":"#/components/schemas/BaseDocumentChunk"},"type":"array","title":"Data"}},"type":"object","required":["success","data"],"title":"QueryResponsePayload"},"RunnableConfig":{"properties":{"tags":{"items":{"type":"string"},"type":"array","title":"Tags"},"metadata":{"type":"object","title":"Metadata"},"callbacks":{"anyOf":[{"items":{},"type":"array"},{},{"type":"null"}],"title":"Callbacks"},"run_name":{"type":"string","title":"Run Name"},"max_concurrency":{"anyOf":[{"type":"integer"},{"type":"null"}],"title":"Max Concurrency"},"recursion_limit":{"type":"integer","title":"Recursion Limit"},"configurable":{"type":"object","title":"Configurable"},"run_id":{"anyOf":[{"type":"string","format":"uuid"},{"type":"null"}],"title":"Run Id"}},"type":"object","title":"RunnableConfig","description":"Configuration for a Runnable."},"RunnableConfigurableAlternativesConfig":{"properties":{"configurable":{"$ref":"#/components/schemas/Configurable"}},"type":"object","required":["configurable"],"title":"RunnableConfigurableAlternativesConfig"},"SplitterConfig":{"properties":{"name":{"type":"string","enum":["semantic","by_title"],"title":"Name","description":"Splitter method","default":"semantic"},"min_tokens":{"type":"integer","title":"Min Tokens","description":"Only for `semantic` method","default":30},"max_tokens":{"type":"integer","title":"Max Tokens","description":"Only for `semantic` and `recursive` methods","default":800},"rolling_window_size":{"type":"integer","title":"Rolling Window Size","description":"Only for `semantic` method, cumulative window size for comparing similarity between elements","default":1},"prefix_titles":{"type":"boolean","title":"Prefix Titles","description":"Add to prefix titles in chunk, only `semantic` method","default":true},"prefix_summary":{"type":"boolean","title":"Prefix Summary","description":"Add to split sub-document summary","default":true}},"type":"object","title":"SplitterConfig"},"Thread":{"properties":{"id":{"type":"string","format":"uuid","title":"Id","description":"A unique identifier for the thread. It's a UUID type and is automatically generated by the database."},"user_id":{"type":"string","title":"User Id","description":"The user id associated with the thread."},"assistant_id":{"anyOf":[{"type":"string","format":"uuid"},{"type":"null"}],"title":"Assistant Id","description":"(Optional) The assistant id associated with the thread."},"name":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Name","description":"(Optional) The conversation title of the thread."},"kwargs":{"anyOf":[{"type":"object"},{"type":"null"}],"title":"Kwargs","description":"(Optional) Additional kwargs associated with the thread."},"created_at":{"type":"string","format":"date-time","title":"Created At","description":"Created date"},"updated_at":{"type":"string","format":"date-time","title":"Updated At","description":"Last updated date"}},"type":"object","required":["id","user_id","created_at","updated_at"],"title":"Thread"},"ThreadPostRequest":{"properties":{"values":{"anyOf":[{"items":{"anyOf":[]},"type":"array"},{"type":"object"}],"title":"Values","description":"The state values to add to the thread. It can be a list of messages or a dictionary."},"config":{"anyOf":[{"type":"object"},{"type":"null"}],"title":"Config","description":"The configuration values to add to the thread. It can be a dictionary."}},"type":"object","required":["values"],"title":"ThreadPostRequest","description":"Payload for adding state to a thread."},"TitleRequest":{"properties":{"thread_id":{"type":"string","title":"Thread Id","description":"The id of the thread to generate the title for."},"history":{"anyOf":[{"items":{"$ref":"#/components/schemas/ChatMessage"},"type":"array"},{"type":"null"}],"title":"History","description":"(Optional) The conversation history of the thread. This is used as context for the model when generating the title."}},"type":"object","required":["thread_id"],"title":"TitleRequest"},"Tools":{"type":"string","enum":["DDG Search","Search (Tavily)","Search (short answer, Tavily)","Retrieval","Arxiv","PubMed","Wikipedia"],"title":"Tools"},"UnstructuredConfig":{"properties":{"partition_strategy":{"type":"string","enum":["auto","hi_res"],"title":"Partition Strategy","default":"auto"},"hi_res_model_name":{"type":"string","enum":["detectron2_onnx","chipper"],"title":"Hi Res Model Name","description":"Only for `hi_res` strategy","default":"detectron2_onnx"},"process_tables":{"type":"boolean","title":"Process Tables","description":"Only for `hi_res` strategy","default":false}},"type":"object","title":"UnstructuredConfig"},"UpdateAssistantSchema":{"properties":{"name":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Name","description":"The name of the assistant."},"config":{"anyOf":[{"type":"object"},{"type":"null"}],"title":"Config","description":"The assistant config, containing specific configuration parameters."},"kwargs":{"anyOf":[{"type":"object"},{"type":"null"}],"title":"Kwargs","description":"The assistant kwargs, containing any additional information about the assistant such as public vs internal, etc."},"file_ids":{"anyOf":[{"items":{"type":"string"},"type":"array"},{"type":"null"}],"title":"File Ids","description":"A list of file IDs to be associated with this assistant for use with Retrieval."},"public":{"anyOf":[{"type":"boolean"},{"type":"null"}],"title":"Public","description":"Whether the assistant is public.","default":false}},"type":"object","title":"UpdateAssistantSchema"},"UpdateMessageSchema":{"properties":{"assistant_id":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Assistant Id","description":"(Optional) The assistant id associated with the message."},"content":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Content","description":"(Optional) The content of the message."},"additional_kwargs":{"anyOf":[{"type":"object"},{"type":"null"}],"title":"Additional Kwargs","description":"(Optional) Additional keyword arguments associated with the message."}},"type":"object","title":"UpdateMessageSchema"},"UpdateThreadSchema":{"properties":{"assistant_id":{"anyOf":[{"type":"string","format":"uuid"},{"type":"null"}],"title":"Assistant Id","description":"(Optional) The assistant id associated with the thread."},"name":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Name","description":"(Optional) The conversation title of the thread."},"kwargs":{"anyOf":[{"type":"object"},{"type":"null"}],"title":"Kwargs","description":"(Optional) Additional kwargs associated with the thread."}},"type":"object","title":"UpdateThreadSchema"},"UpdateUserSchema":{"properties":{"username":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Username","description":"(Optional) The username chosen by the user. It's a string type and does not need to be unique across the userbase."},"password":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Password","description":"(Optional) The hashed password associated with the user's account. Only used when internal authentication is enabled."},"email":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Email","description":"(Optional) The email address associated with the user's account. It's a string type and is expected to be unique across the userbase"},"first_name":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"First Name","description":"(Optional) The first name of the user."},"last_name":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Last Name","description":"(Optional) The last name of the user."},"kwargs":{"anyOf":[{"type":"object"},{"type":"null"}],"title":"Kwargs","description":"(Optional) Additional kwargs associated with the user."}},"type":"object","title":"UpdateUserSchema"},"User":{"properties":{"user_id":{"type":"string","title":"User Id","description":"Unique identifier for the user to be used across the application. Set once when the user is created and cannot be updated thereafter. Can be used for correlating local user with external systems. Autogenerates if none is provided."},"username":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Username","description":"(Optional) The username chosen by the user. It's a string type and does not need to be unique across the userbase."},"email":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Email","description":"(Optional) The email address associated with the user's account. It's a string type and is expected to be unique across the userbase"},"first_name":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"First Name","description":"(Optional) The first name of the user."},"last_name":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Last Name","description":"(Optional) The last name of the user."},"kwargs":{"anyOf":[{"type":"object"},{"type":"null"}],"title":"Kwargs","description":"(Optional) Additional kwargs associated with the user."},"created_at":{"type":"string","format":"date-time","title":"Created At","description":"Created date"},"updated_at":{"type":"string","format":"date-time","title":"Updated At","description":"Last updated date"}},"type":"object","required":["user_id","created_at","updated_at"],"title":"User","description":"model representing a registered user in the application."},"ValidationError":{"properties":{"loc":{"items":{"anyOf":[{"type":"string"},{"type":"integer"}]},"type":"array","title":"Location"},"msg":{"type":"string","title":"Message"},"type":{"type":"string","title":"Error Type"}},"type":"object","required":["loc","msg","type"],"title":"ValidationError"},"VectorDatabase":{"properties":{"type":{"allOf":[{"$ref":"#/components/schemas/VectorDatabaseType"}],"description":"Vector database type. Must be one of VectorDatabaseType enum.","default":"qdrant"},"config":{"type":"object","title":"Config","description":"Vector database configuration object.","default":{"host":"http://localhost:6333","api_key":"123456789"}}},"type":"object","title":"VectorDatabase"},"VectorDatabaseType":{"type":"string","enum":["qdrant"],"const":"qdrant","title":"VectorDatabaseType"}},"securitySchemes":{"APIKeyHeader":{"type":"apiKey","in":"header","name":"X-API-KEY"}}}}
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "PersonaFlow",
+    "description": "PersonaFlow API",
+    "version": "0.1.0",
+    "x-logo": {
+      "url": "../../../assets/PersonaFlowIcon-512.png"
+    }
+  },
+  "paths": {
+    "/api/v1/runs/stream": {
+      "post": {
+        "tags": [
+          "Runs"
+        ],
+        "summary": "Stream an LLM run.",
+        "description": "Endpoint to stream an LLM response. If the thread_id is not provided, a new thread will be created as long as the assistant_id is included. \u003Cbr\u003E\n                Note that the input should be a list of messages in the format: \u003Cbr\u003E\n                content: string \u003Cbr\u003E\n                role: string \u003Cbr\u003E\n                additional_kwargs: dict \u003Cbr\u003E\n                example: bool \u003Cbr\u003E",
+        "operationId": "stream_run",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRunPayload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/runs": {
+      "post": {
+        "tags": [
+          "Runs"
+        ],
+        "summary": "Create a run",
+        "description": "Create a run to be processed by the LLM.",
+        "operationId": "create_run",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRunPayload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Create Run"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/runs/input_schema": {
+      "get": {
+        "tags": [
+          "Runs"
+        ],
+        "summary": "Return the input schema of the runnable.",
+        "description": "Return the input schema of the runnable.",
+        "operationId": "get_input_schema",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Get Input Schema"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/runs/output_schema": {
+      "get": {
+        "tags": [
+          "Runs"
+        ],
+        "summary": "Return the output schema of the runnable.",
+        "description": "Return the output schema of the runnable.",
+        "operationId": "get_output_schema",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Get Output Schema"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/runs/config_schema": {
+      "get": {
+        "tags": [
+          "Runs"
+        ],
+        "summary": "Return the config schema of the runnable.",
+        "description": "Return the config schema of the runnable.",
+        "operationId": "get_config_schema",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Get Config Schema"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/runs/title": {
+      "post": {
+        "tags": [
+          "Runs"
+        ],
+        "summary": "Generate a title to name the thread.",
+        "description": "Generates a title for the conversation by sending a list of interactions to the model.",
+        "operationId": "generate_title",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TitleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Thread"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/users/me": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Retrieve a specific user ",
+        "description": "GET endpoint to fetch details of the logged-in user.\n        USAGE: Admins can use this endpoint to retrieve details of a specific user.\n        TODO: Add RBAC for this endpoint.",
+        "operationId": "retrieve_me",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Delete a specific user ",
+        "description": "DELETE endpoint for removing the logged-in user from the system.\n                This will do a cascade delete on all threads and messages, but will not\n                effect assistants created by the user.",
+        "operationId": "delete_me",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Update a specific user ",
+        "description": "PATCH endpoint for updating the details of the logged-in user.",
+        "operationId": "update_me",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUpdateUserSchema"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/users/me/threads": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Retrieve threads by user ",
+        "description": "GET endpoint for fetching all threads associated with the logged-in user.",
+        "operationId": "retrieve_threads",
+        "parameters": [
+          {
+            "name": "grouped",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Group threads into date categories (eg. Today, Yesterday, etc.)",
+              "title": "Grouped"
+            },
+            "description": "Group threads into date categories (eg. Today, Yesterday, etc.)"
+          },
+          {
+            "name": "timezoneOffset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Timezone offset in minutes from UTC",
+              "title": "Timezoneoffset"
+            },
+            "description": "Timezone offset in minutes from UTC"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Thread"
+                      }
+                    },
+                    {
+                      "$ref": "#/components/schemas/GroupedThreads"
+                    }
+                  ],
+                  "title": "Response Retrieve Threads"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/threads": {
+      "post": {
+        "tags": [
+          "Threads"
+        ],
+        "summary": "Create a new thread",
+        "description": "Creates a new thread with the provided information. This can optionally be obtained from the api_key. If it is not set in the request, it will attempt to get it from the api_key.",
+        "operationId": "create_thread",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateThreadSchema"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Thread"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/threads/{thread_id}": {
+      "get": {
+        "tags": [
+          "Threads"
+        ],
+        "summary": "Retrieve a specific thread",
+        "description": "Retrieves detailed information about a thread identified by its ID.",
+        "operationId": "retrieve_thread",
+        "parameters": [
+          {
+            "name": "thread_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Thread Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Thread"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "Threads"
+        ],
+        "summary": "Update a specific thread",
+        "description": "Updates the information of a thread identified by its ID.",
+        "operationId": "update_thread",
+        "parameters": [
+          {
+            "name": "thread_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Thread Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateThreadSchema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Thread"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Threads"
+        ],
+        "summary": "Delete a specific thread",
+        "description": "Deletes a thread identified by its ID from the database.",
+        "operationId": "delete_thread",
+        "parameters": [
+          {
+            "name": "thread_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Thread Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/threads/{thread_id}/state": {
+      "get": {
+        "tags": [
+          "Threads"
+        ],
+        "summary": "Retrieve thread state",
+        "description": "Retrieves the state of a thread identified by its ID.",
+        "operationId": "retrieve_thread_state",
+        "parameters": [
+          {
+            "name": "thread_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Thread Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Threads"
+        ],
+        "summary": "Add thread state",
+        "description": "Adds the state of a thread identified by its ID.",
+        "operationId": "add_thread_state",
+        "parameters": [
+          {
+            "name": "thread_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Thread Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ThreadPostRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/threads/{thread_id}/history": {
+      "get": {
+        "tags": [
+          "Threads"
+        ],
+        "summary": "Get thread history",
+        "description": "Gets the history of the thread identified by its ID.",
+        "operationId": "get_thread_history",
+        "parameters": [
+          {
+            "name": "thread_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Thread Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/assistants": {
+      "get": {
+        "tags": [
+          "Assistants"
+        ],
+        "summary": "Retrieve user assistants",
+        "description": "Retrieves a list of the user's assistants.",
+        "operationId": "retrieve_user_assistants",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Assistant"
+                  },
+                  "type": "array",
+                  "title": "Response Retrieve User Assistants"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Assistants"
+        ],
+        "summary": "Create a new assistant",
+        "description": "Creates a new assistant with the specified details.",
+        "operationId": "create_assistant",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAssistantSchema"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Assistant"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/assistants/{assistant_id}": {
+      "get": {
+        "tags": [
+          "Assistants"
+        ],
+        "summary": "Retrieve a specific assistant",
+        "description": "Retrieves detailed information about a specific assistant by its ID.",
+        "operationId": "retrieve_assistant",
+        "parameters": [
+          {
+            "name": "assistant_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Assistant Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Assistant"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "Assistants"
+        ],
+        "summary": "Update a specific assistant",
+        "description": "Updates the details of a specific assistant by its ID.",
+        "operationId": "update_assistant",
+        "parameters": [
+          {
+            "name": "assistant_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Assistant Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAssistantSchema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Assistant"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Assistants"
+        ],
+        "summary": "Delete a specific assistant",
+        "description": "Deletes a specific assistant by its ID from the database.",
+        "operationId": "delete_assistant",
+        "parameters": [
+          {
+            "name": "assistant_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Assistant Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/assistants/{assistant_id}/files": {
+      "post": {
+        "tags": [
+          "Assistants"
+        ],
+        "summary": "Add an uploaded file to an assistant for RAG.",
+        "description": "Convenience method to add an uploaded file to an assistant for RAG ingestion and retrieval",
+        "operationId": "create_assistant_file",
+        "parameters": [
+          {
+            "name": "assistant_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Assistant Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAssistantFileSchema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateAssistantFileSchemaResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "Assistants"
+        ],
+        "summary": "Retrieve file information for all files associated with an assistant",
+        "description": "Returns a list of file objects for all files associated with an assistant.",
+        "operationId": "retrieve_assistant_files",
+        "parameters": [
+          {
+            "name": "assistant_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Assistant Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "desc",
+              "title": "Order"
+            }
+          },
+          {
+            "name": "before",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Before"
+            }
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "After"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FileSchema"
+                  },
+                  "title": "Response Retrieve Assistant Files"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/assistants/{assistant_id}/files/{file_id}": {
+      "delete": {
+        "tags": [
+          "Assistants"
+        ],
+        "summary": "Remove a file from an assistant",
+        "description": "Removes a file from an assistant by its ID. This also deletes the corresponding documents from the vector store.",
+        "operationId": "delete_assistant_file",
+        "parameters": [
+          {
+            "name": "assistant_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Assistant Id"
+            }
+          },
+          {
+            "name": "file_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "File Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Assistant"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/rag/ingest": {
+      "post": {
+        "tags": [
+          "RAG"
+        ],
+        "summary": "Ingest files to be indexed and queried.",
+        "description": "Upload files for ingesting using the advanced RAG system.",
+        "operationId": "ingest_data_from_files",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IngestRequestPayload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Ingest Data From Files"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/rag/query": {
+      "post": {
+        "tags": [
+          "RAG"
+        ],
+        "summary": "Query documents",
+        "description": "Query ingested documents using advanced RAG system with unstructured library. \u003Cbr\u003E",
+        "operationId": "query_documents",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QueryRequestPayload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueryResponsePayload"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/rag/query-lc-retriever": {
+      "post": {
+        "tags": [
+          "RAG"
+        ],
+        "summary": "Query Lc Retriever",
+        "operationId": "query_lc_retriever_api_v1_rag_query_lc_retriever_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QueryRequestPayload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/files": {
+      "post": {
+        "tags": [
+          "Files"
+        ],
+        "summary": "Upload a file",
+        "description": "Uploads a file that can be used across various endpoints. \u003Cbr\u003E NOTE: MUST INCLUDE `user_id`",
+        "operationId": "upload_file",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_file"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "Files"
+        ],
+        "summary": "Retrieve files",
+        "description": "Retrieves a list of files.",
+        "operationId": "retrieve_files_for_user",
+        "parameters": [
+          {
+            "name": "purpose",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Purpose"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FileSchema"
+                  },
+                  "title": "Response Retrieve Files For User"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/files/{file_id}": {
+      "get": {
+        "tags": [
+          "Files"
+        ],
+        "summary": "Retrieve file information",
+        "description": "Retrieves information about a specific file by its ID.",
+        "operationId": "retrieve_file",
+        "parameters": [
+          {
+            "name": "file_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "File Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Files"
+        ],
+        "summary": "Delete a specific file",
+        "description": "Deletes a specific file by its ID from the database and file system. When a file is deleted, it is also removed from any assistants that may be using it and all associated embeddings are deleted from the vector store.",
+        "operationId": "delete_file",
+        "parameters": [
+          {
+            "name": "file_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "File Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteFileResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/files/{file_id}/content": {
+      "get": {
+        "tags": [
+          "Files"
+        ],
+        "summary": "Retrieve the content of a specific file",
+        "description": "Retrieves the content of a specific file by its ID. Returns a downloadable file.",
+        "operationId": "retrieve_file_content",
+        "parameters": [
+          {
+            "name": "file_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "File Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/auth_strategies": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Get enabled authentication strategies",
+        "description": "Returns a list of enabled authentication strategies.",
+        "operationId": "get_auth_strategies",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ListAuthStrategy"
+                  },
+                  "type": "array",
+                  "title": "Response Get Auth Strategies"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Login",
+        "description": "Logs user in, performing auth according to auth strategy.",
+        "operationId": "login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Login"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/JWTResponse"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Response Login"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/{strategy}/auth": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Authorize",
+        "description": "Callback authorization endpoint used for OAuth providers after authenticating on the provider's login screen.",
+        "operationId": "authorize",
+        "parameters": [
+          {
+            "name": "strategy",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Strategy"
+            }
+          },
+          {
+            "name": "code",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Code returned by OAuth provider.",
+              "title": "Code"
+            },
+            "description": "Code returned by OAuth provider."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JWTResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/logout": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Logout",
+        "description": "Logs user out, adding the given JWT token to the blacklist.",
+        "operationId": "logout",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Logout"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/users": {
+      "get": {
+        "tags": [
+          "Users (Admin)"
+        ],
+        "summary": "List all users ",
+        "description": "GET endpoint at `/users` for listing all users.\n                TODO: Add access control for this endpoint.",
+        "operationId": "retrieve_all_users",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/User"
+                  },
+                  "type": "array",
+                  "title": "Response Retrieve All Users"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Users (Admin)"
+        ],
+        "summary": "Create a new user",
+        "description": "POST endpoint at `/users` for creating a new user.\n                If `user_id` is not present, the database will auto-generate a new UUID for the field.\n                This is intended to allow for internal users to be correlated with external systems while not exposing the internal database record id for the user.\n                TODO: Add access control for this endpoint.",
+        "operationId": "create_user",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUpdateUserSchema"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/users/{user_id}": {
+      "get": {
+        "tags": [
+          "Users (Admin)"
+        ],
+        "summary": "Retrieve a specific user",
+        "description": "GET endpoint at `/users/{user_id}` for fetching details of a specific user using its user_id.\n        USAGE: Admins can use this endpoint to retrieve details of a specific user.\n        TODO: Add access control for this endpoint.",
+        "operationId": "retrieve_user",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "Users (Admin)"
+        ],
+        "summary": "Update a specific user ",
+        "description": "PATCH endpoint at `/{user_id}` for updating the details of a specific user.\n        USAGE: Admins can use this endpoint to update the details of a specific user.\n        TODO: Add access control for this endpoint.",
+        "operationId": "update_user",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUpdateUserSchema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Users (Admin)"
+        ],
+        "summary": "Delete a specific user ",
+        "description": "DELETE endpoint at `/users/{user_id}` for removing a specific user using its `user_id`.\n                USAGE: Admins can use this endpoint to delete a specific user.\n                TODO: Add access control for this endpoint.",
+        "operationId": "delete_user",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/users/{user_id}/threads": {
+      "get": {
+        "tags": [
+          "Users (Admin)"
+        ],
+        "summary": "Retrieve threads by user ",
+        "description": "GET endpoint at `/users/{user_id}/threads` for fetching all threads associated with a specific user using its id. \u003Cbr\u003E\n                USAGE: Admins can use this endpoint to retrieve all threads associated with a specific user.\n                TODO: Add access control for this endpoint.",
+        "operationId": "retrieve_user_threads",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "User Id"
+            }
+          },
+          {
+            "name": "grouped",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Grouped"
+            }
+          },
+          {
+            "name": "timezoneOffset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Timezoneoffset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Thread"
+                      }
+                    },
+                    {
+                      "$ref": "#/components/schemas/GroupedThreads"
+                    }
+                  ],
+                  "title": "Response Retrieve User Threads"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/users/threads": {
+      "get": {
+        "tags": [
+          "Users (Admin)"
+        ],
+        "summary": "Retrieve all threads",
+        "description": "Retrieves a list of all threads in the database.\n                Should be used as an admin operation. \u003Cbr\u003E\n                TODO: Add access control for this endpoint.",
+        "operationId": "retrieve_all_threads",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Thread"
+                  },
+                  "type": "array",
+                  "title": "Response Retrieve All Threads"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/users/{user_id}/assistants": {
+      "get": {
+        "tags": [
+          "Users (Admin)"
+        ],
+        "summary": "Retrieve user assistants",
+        "description": "Retrieves a list of the user's assistants.",
+        "operationId": "retrieve_user_assistants",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Assistant"
+                  },
+                  "title": "Response Retrieve User Assistants"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/health_check": {
+      "get": {
+        "tags": [
+          "Health Check"
+        ],
+        "summary": "Health Check",
+        "operationId": "health_check_api_v1_health_check_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AgentType": {
+        "type": "string",
+        "enum": [
+          "GPT 3.5 Turbo",
+          "GPT 4 Turbo",
+          "GPT 4o",
+          "GPT 4 (Azure OpenAI)",
+          "Claude 2",
+          "Claude 2 (Amazon Bedrock)",
+          "GEMINI",
+          "Ollama"
+        ],
+        "title": "AgentType"
+      },
+      "Assistant": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id",
+            "description": "A unique identifier for the assistant. It's a UUID type and is automatically generated by the database."
+          },
+          "user_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Id",
+            "description": "The user id that created the assistant."
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Name",
+            "description": "The name of the assistant."
+          },
+          "config": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RunnableConfigurableAlternativesConfig"
+              }
+            ],
+            "description": "The assistant config, containing specific configuration parameters."
+          },
+          "kwargs": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kwargs",
+            "description": "The assistant kwargs, containing any additional information about the assistant such as public vs internal, etc."
+          },
+          "file_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "File Ids",
+            "description": "A list of file IDs to be associated with this assistant for use with Retrieval."
+          },
+          "public": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Public",
+            "description": "Whether the assistant is public.",
+            "default": false
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Created date"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At",
+            "description": "Last updated date"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "config",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "Assistant"
+      },
+      "BaseDocumentChunk": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "document_id": {
+            "type": "string",
+            "title": "Document Id"
+          },
+          "page_content": {
+            "type": "string",
+            "title": "Page Content"
+          },
+          "file_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "File Id"
+          },
+          "namespace": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Namespace"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "source_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Type"
+          },
+          "chunk_index": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chunk Index"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "purpose": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ContextType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "token_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Token Count"
+          },
+          "page_number": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page Number"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metadata"
+          },
+          "dense_embedding": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "number"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dense Embedding"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "document_id",
+          "page_content"
+        ],
+        "title": "BaseDocumentChunk"
+      },
+      "Body_upload_file": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "title": "File",
+            "description": "The file to upload."
+          },
+          "purpose": {
+            "type": "string",
+            "title": "Purpose",
+            "description": "The purpose of the file: 'assistants', 'threads', or 'personas'."
+          },
+          "filename": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filename",
+            "description": "The preferred name for the file."
+          },
+          "kwargs": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kwargs",
+            "description": "Any additonal metadata to include for this file. This should be a JSON string."
+          }
+        },
+        "type": "object",
+        "required": [
+          "file",
+          "purpose"
+        ],
+        "title": "Body_upload_file"
+      },
+      "BotType": {
+        "type": "string",
+        "enum": [
+          "chatbot",
+          "chat_retrieval",
+          "agent"
+        ],
+        "title": "BotType"
+      },
+      "ChatMessage": {
+        "properties": {
+          "content": {
+            "type": "string",
+            "title": "Content"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "content",
+          "type"
+        ],
+        "title": "ChatMessage"
+      },
+      "Configurable": {
+        "properties": {
+          "type": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BotType"
+              }
+            ],
+            "title": "Bot Type",
+            "description": "The type of bot.",
+            "default": "agent"
+          },
+          "agent_type": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AgentType"
+              }
+            ],
+            "title": "Agent Type",
+            "description": "The type of agent, applicable if the bot type is 'agent'.",
+            "default": "GPT 3.5 Turbo"
+          },
+          "interrupt_before_action": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tool Confirmation",
+            "description": "If set to True, you'll be prompted to continue before each tool is executed. If False, tools will be executed automatically by the agent.",
+            "default": false
+          },
+          "retrieval_description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieval Description",
+            "description": "Tool description providing instructions to the LLM for it's use.",
+            "default": "Can be used to look up information that was uploaded for this assistant."
+          },
+          "system_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Instructions",
+            "description": "Instructions for the assistant.",
+            "default": "You are a helpful assistant."
+          },
+          "tools": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/Tools"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tools",
+            "description": "List of tools available for the agent.",
+            "default": []
+          },
+          "llm_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LLMType"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "LLM Type",
+            "description": "The type of language model, applicable if the bot type is 'chat_retrieval' or 'chatbot'.",
+            "default": "GPT 3.5 Turbo"
+          }
+        },
+        "type": "object",
+        "title": "Configurable"
+      },
+      "ContextType": {
+        "type": "string",
+        "enum": [
+          "assistants",
+          "threads",
+          "rag",
+          "personas"
+        ],
+        "title": "ContextType",
+        "description": "Context where files or generated embeddings are used."
+      },
+      "CreateAssistantFileSchema": {
+        "properties": {
+          "file_id": {
+            "type": "string",
+            "title": "File Id",
+            "description": "The file ID to be associated with the assistant."
+          }
+        },
+        "type": "object",
+        "required": [
+          "file_id"
+        ],
+        "title": "CreateAssistantFileSchema"
+      },
+      "CreateAssistantFileSchemaResponse": {
+        "properties": {
+          "file_id": {
+            "type": "string",
+            "title": "File Id",
+            "description": "The file ID to be associated with the assistant."
+          },
+          "assistant_id": {
+            "type": "string",
+            "title": "Assistant Id",
+            "description": "The assistant ID to which the file was associated."
+          }
+        },
+        "type": "object",
+        "required": [
+          "file_id",
+          "assistant_id"
+        ],
+        "title": "CreateAssistantFileSchemaResponse"
+      },
+      "CreateAssistantSchema": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Name",
+            "description": "The name of the assistant."
+          },
+          "config": {
+            "type": "object",
+            "title": "Config",
+            "description": "The assistant config, containing specific configuration parameters."
+          },
+          "kwargs": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kwargs",
+            "description": "The assistant kwargs, containing any additional information about the assistant such as public vs internal, etc."
+          },
+          "file_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "File Ids",
+            "description": "A list of file IDs to be associated with this assistant for use with Retrieval."
+          },
+          "public": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Public",
+            "description": "Whether the assistant is public.",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "config"
+        ],
+        "title": "CreateAssistantSchema"
+      },
+      "CreateRunPayload": {
+        "properties": {
+          "assistant_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assistant Id"
+          },
+          "thread_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Thread Id"
+          },
+          "input": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Input"
+          },
+          "config": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RunnableConfig"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "input"
+        ],
+        "title": "CreateRunPayload",
+        "description": "Payload for creating a run."
+      },
+      "CreateThreadSchema": {
+        "properties": {
+          "assistant_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Assistant Id",
+            "description": "(Optional) The assistant id associated with the thread."
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name",
+            "description": "(Optional) The conversation title of the thread."
+          },
+          "kwargs": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kwargs",
+            "description": "(Optional) Additional kwargs associated with the thread."
+          }
+        },
+        "type": "object",
+        "required": [
+          "assistant_id"
+        ],
+        "title": "CreateThreadSchema"
+      },
+      "CreateUpdateUserSchema": {
+        "properties": {
+          "username": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Username",
+            "description": "(Optional) The username chosen by the user. It's a string type and does not need to be unique across the userbase."
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email",
+            "description": "(Optional) The email address associated with the user's account. It's a string type and is expected to be unique across the userbase"
+          },
+          "first_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Name",
+            "description": "(Optional) The first name of the user."
+          },
+          "last_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Name",
+            "description": "(Optional) The last name of the user."
+          },
+          "kwargs": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kwargs",
+            "description": "(Optional) Additional kwargs associated with the user."
+          },
+          "password": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Password",
+            "description": "(Optional) Password for the new user account."
+          },
+          "user_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Id",
+            "description": "Identifier for the user to be used across the application. Can be used for correlating local user with external systems. Autogenerates if none is provided."
+          }
+        },
+        "type": "object",
+        "title": "CreateUpdateUserSchema"
+      },
+      "DeleteFileResponse": {
+        "properties": {
+          "file_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "File Id",
+            "description": "The ID of the file that was deleted."
+          },
+          "num_of_deleted_chunks": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Num Of Deleted Chunks",
+            "description": "The number of chunks deleted from the vector store for this file."
+          },
+          "num_of_assistants": {
+            "type": "integer",
+            "title": "Num Of Assistants",
+            "description": "The number of assistants that were using this file, of which the file was removed."
+          },
+          "assistants": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Assistants",
+            "description": "A list of the IDs and names of the asistants that were using this file, of which the file was removed."
+          }
+        },
+        "type": "object",
+        "required": [
+          "file_id",
+          "num_of_assistants",
+          "assistants"
+        ],
+        "title": "DeleteFileResponse"
+      },
+      "DocumentProcessorConfig": {
+        "properties": {
+          "summarize": {
+            "type": "boolean",
+            "title": "Summarize",
+            "description": "Create a separate collection of document summaries",
+            "default": false
+          },
+          "encoder": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EncoderConfig"
+              }
+            ],
+            "description": "Embeddings provider coniguration. If not provided, this comes from the env config.",
+            "default": {
+              "provider": "openai",
+              "encoder_model": "text-embedding-3-small",
+              "dimensions": 1536
+            }
+          },
+          "unstructured": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UnstructuredConfig"
+              }
+            ],
+            "description": "UnstructuredIO configuration. If not provided, this comes from the env config.",
+            "default": {
+              "partition_strategy": "auto",
+              "hi_res_model_name": "detectron2_onnx",
+              "process_tables": false
+            }
+          },
+          "splitter": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SplitterConfig"
+              }
+            ],
+            "description": "Document partition manager configuration. If not provided, this comes from the env config.",
+            "default": {
+              "name": "semantic",
+              "min_tokens": 30,
+              "max_tokens": 800,
+              "rolling_window_size": 1,
+              "prefix_titles": true,
+              "prefix_summary": true
+            }
+          }
+        },
+        "type": "object",
+        "title": "DocumentProcessorConfig"
+      },
+      "EncoderConfig": {
+        "properties": {
+          "provider": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EncoderProvider"
+              }
+            ],
+            "description": "Embedding provider",
+            "default": "openai"
+          },
+          "encoder_model": {
+            "type": "string",
+            "title": "Encoder Model",
+            "description": "Model name for the encoder",
+            "default": "text-embedding-3-small"
+          },
+          "dimensions": {
+            "type": "integer",
+            "title": "Dimensions",
+            "description": "Dimension of the encoder output",
+            "default": 1536
+          }
+        },
+        "type": "object",
+        "title": "EncoderConfig"
+      },
+      "EncoderProvider": {
+        "type": "string",
+        "enum": [
+          "cohere",
+          "openai",
+          "huggingface",
+          "azure_openai",
+          "mistral",
+          "ollama"
+        ],
+        "title": "EncoderProvider"
+      },
+      "FileSchema": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id",
+            "description": "A unique identifier for the file. It's a UUID type and is automatically generated by the database."
+          },
+          "user_id": {
+            "type": "string",
+            "title": "User Id",
+            "description": "The ID of the user who created the file."
+          },
+          "purpose": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ContextType"
+              }
+            ],
+            "description": "The context for file: eg. 'assistants', 'rag', 'threads', or 'personas'."
+          },
+          "filename": {
+            "type": "string",
+            "title": "Filename",
+            "description": "The preferred name for the file."
+          },
+          "bytes": {
+            "type": "integer",
+            "title": "Bytes",
+            "description": "The file size in bytes, calculated when the file is uploaded."
+          },
+          "mime_type": {
+            "type": "string",
+            "title": "Mime Type",
+            "description": "The mime type of the file."
+          },
+          "source": {
+            "type": "string",
+            "title": "Source",
+            "description": "The source of the file. For local files, this will be the local file path plus filename and extension."
+          },
+          "kwargs": {
+            "type": "object",
+            "title": "Kwargs",
+            "description": "Any additional kwargs for the file."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Created date"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At",
+            "description": "Last updated date"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "user_id",
+          "purpose",
+          "filename",
+          "bytes",
+          "mime_type",
+          "source",
+          "kwargs",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "FileSchema"
+      },
+      "GroupedThreads": {
+        "properties": {
+          "Today": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/Thread"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Today"
+          },
+          "Yesterday": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/Thread"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Yesterday"
+          },
+          "Past 7 Days": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/Thread"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Past 7 Days"
+          },
+          "Past 30 Days": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/Thread"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Past 30 Days"
+          },
+          "This Year": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/Thread"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "This Year"
+          },
+          "Previous Years": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/Thread"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previous Years"
+          }
+        },
+        "type": "object",
+        "title": "GroupedThreads",
+        "description": "Grouped threads by time period."
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "IngestRequestPayload": {
+        "properties": {
+          "files": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Files",
+            "description": "An array of file ids to ingest"
+          },
+          "purpose": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ContextType"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Context of where the embeddings will be used.",
+            "default": "assistants"
+          },
+          "index_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Index Name",
+            "description": "Name of the vector database follection to ingest the files into. If not provided, the `VECTOR_DB_COLLECTION_NAME` env var is used.",
+            "default": "documents"
+          },
+          "namespace": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Namespace",
+            "description": "Context of the embeddings: This is the assistant_id, thread_id, file_id, or random uuid that is used for filtering the results."
+          },
+          "vector_database": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/VectorDatabase"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Vector database to store the embeddings. If not provided, this comes from the env config.",
+            "default": {
+              "type": "\"qdrant\" # only qdrant currently supported",
+              "config": {
+                "api_key": "\"123456789\" # change this to something secure",
+                "host": "http://localhost:6333"
+              }
+            }
+          },
+          "document_processor": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DocumentProcessorConfig"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Document processor configuration. If not provided, this comes from the env config.",
+            "default": {
+              "summarize": false,
+              "encoder": {
+                "dimensions": 1536,
+                "encoder_model": "text-embedding-3-small",
+                "provider": "openai"
+              },
+              "unstructured": {
+                "hi_res_model_name": "detectron2_onnx",
+                "partition_strategy": "auto",
+                "process_tables": false
+              },
+              "splitter": {
+                "max_tokens": 800,
+                "min_tokens": 30,
+                "name": "semantic",
+                "prefix_summary": true,
+                "prefix_titles": true,
+                "rolling_window_size": 1
+              }
+            }
+          },
+          "webhook_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Webhook Url",
+            "description": "Webhook url to send the notification to when the ingestion is completed."
+          }
+        },
+        "type": "object",
+        "required": [
+          "files"
+        ],
+        "title": "IngestRequestPayload"
+      },
+      "JWTResponse": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "title": "Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token"
+        ],
+        "title": "JWTResponse"
+      },
+      "LLMType": {
+        "type": "string",
+        "enum": [
+          "GPT 3.5 Turbo",
+          "GPT 4",
+          "GPT 4o",
+          "GPT 4 (Azure OpenAI)",
+          "Claude 2",
+          "Claude 2 (Amazon Bedrock)",
+          "GEMINI",
+          "Mixtral",
+          "Ollama"
+        ],
+        "title": "LLMType"
+      },
+      "ListAuthStrategy": {
+        "properties": {
+          "strategy": {
+            "type": "string",
+            "title": "Strategy"
+          },
+          "client_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Id"
+          },
+          "authorization_endpoint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Authorization Endpoint"
+          },
+          "pkce_enabled": {
+            "type": "boolean",
+            "title": "Pkce Enabled"
+          }
+        },
+        "type": "object",
+        "required": [
+          "strategy",
+          "client_id",
+          "authorization_endpoint",
+          "pkce_enabled"
+        ],
+        "title": "ListAuthStrategy"
+      },
+      "Login": {
+        "properties": {
+          "strategy": {
+            "type": "string",
+            "title": "Strategy"
+          },
+          "payload": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payload"
+          }
+        },
+        "type": "object",
+        "required": [
+          "strategy"
+        ],
+        "title": "Login"
+      },
+      "Logout": {
+        "properties": {
+
+        },
+        "type": "object",
+        "title": "Logout"
+      },
+      "QueryRequestPayload": {
+        "properties": {
+          "input": {
+            "type": "string",
+            "title": "Input",
+            "description": "Input text to query"
+          },
+          "namespace": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Namespace",
+            "description": "Context of the query: This is the assistant_id, thread_id, file_id, or random uuid that is used for filtering the results."
+          },
+          "context": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ContextType"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Context of where the embeddings will be used.",
+            "default": "assistants"
+          },
+          "index_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Index Name",
+            "description": "Name of the vector database follection to query from. If not provided, the `VECTOR_DB_COLLECTION_NAME` env var is used.",
+            "default": "documents"
+          },
+          "vector_database": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/VectorDatabase"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Vector database to query from. If not provided, this comes from the env config.",
+            "default": {
+              "type": "\"qdrant\" # only qdrant currently supported",
+              "config": {
+                "api_key": "\"123456789\" # change this to something secure",
+                "host": "http://localhost:6333"
+              }
+            }
+          },
+          "encoder": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EncoderConfig"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Embeddings provider configuration. If not provided, this comes from the env config.",
+            "default": {
+              "provider": "openai",
+              "encoder_model": "text-embedding-3-small",
+              "dimensions": 1536
+            }
+          },
+          "enable_rerank": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enable Rerank",
+            "description": "Enable reranking of the results. *NOTE: `COHERE_API_KEY` env var is required to use this feature.*",
+            "default": false
+          },
+          "interpreter_mode": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interpreter Mode",
+            "description": "Enable code interpreter mode.",
+            "default": false
+          },
+          "exclude_fields": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exclude Fields",
+            "description": "List of fields to exclude from the results."
+          }
+        },
+        "type": "object",
+        "required": [
+          "input"
+        ],
+        "title": "QueryRequestPayload"
+      },
+      "QueryResponsePayload": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "title": "Success"
+          },
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/BaseDocumentChunk"
+            },
+            "type": "array",
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "success",
+          "data"
+        ],
+        "title": "QueryResponsePayload"
+      },
+      "RunnableConfig": {
+        "properties": {
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tags"
+          },
+          "metadata": {
+            "type": "object",
+            "title": "Metadata"
+          },
+          "callbacks": {
+            "anyOf": [
+              {
+                "items": {
+
+                },
+                "type": "array"
+              },
+              {
+
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Callbacks"
+          },
+          "run_name": {
+            "type": "string",
+            "title": "Run Name"
+          },
+          "max_concurrency": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Concurrency"
+          },
+          "recursion_limit": {
+            "type": "integer",
+            "title": "Recursion Limit"
+          },
+          "configurable": {
+            "type": "object",
+            "title": "Configurable"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          }
+        },
+        "type": "object",
+        "title": "RunnableConfig",
+        "description": "Configuration for a Runnable."
+      },
+      "RunnableConfigurableAlternativesConfig": {
+        "properties": {
+          "configurable": {
+            "$ref": "#/components/schemas/Configurable"
+          }
+        },
+        "type": "object",
+        "required": [
+          "configurable"
+        ],
+        "title": "RunnableConfigurableAlternativesConfig"
+      },
+      "SplitterConfig": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "enum": [
+              "semantic",
+              "by_title"
+            ],
+            "title": "Name",
+            "description": "Splitter method",
+            "default": "semantic"
+          },
+          "min_tokens": {
+            "type": "integer",
+            "title": "Min Tokens",
+            "description": "Only for `semantic` method",
+            "default": 30
+          },
+          "max_tokens": {
+            "type": "integer",
+            "title": "Max Tokens",
+            "description": "Only for `semantic` and `recursive` methods",
+            "default": 800
+          },
+          "rolling_window_size": {
+            "type": "integer",
+            "title": "Rolling Window Size",
+            "description": "Only for `semantic` method, cumulative window size for comparing similarity between elements",
+            "default": 1
+          },
+          "prefix_titles": {
+            "type": "boolean",
+            "title": "Prefix Titles",
+            "description": "Add to prefix titles in chunk, only `semantic` method",
+            "default": true
+          },
+          "prefix_summary": {
+            "type": "boolean",
+            "title": "Prefix Summary",
+            "description": "Add to split sub-document summary",
+            "default": true
+          }
+        },
+        "type": "object",
+        "title": "SplitterConfig"
+      },
+      "Thread": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id",
+            "description": "A unique identifier for the thread. It's a UUID type and is automatically generated by the database."
+          },
+          "user_id": {
+            "type": "string",
+            "title": "User Id",
+            "description": "The user id associated with the thread."
+          },
+          "assistant_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assistant Id",
+            "description": "(Optional) The assistant id associated with the thread."
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name",
+            "description": "(Optional) The conversation title of the thread."
+          },
+          "kwargs": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kwargs",
+            "description": "(Optional) Additional kwargs associated with the thread."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Created date"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At",
+            "description": "Last updated date"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "user_id",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "Thread"
+      },
+      "ThreadPostRequest": {
+        "properties": {
+          "values": {
+            "anyOf": [
+              {
+                "items": {
+                  "anyOf": []
+                },
+                "type": "array"
+              },
+              {
+                "type": "object"
+              }
+            ],
+            "title": "Values",
+            "description": "The state values to add to the thread. It can be a list of messages or a dictionary."
+          },
+          "config": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Config",
+            "description": "The configuration values to add to the thread. It can be a dictionary."
+          }
+        },
+        "type": "object",
+        "required": [
+          "values"
+        ],
+        "title": "ThreadPostRequest",
+        "description": "Payload for adding state to a thread."
+      },
+      "TitleRequest": {
+        "properties": {
+          "thread_id": {
+            "type": "string",
+            "title": "Thread Id",
+            "description": "The id of the thread to generate the title for."
+          },
+          "history": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ChatMessage"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "History",
+            "description": "(Optional) The conversation history of the thread. This is used as context for the model when generating the title."
+          }
+        },
+        "type": "object",
+        "required": [
+          "thread_id"
+        ],
+        "title": "TitleRequest"
+      },
+      "Tools": {
+        "type": "string",
+        "enum": [
+          "DDG Search",
+          "Search (Tavily)",
+          "Search (short answer, Tavily)",
+          "Retrieval",
+          "Arxiv",
+          "PubMed",
+          "Wikipedia"
+        ],
+        "title": "Tools"
+      },
+      "UnstructuredConfig": {
+        "properties": {
+          "partition_strategy": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "hi_res"
+            ],
+            "title": "Partition Strategy",
+            "default": "auto"
+          },
+          "hi_res_model_name": {
+            "type": "string",
+            "enum": [
+              "detectron2_onnx",
+              "chipper"
+            ],
+            "title": "Hi Res Model Name",
+            "description": "Only for `hi_res` strategy",
+            "default": "detectron2_onnx"
+          },
+          "process_tables": {
+            "type": "boolean",
+            "title": "Process Tables",
+            "description": "Only for `hi_res` strategy",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "UnstructuredConfig"
+      },
+      "UpdateAssistantSchema": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name",
+            "description": "The name of the assistant."
+          },
+          "config": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Config",
+            "description": "The assistant config, containing specific configuration parameters."
+          },
+          "kwargs": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kwargs",
+            "description": "The assistant kwargs, containing any additional information about the assistant such as public vs internal, etc."
+          },
+          "file_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "File Ids",
+            "description": "A list of file IDs to be associated with this assistant for use with Retrieval."
+          },
+          "public": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Public",
+            "description": "Whether the assistant is public.",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "UpdateAssistantSchema"
+      },
+      "UpdateThreadSchema": {
+        "properties": {
+          "assistant_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assistant Id",
+            "description": "(Optional) The assistant id associated with the thread."
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name",
+            "description": "(Optional) The conversation title of the thread."
+          },
+          "kwargs": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kwargs",
+            "description": "(Optional) Additional kwargs associated with the thread."
+          }
+        },
+        "type": "object",
+        "title": "UpdateThreadSchema"
+      },
+      "User": {
+        "properties": {
+          "username": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Username",
+            "description": "(Optional) The username chosen by the user. It's a string type and does not need to be unique across the userbase."
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email",
+            "description": "(Optional) The email address associated with the user's account. It's a string type and is expected to be unique across the userbase"
+          },
+          "first_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Name",
+            "description": "(Optional) The first name of the user."
+          },
+          "last_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Name",
+            "description": "(Optional) The last name of the user."
+          },
+          "kwargs": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kwargs",
+            "description": "(Optional) Additional kwargs associated with the user."
+          },
+          "user_id": {
+            "type": "string",
+            "title": "User Id",
+            "description": "Unique identifier for the user to be used across the application. Set once when the user is created and cannot be updated thereafter. Can be used for correlating local user with external systems. Autogenerates if none is provided."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Created date"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At",
+            "description": "Last updated date"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "User",
+        "description": "Model representing a registered user in the application."
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "VectorDatabase": {
+        "properties": {
+          "type": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/VectorDatabaseType"
+              }
+            ],
+            "description": "Vector database type. Must be one of VectorDatabaseType enum.",
+            "default": "\"qdrant\" # only qdrant currently supported"
+          },
+          "config": {
+            "type": "object",
+            "title": "Config",
+            "description": "Vector database configuration object.",
+            "default": {
+              "host": "http://localhost:6333",
+              "api_key": "\"123456789\" # change this to something secure"
+            }
+          }
+        },
+        "type": "object",
+        "title": "VectorDatabase"
+      },
+      "VectorDatabaseType": {
+        "type": "string",
+        "enum": [
+          "qdrant"
+        ],
+        "const": "qdrant",
+        "title": "VectorDatabaseType"
+      }
+    },
+    "securitySchemes": {
+      "Bearer Auth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}

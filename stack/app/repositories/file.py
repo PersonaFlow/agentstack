@@ -53,7 +53,7 @@ class FileRepository(BaseRepository):
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
             logger.exception(
-                f"Failed to create file due to a database error.",
+                f"Failed to create file due to a database error: {e}.",
                 exc_info=True,
                 file_data=data,
             )

@@ -106,6 +106,7 @@ async def login(
 
 @router.post(
     "/{strategy}/auth",
+    tags=[DEFAULT_TAG],
     response_model=JWTResponse,
     operation_id="authorize",
     summary="Authorize",
