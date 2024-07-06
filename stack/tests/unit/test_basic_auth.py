@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import patch, MagicMock
-
+from stack.app.core.auth import auth_config
 from stack.app.core.auth.jwt import JWTService
 from stack.app.repositories.blacklist import BlacklistRepository, get_blacklist_repository
 from stack.app.repositories.user import UserRepository, get_user_repository
@@ -13,15 +13,25 @@ from starlette.testclient import TestClient
 app = create_app(Settings())
 client = TestClient(app)
 
+@pytest.fixture(autouse=True)
+def mock_auth_config():
+    with patch.object(auth_config, "ENABLED_AUTH_STRATEGY_MAPPING", {"Basic": BasicAuthentication()}):
+        yield
+
+
+@pytest.fixture
+def random_hashed_password():
+    return b"$2b$12$testhashedpassword"
 
 async def test__login__success(random_schema_user):
     user_repository = MagicMock(UserRepository)
+
     with patch.object(user_repository, "retrieve_user_by_email", return_value=random_schema_user):
         with patch.object(BasicAuthentication, "check_password", return_value=True):
             app.dependency_overrides[get_user_repository] = passthrough(user_repository)
 
             response = client.post(
-                "/api/v1/login",
+                "/api/v1/auth/login",
                 json={
                     "strategy": "Basic",
                     "payload": {"email": "test@gmail.com", "password": "abcd"},
@@ -38,7 +48,7 @@ async def test__login__invalid_password(random_schema_user):
             app.dependency_overrides[get_user_repository] = passthrough(user_repository)
 
             response = client.post(
-                "/api/v1/login",
+                "/api/v1/auth/login",
                 json={
                     "strategy": "Basic",
                     "payload": {"email": "test@gmail.com", "password": "test"},
@@ -56,7 +66,7 @@ async def test__login__no_user():
         app.dependency_overrides[get_user_repository] = passthrough(user_repository)
 
         response = client.post(
-            "/api/v1/login",
+            "/api/v1/auth/login",
             json={
                 "strategy": "Basic",
                 "payload": {"email": "nouser@gmail.com", "password": "test"},
@@ -70,7 +80,7 @@ async def test__login__no_user():
 
 async def test__login__invalid_strategy():
     response = client.post(
-        "/api/v1/login", json={"strategy": "test", "payload": {}}
+        "/api/v1/auth/login", json={"strategy": "test", "payload": {}}
     )
 
     assert response.status_code == 422
@@ -78,7 +88,7 @@ async def test__login__invalid_strategy():
 
 async def test__login__invalid_payload():
     response = client.post(
-        "/api/v1/login", json={"strategy": "Basic", "payload": {}}
+        "/api/v1/auth/login", json={"strategy": "Basic", "payload": {}}
     )
 
     assert response.status_code == 422
@@ -87,12 +97,12 @@ async def test__login__invalid_payload():
     }
 
 async def test__login__no_strategy():
-    response = client.post("/api/v1/login", json={"payload": {}})
+    response = client.post("/api/v1/auth/login", json={"payload": {}})
 
     assert response.status_code == 422
 
 async def test__login__no_payload():
-    response = client.post("/api/v1/login", json={"strategy": ""})
+    response = client.post("/api/v1/auth/login", json={"strategy": ""})
 
     assert response.status_code == 422
 
@@ -105,7 +115,7 @@ async def test__logout__success(random_schema_user):
         app.dependency_overrides[get_blacklist_repository] = passthrough(blacklist_repository)
 
         response = client.get(
-            "/api/v1/logout", headers={"Authorization": f"Bearer {token}"}
+            "/api/v1/auth/logout", headers={"Authorization": f"Bearer {token}"}
         )
 
         assert method.call_count == 1

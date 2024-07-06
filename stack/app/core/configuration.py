@@ -64,7 +64,7 @@ class Settings(BaseSettings):
     # Auth
     JWT_ISSUER: Optional[str] = os.getenv("JWT_ISSUER", None)
     JWT_ALGORITHM: Optional[str] = os.getenv("JWT_ALGORITHM", "HS256")
-    AUTH_SECRET_KEY: Optional[str] = os.getenv("AUTH_SECRET_KEY", None)
+    AUTH_SECRET_KEY: Optional[str] = os.getenv("AUTH_SECRET_KEY", "secret")
     TOKEN_EXPIRY_HOURS: Optional[int] = os.getenv("TOKEN_EXPIRY_HOURS", 24)
 
 
