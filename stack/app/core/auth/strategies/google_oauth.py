@@ -17,7 +17,7 @@ class GoogleOAuthSettings(AuthStrategySettings):
 class GoogleOAuth(BaseOAuthStrategy):
     """Google OAuth2.0 strategy."""
 
-    NAME = "google"
+    NAME = "Google"
     WELL_KNOWN_ENDPOINT = "https://accounts.google.com/.well-known/openid-configuration"
 
     def __init__(self):

@@ -86,6 +86,10 @@ class FileSchema(BaseModel):
 
 
 class UploadFileSchema(BaseModel):
+    user_id: str = Field(
+        ...,
+        description="The ID of the user who uploaded the file. This is the user ID of the logged-in user.",
+    )
     purpose: Optional[ContextType] = Field(
         default=ContextType.assistants,
         description="The context for file: eg. 'assistants', 'rag', 'threads', or 'personas'.",

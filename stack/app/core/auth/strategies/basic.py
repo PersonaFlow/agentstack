@@ -9,7 +9,7 @@ from stack.app.repositories.user import UserRepository
 class BasicAuthentication(BaseAuthenticationStrategy):
     """Basic email/password strategy."""
 
-    NAME = "basic"
+    NAME = "Basic"
 
     @staticmethod
     def get_required_payload() -> List[str]:
