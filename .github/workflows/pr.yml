@@ -5,7 +5,7 @@ on:
   pull_request:
   push:
     branches:
-      - main  # or whatever your default branch is named
+      - main  # or whatever your default branch is namedd
 
 jobs:
   pr-check:
