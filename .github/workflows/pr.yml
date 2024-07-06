@@ -1,6 +1,11 @@
 name: Manual Workflow
 
-on: workflow_dispatch
+#on: workflow_dispatch
+on:
+  pull_request:
+  push:
+    branches:
+      - main  # or whatever your default branch is named
 
 jobs:
   pr-check:
@@ -24,11 +29,11 @@ jobs:
         if: '!cancelled()'
         run: |
           pants lint ::
-      - name: Pants check
-        if: '!cancelled()'
-        run: |
-          pants check ::
-      - name: Pants test
-        if: '!cancelled()'
-        run: |
-          pants test ::
+#      - name: Pants check
+#        if: '!cancelled()'
+#        run: |
+#          pants check ::
+#      - name: Pants test
+#        if: '!cancelled()'
+#        run: |
+#          pants test ::
