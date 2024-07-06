@@ -92,10 +92,10 @@ export const useUpdateMe = (payload: t.TUser) => {
   });
 };
 
-export const useGetMyThreads = () => {
+export const useGetMyThreads = (grouped: boolean) => {
   return useQuery<t.TThread[], Error>({
     queryKey: [QueryKeys.userThreads],
-    queryFn: async () => await dataService.getMyThreads(),
+    queryFn: async () => await dataService.getMyThreads(grouped),
   });
 };
 
@@ -148,13 +148,6 @@ export const useDeleteUser = (userId: string) => {
       queryClient.invalidateQueries({ queryKey: [QueryKeys.users] });
       queryClient.invalidateQueries({ queryKey: [userId] });
     },
-  });
-};
-
-export const useUserThreads = (userId: string, grouped?: boolean) => {
-  return useQuery<t.TGroupedThreads, Error>({
-    queryKey: [QueryKeys.userThreads, userId],
-    queryFn: async () => await dataService.getUserThreads(userId, grouped),
   });
 };
 

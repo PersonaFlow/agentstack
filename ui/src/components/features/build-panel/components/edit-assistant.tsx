@@ -64,9 +64,6 @@ export function EditAssistant() {
     }
   }, [configSchema, architectureType]);
 
-  console.log(selectedAssistant);
-  console.log("edit!");
-
   useEffect(() => {
     if (architectureType !== "agent") {
       // Set undefined agent_type if bot is not an agent

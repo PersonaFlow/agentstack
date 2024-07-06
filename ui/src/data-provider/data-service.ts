@@ -32,8 +32,8 @@ export function getMe(): Promise<t.TUser> {
   return request.get(endpoints.me);
 }
 
-export function getMyThreads(): Promise<t.TThread[]> {
-  return request.get(endpoints.myThreads);
+export function getMyThreads(grouped?: boolean): Promise<t.TThread[]> {
+  return request.get(endpoints.myThreads(grouped));
 }
 
 export function updateMe(payload: t.TUser): Promise<t.TUser> {
@@ -41,7 +41,6 @@ export function updateMe(payload: t.TUser): Promise<t.TUser> {
     ...payload,
   });
 }
-
 
 // --Admin Users--
 export function getUsers(): Promise<t.TUser[]> {
@@ -68,22 +67,12 @@ export function deleteUser(userId: string): Promise<void> {
   return request.delete(userId);
 }
 
-export function getUserThreads(
-  userId: string,
-  grouped?: boolean,
-): Promise<t.TGroupedThreads> {
-  return request.get(endpoints.userThreads(userId, grouped));
-}
-
-
 // --Threads--
 export function getThreads(): Promise<t.TThread[]> {
   return request.get(endpoints.threads());
 }
 
-export function createThread(
-  payload: t.TThreadRequest,
-): Promise<t.TThread> {
+export function createThread(payload: t.TThreadRequest): Promise<t.TThread> {
   return request.post(endpoints.threads(), {
     ...payload,
   });

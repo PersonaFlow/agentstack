@@ -26,7 +26,6 @@ export function AssistentBuilder() {
   useEffect(() => {
     if (assistantData) {
       setSelectedAssistant(assistantData);
-      console.log(assistantData);
     }
   }, [threadId, assistantData]);
 
