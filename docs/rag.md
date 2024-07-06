@@ -42,8 +42,7 @@ The `/api/v1/rag/ingest` endpoint takes an array of file IDs. An optional webhoo
       "prefix_summary": true
     }
   },
-  "webhook_url": "http://",
-  "index_name": "documents"
+  "webhook_url": "http://my-domain.com/webhook"
 }
 ```
 
