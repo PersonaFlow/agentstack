@@ -3,7 +3,7 @@ import uuid
 from typing import Optional
 from enum import Enum
 from datetime import datetime
-from stack.app.agents.tools import BaseTool
+from stack.app.agents.tools import AvailableTools, ToolConfig
 
 
 class BotType(str, Enum):
@@ -35,6 +35,29 @@ class LLMType(str, Enum):
     OLLAMA = "Ollama"
 
 
+class Tool(BaseModel):
+    type: AvailableTools = Field(
+        title="Tool Type",
+        description="The type of tool as defined by the AvailableTools enum.",
+    )
+    description: Optional[str] = Field(
+        title="Tool Description", description="A brief description of the tool."
+    )
+    name: Optional[str] = Field(
+        title="Tool Name",
+        description="The name of the tool.",
+    )
+    config: Optional[ToolConfig] = Field(
+        title="Tool Configuration",
+        description="A field for additional configuration of the tool.",
+    )
+    multi_use: Optional[bool] = Field(
+        default=False,
+        title="Multi-Use",
+        description="Whether or not this is a multi-use tool.",
+    )
+
+
 class Configurable(BaseModel):
     type: BotType = Field(
         default="agent", title="Bot Type", description="The type of bot."
@@ -59,7 +82,7 @@ class Configurable(BaseModel):
         title="Instructions",
         description="Instructions for the assistant.",
     )
-    tools: Optional[list[BaseTool]] = Field(
+    tools: Optional[list[Tool]] = Field(
         default=[], title="Tools", description="List of tools available for the agent."
     )
     llm_type: Optional[LLMType] = Field(

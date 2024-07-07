@@ -64,8 +64,10 @@ class ToolConfig(TypedDict):
 
 
 class BaseTool(BaseModel):
-    # id: str = Field(title="Tool ID", description="The unique identifier for the tool.")
-    type: AvailableTools = Field(title="Tool Type", description="The type of tool as defined by the AvailableTools enum.")
+    type: AvailableTools = Field(
+        title="Tool Type",
+        description="The type of tool as defined by the AvailableTools enum.",
+    )
     description: Optional[str] = Field(
         title="Tool Description", description="A brief description of the tool."
     )
