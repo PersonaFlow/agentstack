@@ -64,11 +64,24 @@ class ToolConfig(TypedDict):
 
 
 class BaseTool(BaseModel):
-    type: AvailableTools
-    name: Optional[str]
-    description: Optional[str]
-    config: Optional[ToolConfig]
-    multi_use: Optional[bool] = False
+    # id: str = Field(title="Tool ID", description="The unique identifier for the tool.")
+    type: AvailableTools = Field(title="Tool Type", description="The type of tool as defined by the AvailableTools enum.")
+    description: Optional[str] = Field(
+        title="Tool Description", description="A brief description of the tool."
+    )
+    name: Optional[str] = Field(
+        title="Tool Name",
+        description="The name of the tool.",
+    )
+    config: Optional[ToolConfig] = Field(
+        title="Tool Configuration",
+        description="A field for additional configuration of the tool.",
+    )
+    multi_use: Optional[bool] = Field(
+        default=False,
+        title="Multi-Use",
+        description="Whether or not this is a multi-use tool.",
+    )
 
 
 class ActionServerConfig(ToolConfig):

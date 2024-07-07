@@ -3,6 +3,7 @@ import uuid
 from typing import Optional
 from enum import Enum
 from datetime import datetime
+from stack.app.agents.tools import BaseTool
 
 
 class BotType(str, Enum):
@@ -20,23 +21,6 @@ class AgentType(str, Enum):
     BEDROCK_CLAUDE2 = "Claude 2 (Amazon Bedrock)"
     GEMINI = "GEMINI"
     OLLAMA = "Ollama"
-
-
-class Tools(BaseModel):
-    id: str = Field(title="Tool ID", description="The unique identifier for the tool.")
-    type: str = Field(title="Tool Type", description="The type of tool.")
-    description: str = Field(
-        title="Tool Description", description="A brief description of the tool."
-    )
-    name: str = Field(
-        title="Tool Name",
-        description="The name of the tool.",
-    )
-    config: dict = Field(
-        default_factory=dict,
-        title="Tool Configuration",
-        description="A field for additional configuration of the tool.",
-    )
 
 
 class LLMType(str, Enum):
@@ -75,7 +59,7 @@ class Configurable(BaseModel):
         title="Instructions",
         description="Instructions for the assistant.",
     )
-    tools: Optional[list[Tools]] = Field(
+    tools: Optional[list[BaseTool]] = Field(
         default=[], title="Tools", description="List of tools available for the agent."
     )
     llm_type: Optional[LLMType] = Field(
