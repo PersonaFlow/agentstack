@@ -15,6 +15,21 @@ import { useAtom } from "jotai";
 import { assistantAtom } from "@/store";
 import { useConfigSchema } from "@/hooks/useConfig";
 
+const toolSchema = z.object({
+  title: z.string(),
+  properties: z.object({
+    type: z.object({
+      default: z.string(),
+    }),
+    name: z.object({
+      default: z.string(),
+    }),
+    description: z.object({
+      default: z.string(),
+    }),
+  }),
+});
+
 const formSchema = z.object({
   public: z.boolean(),
   name: z.string(),
@@ -26,22 +41,7 @@ const formSchema = z.object({
       llm_type: z.string(),
       retrieval_description: z.string(),
       system_message: z.string(),
-      tools: z.array(
-        z.object({
-          title: z.string(),
-          properties: z.object({
-            type: z.object({
-              default: z.string(),
-            }),
-            name: z.object({
-              default: z.string(),
-            }),
-            description: z.object({
-              default: z.string(),
-            }),
-          }),
-        }),
-      ),
+      tools: z.array(z.any()),
     }),
   }),
   file_ids: z.array(z.string()),
@@ -65,6 +65,14 @@ export function EditAssistant() {
 
   const architectureType = form.watch("config.configurable.type");
   const tools = form.watch("config.configurable.tools");
+
+  const {
+    formState: { errors },
+  } = form;
+
+  useEffect(() => {
+    console.log(errors);
+  }, [errors]);
 
   const { systemMessage, retrievalDescription, availableTools } =
     useConfigSchema(configSchema, architectureType ?? "");
