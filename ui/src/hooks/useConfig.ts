@@ -6,7 +6,7 @@ import {
 
 export const useConfigSchema = (
   configSchema: TConfigurableSchema,
-  selectedArchType: string,
+  selectedArchType?: string,
 ) => {
   if (!configSchema) return {};
 

@@ -27,7 +27,22 @@ const formSchema = z.object({
       llm_type: z.string(),
       retrieval_description: z.string(),
       system_message: z.string(),
-      tools: z.array(z.string()),
+      tools: z.array(
+        z.object({
+          title: z.string(),
+          properties: z.object({
+            type: z.object({
+              default: z.string(),
+            }),
+            name: z.object({
+              default: z.string(),
+            }),
+            description: z.object({
+              default: z.string(),
+            }),
+          }),
+        }),
+      ),
     }),
   }),
   file_ids: z.array(z.string()),
@@ -50,6 +65,8 @@ const defaultValues = {
   file_ids: [],
 };
 
+const RetrievalType = "retrieval";
+
 export function CreateAssistant() {
   const { data: assistantsData, isLoading } = useAssistants();
   const [_, setSelectedAssistant] = useAtom(assistantAtom);
@@ -65,10 +82,8 @@ export function CreateAssistant() {
   const architectureType = form.watch("config.configurable.type");
   const tools = form.watch("config.configurable.tools");
 
-  const { systemMessage, retrievalDescription } = useConfigSchema(
-    configSchema,
-    architectureType ?? "",
-  );
+  const { systemMessage, retrievalDescription, availableTools } =
+    useConfigSchema(configSchema, architectureType ?? "");
 
   useEffect(() => {
     if (configSchema && architectureType) {
@@ -91,7 +106,10 @@ export function CreateAssistant() {
     }
 
     if (architectureType === "chat_retrieval") {
-      const retrievalTools = ["Retrieval"];
+      const retrievalTool = availableTools?.find(
+        (tool) => tool.type === RetrievalType,
+      );
+      const retrievalTools = [retrievalTool];
       const containsCodeInterpreter = tools.includes("Code interpretor");
       // if (containsCodeInterpreter) retrievalTools.push("Code interpreter");
       form.setValue("config.configurable.tools", retrievalTools);
