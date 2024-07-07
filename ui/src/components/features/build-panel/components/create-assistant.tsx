@@ -27,22 +27,7 @@ const formSchema = z.object({
       llm_type: z.string(),
       retrieval_description: z.string(),
       system_message: z.string(),
-      tools: z.array(
-        z.object({
-          title: z.string(),
-          properties: z.object({
-            type: z.object({
-              default: z.string(),
-            }),
-            name: z.object({
-              default: z.string(),
-            }),
-            description: z.object({
-              default: z.string(),
-            }),
-          }),
-        }),
-      ),
+      tools: z.array(z.any()),
     }),
   }),
   file_ids: z.array(z.string()),
@@ -78,6 +63,14 @@ export function CreateAssistant() {
     resolver: zodResolver(formSchema),
     defaultValues: defaultValues,
   });
+
+  const {
+    formState: { errors },
+  } = form;
+
+  useEffect(() => {
+    console.log(errors);
+  }, [errors]);
 
   const architectureType = form.watch("config.configurable.type");
   const tools = form.watch("config.configurable.tools");
