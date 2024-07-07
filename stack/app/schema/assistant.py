@@ -21,16 +21,24 @@ class AgentType(str, Enum):
     GEMINI = "GEMINI"
     OLLAMA = "Ollama"
 
-
-class Tools(str, Enum):
-    ddg_search = "DDG Search"
-    search_tavily = "Search (Tavily)"
-    search_short_answer_tavily = "Search (short answer, Tavily)"
-    retrieval = "Retrieval"
-    arxiv = "Arxiv"
-    pubmed = "PubMed"
-    wikipedia = "Wikipedia"
-
+class Tools(BaseModel):
+    id: str = Field(
+        title="Tool ID", description="The unique identifier for the tool."
+    )
+    type: str = Field(
+        title="Tool Type", description="The type of tool."
+    )
+    description: str = Field(
+        title="Tool Description", description="A brief description of the tool."
+    )
+    name: str = Field(
+           title="Tool Name", description="The name of the tool.",
+    )
+    config: dict = Field(
+        default_factory=dict,
+        title="Tool Configuration",
+        description="A field for additional configuration of the tool."
+    )
 
 class LLMType(str, Enum):
     GPT_35_TURBO = "GPT 3.5 Turbo"
