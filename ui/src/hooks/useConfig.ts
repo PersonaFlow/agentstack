@@ -1,4 +1,8 @@
-import { TConfigurableSchema } from "@/data-provider/types";
+import {
+  TConfigDefinitions,
+  TConfigurableSchema,
+  TTool,
+} from "@/data-provider/types";
 
 export const useConfigSchema = (
   configSchema: TConfigurableSchema,
@@ -34,26 +38,25 @@ export const useConfigSchema = (
   }
 
   const configDefinitions = Object.entries(definitions);
-  const availableTools = [];
+  const availableTools: TTool[] = [];
 
   AvailableTools.enum.forEach((availableTool: string) => {
     // Find tool from config schema
     const toolDefinition = configDefinitions.find((definition) => {
-      const { properties } = definition[1];
+      const { properties } = definition[1] as TConfigDefinitions;
       if (!properties || !properties.type) return false;
-      console.log(properties.type.default);
-      console.log(availableTool);
+
       return properties.type.default === availableTool;
     });
 
     // Format tool to store with assistant
-    const toolProperties = toolDefinition[1];
+    const toolProperties = toolDefinition[1] as TConfigDefinitions;
 
     const tool = {
       id: toolProperties.properties.type.default,
       type: toolProperties.properties.type.default,
-      name: toolProperties.properties.type.name,
-      description: toolProperties.properties.type.description,
+      name: toolProperties.properties.name.default,
+      description: toolProperties.properties.description.default,
       config: {},
     };
 

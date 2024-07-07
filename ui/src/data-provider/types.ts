@@ -155,24 +155,6 @@ export type TMessage = {
   invalid_tool_calls?: string[];
 };
 
-// export type TMessage = {
-//   content: string;
-//   thread_id?: string;
-//   user_id?: string;
-//   assistant_id?: string;
-//   content: string;
-//   type: string;
-//   name?: string | null;
-//   tool_calls?: string[];
-//   invalid_tool_calls?: string[];
-//   additional_kwargs: {};
-//   response_metadata?: {};
-//   example: boolean;
-//   id?: string;
-//   created_at?: string;
-//   updated_at?: string;
-// };
-
 export type TUpdateMessageRequest = {
   assistant_id: string;
   content: string;
@@ -203,6 +185,29 @@ export type TAssistantFile = {
 };
 
 export type TPurpose = "assistants" | "threads" | "personas";
+
+export type TTool = {
+  id: string;
+  name: string;
+  type: string;
+  description: string;
+  config: {};
+};
+
+export type TConfigDefinitions = {
+  title: string;
+  properties: {
+    type: {
+      default: string;
+    };
+    name: {
+      default: string;
+    };
+    description: {
+      default: string;
+    };
+  };
+};
 
 export type TFile = {
   id: string;

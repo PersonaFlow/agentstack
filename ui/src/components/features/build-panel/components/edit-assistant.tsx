@@ -51,7 +51,7 @@ export function EditAssistant() {
 
   const { systemMessage, retrievalDescription, availableTools } =
     useConfigSchema(configSchema, architectureType ?? "");
-  console.log(availableTools);
+
   useEffect(() => {
     if (configSchema && architectureType) {
       form.setValue("config.configurable.system_message", systemMessage);
@@ -73,6 +73,7 @@ export function EditAssistant() {
     }
 
     if (architectureType === "chat_retrieval") {
+      const getRetrievalTool = availableTools?.find((tool) => tool);
       const retrievalTools = ["Retrieval"];
       const containsCodeInterpreter = tools.includes("Code interpretor");
       // if (containsCodeInterpreter) retrievalTools.push("Code interpreter");
