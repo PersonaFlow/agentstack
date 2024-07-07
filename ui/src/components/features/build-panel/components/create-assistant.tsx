@@ -57,7 +57,6 @@ export function CreateAssistant() {
   const [_, setSelectedAssistant] = useAtom(assistantAtom);
 
   const createAssistant = useCreateAssistant();
-  const { data: configSchema } = useRunnableConfigSchema();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -76,17 +75,17 @@ export function CreateAssistant() {
   const tools = form.watch("config.configurable.tools");
 
   const { systemMessage, retrievalDescription, availableTools } =
-    useConfigSchema(configSchema, architectureType ?? "");
+    useConfigSchema(architectureType ?? "");
 
   useEffect(() => {
-    if (configSchema && architectureType) {
+    if (systemMessage && retrievalDescription && architectureType) {
       form.setValue("config.configurable.system_message", systemMessage);
       form.setValue(
         "config.configurable.retrieval_description",
         retrievalDescription,
       );
     }
-  }, [configSchema, architectureType]);
+  }, [systemMessage, architectureType, retrievalDescription]);
 
   useEffect(() => {
     if (architectureType !== "agent") {

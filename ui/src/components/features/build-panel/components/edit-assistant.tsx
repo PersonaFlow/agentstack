@@ -2,7 +2,6 @@
 
 import {
   useAssistants,
-  useRunnableConfigSchema,
   useUpdateAssistant,
 } from "@/data-provider/query-service";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -52,7 +51,6 @@ const RetrievalType = "retrieval";
 export function EditAssistant() {
   const { data: assistantsData, isLoading } = useAssistants();
   const [selectedAssistant] = useAtom(assistantAtom);
-  const { data: configSchema } = useRunnableConfigSchema();
 
   const updateAssistant = useUpdateAssistant(selectedAssistant?.id);
 
@@ -75,17 +73,17 @@ export function EditAssistant() {
   }, [errors]);
 
   const { systemMessage, retrievalDescription, availableTools } =
-    useConfigSchema(configSchema, architectureType ?? "");
+    useConfigSchema(architectureType ?? "");
 
   useEffect(() => {
-    if (configSchema && architectureType) {
+    if (systemMessage && retrievalDescription && architectureType) {
       form.setValue("config.configurable.system_message", systemMessage);
       form.setValue(
         "config.configurable.retrieval_description",
         retrievalDescription,
       );
     }
-  }, [configSchema, architectureType]);
+  }, [retrievalDescription, architectureType, systemMessage]);
 
   useEffect(() => {
     if (architectureType !== "agent") {
