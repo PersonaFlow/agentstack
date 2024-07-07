@@ -29,9 +29,7 @@ Upcoming features:
 
 # Overview
 
-This repo is the orchestration server for the PersonaFlow platform. It is a REST API that allows you to create and manage agentic assistants, run the agents against various LLMs, create and save user-specific chat threads, and more.
-
-Much of the API and business language is modeled after the OpenAI Assistants API and uses LangChain as the primary orchestration framework. The assistants implementation began from an early iteration of OpenGPTs, which was then refactored and expanded with additional infrastructure, agent options, file management, an improved and highly configurable RAG system, and a suite of agent-based features. It will be further expanded with personalization features, additional RAG optimization techniques, and more.
+Much of the API and business language is modeled after the OpenAI Assistants API and uses LangGraph under the hood for the agent functionality along with a [highly configurable]() RAG system, and a suite of agent-based features. It will be further expanded with personalization features, additional RAG optimization techniques, and more.
 
  <p align="center" style="color:green"><b><i>Note: This project is in the very early stages of development and testing. Breaking changes should therefore be expected until the first stable release.</i></b></p>
 
@@ -54,7 +52,7 @@ Much of the API and business language is modeled after the OpenAI Assistants API
 - [ ] TypeScript SDK
 - [ ] Python SDK -->
 
-# Technology Stack
+## Technology Stack
 
 - Programming Language
   - Server and backend libraries: Python
@@ -67,10 +65,6 @@ Much of the API and business language is modeled after the OpenAI Assistants API
 - ORM: SQLAlchemy
 - Database Migration Tool: Alembic
 
-
-# Setup
-
-The application can be setup to run locally for development, within Docker via the provided docker-compose.yaml, or a Kubernetes cluster.
 
 ## Quickstart (Docker)
 
@@ -95,10 +89,10 @@ _Builds and dependencies are managed by [Pantsbuild](https://www.pantsbuild.org/
 9.  Navigate to `http://localhost:9000/docs` to see the API documentation.
 
 ## Useful Pants Commands
-- Format: `pants fmt ::`
+- Lint: `pants lint ::`
 - Test: `pants test ::`
-- Run PersonaStack locally: `pants run stack:local`
-- Run PersonaStack with auto-reload and "debug" logging: `pants run stack:local --loop --ldebug`
+- Run the stack server: `pants run stack:local` (use `--ldebug` for debug logging)
+- Run the dev server with hot reload: `make stack-dev`
 
 Note: `::` means all files in project. For more information on targeting, see: [Targets and BUILD files](https://www.pantsbuild.org/2.20/docs/using-pants/key-concepts/targets-and-build-files).
 
@@ -117,10 +111,7 @@ To run the APIs, you can use the Swagger UI at `http://localhost:9000/docs` or v
 - Admin Client: Coming soon
 - SDKs: Coming soon
 - Personalization: Coming soon
-
-# Troubleshooting 
-Q. When I try to run `docker-compose up` I get the error: "configs.qdrant_config Additional property content is not allowed"
-A. Proving the inline content in the configs top-level element requires Docker Compose v2.23.1 or above. This functionality is supported starting Docker Engine v25.0.0 and Docker Desktop v4.26.0 onwards.
+- [Troubleshooting](/docs/troubleshooting.md)
 
 # Contributing
 

@@ -33,7 +33,7 @@ jobs:
 #        if: '!cancelled()'
 #        run: |
 #          pants check ::
-#      - name: Pants test
-#        if: '!cancelled()'
-#        run: |
-#          pants test ::
+      - name: Pants test
+        if: '!cancelled()'
+        run: |
+          pants test ::
