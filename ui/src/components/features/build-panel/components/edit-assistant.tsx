@@ -49,11 +49,9 @@ export function EditAssistant() {
   const architectureType = form.watch("config.configurable.type");
   const tools = form.watch("config.configurable.tools");
 
-  const { systemMessage, retrievalDescription } = useConfigSchema(
-    configSchema,
-    architectureType ?? "",
-  );
-
+  const { systemMessage, retrievalDescription, availableTools } =
+    useConfigSchema(configSchema, architectureType ?? "");
+  console.log(availableTools);
   useEffect(() => {
     if (configSchema && architectureType) {
       form.setValue("config.configurable.system_message", systemMessage);
