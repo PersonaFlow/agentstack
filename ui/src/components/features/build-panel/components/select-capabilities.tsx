@@ -22,7 +22,7 @@ type TSelectCapabilitiesProps = {
 };
 
 const options = [
-  "Retrieval",
+  "retrieval",
   // { display: "Code interpretor", value: "Code interpretor" },
 ];
 
@@ -32,10 +32,11 @@ export default function SelectCapabilities({ form }: TSelectCapabilitiesProps) {
   const { type: architectureType } = form.getValues().config.configurable;
 
   const capabilities = availableTools?.filter((tool) =>
-    options.includes(tool.name),
+    options.includes(tool.id),
   );
+
   const isChatRetrieval = (checkboxValue: string) =>
-    architectureType === "chat_retrieval" && checkboxValue === "Retrieval";
+    architectureType === "chat_retrieval" && checkboxValue === "retrieval";
 
   return (
     <Accordion type="multiple">
@@ -52,17 +53,20 @@ export default function SelectCapabilities({ form }: TSelectCapabilitiesProps) {
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                     <FormControl>
                       <Checkbox
-                        disabled={isChatRetrieval(capability.name)}
+                        disabled={isChatRetrieval(capability.id)}
                         checked={
-                          field.value?.includes(capability.name) ||
-                          isChatRetrieval(capability.name)
+                          field.value?.some(
+                            (selection: TTool) =>
+                              selection.id === capability.id,
+                          ) || isChatRetrieval(capability.id)
                         }
                         onCheckedChange={(checked) => {
                           return checked
                             ? field.onChange([...field.value, capability])
                             : field.onChange(
                                 field.value?.filter(
-                                  (value: TTool) => value.id !== capability.id,
+                                  (selection: TTool) =>
+                                    selection.id !== capability.id,
                                 ),
                               );
                         }}
