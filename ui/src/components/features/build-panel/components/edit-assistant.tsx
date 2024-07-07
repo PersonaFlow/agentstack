@@ -26,11 +26,28 @@ const formSchema = z.object({
       llm_type: z.string(),
       retrieval_description: z.string(),
       system_message: z.string(),
-      tools: z.array(z.string()),
+      tools: z.array(
+        z.object({
+          title: z.string(),
+          properties: z.object({
+            type: z.object({
+              default: z.string(),
+            }),
+            name: z.object({
+              default: z.string(),
+            }),
+            description: z.object({
+              default: z.string(),
+            }),
+          }),
+        }),
+      ),
     }),
   }),
   file_ids: z.array(z.string()),
 });
+
+const RetrievalType = "retrieval";
 
 export function EditAssistant() {
   const { data: assistantsData, isLoading } = useAssistants();
@@ -73,11 +90,14 @@ export function EditAssistant() {
     }
 
     if (architectureType === "chat_retrieval") {
-      const getRetrievalTool = availableTools?.find((tool) => tool);
-      const retrievalTools = ["Retrieval"];
+      const retrievalTool = availableTools?.find(
+        (tool) => tool.type === RetrievalType,
+      );
       const containsCodeInterpreter = tools.includes("Code interpretor");
       // if (containsCodeInterpreter) retrievalTools.push("Code interpreter");
-      form.setValue("config.configurable.tools", retrievalTools);
+      if (retrievalTool) {
+        form.setValue("config.configurable.tools", [retrievalTool]);
+      }
     }
   }, [architectureType]);
 
