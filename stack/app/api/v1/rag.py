@@ -1,3 +1,4 @@
+from uuid import UUID
 import asyncio
 import aiohttp
 from fastapi import APIRouter, Depends, status
@@ -19,6 +20,9 @@ from stack.app.schema.file import FileSchema
 import structlog
 from stack.app.rag.custom_retriever import Retriever
 from stack.app.rag.ingest import get_ingest_tasks_from_config
+from stack.app.schema.rag import ContextType
+from stack.app.schema.assistant import Assistant
+
 
 logger = structlog.get_logger()
 settings = get_settings()
@@ -27,15 +31,35 @@ router = APIRouter()
 DEFAULT_TAG = "RAG"
 
 
+async def handle_assistant_files(
+    payload: IngestRequestPayload, assistant_repository: AssistantRepository
+) -> tuple[list[str], set[str], Assistant]:
+    assistant = await assistant_repository.retrieve_assistant(payload.namespace)
+    if assistant is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Assistant with ID {payload.namespace} not found.",
+        )
+
+    existing_file_ids = set(assistant.file_ids or [])
+    new_file_ids = set(str(file_id) for file_id in payload.files) - existing_file_ids
+
+    if not new_file_ids:
+        raise HTTPException(
+            status_code=status.HTTP_200_OK,
+            detail="No new files to ingest.",
+        )
+
+    return list(new_file_ids), existing_file_ids, assistant
+
+
 @router.post(
     "/ingest",
     tags=[DEFAULT_TAG],
     response_model=dict,
     operation_id="ingest_data_from_files",
     summary="Ingest files to be indexed and queried.",
-    description="""
-              Upload files for ingesting using the advanced RAG system.
-             """,
+    description="Upload files for ingesting using the advanced RAG system.",
 )
 async def ingest(
     auth: AuthenticatedUser,
@@ -45,8 +69,17 @@ async def ingest(
 ) -> dict:
     files_to_ingest = []
     try:
+        is_assistant = payload.purpose == ContextType.assistants
+        existing_file_ids = set()
+        assistant = None
+
+        if is_assistant:
+            payload.files, existing_file_ids, assistant = await handle_assistant_files(
+                payload, assistant_repository
+            )
+
         for file_id in payload.files:
-            file_model = await file_repository.retrieve_file(file_id)
+            file_model = await file_repository.retrieve_file(UUID(file_id))
             file = FileSchema.model_validate(file_model)
             files_to_ingest.append(file)
 
@@ -54,12 +87,11 @@ async def ingest(
 
         await asyncio.gather(*tasks)
 
-        # TODO: if payload.purpose == ContextType.assistants, update the assistant
-        # if payload.purpose == ContextType.assistants:
-        #         assistant_repository.add_files_to_assistant(
-        #             payload.namespace,
-        #             files_to_ingest
-        #         )
+        if is_assistant and assistant:
+            updated_file_ids = list(existing_file_ids | set(payload.files))
+            await assistant_repository.update_assistant(
+                assistant.id, {"file_ids": updated_file_ids}
+            )
 
         if payload.webhook_url:
             await notify_webhook(
@@ -69,8 +101,13 @@ async def ingest(
                 payload.files,
             )
 
-        # TODO: return stats from ingestion
-        return {"success": True}
+        return {
+            "success": True,
+            "message": f"Ingested {len(files_to_ingest)} new files.",
+        }
+    except HTTPException as he:
+        # Re-raise HTTP exceptions
+        raise he
     except Exception as e:
         logger.exception(f"Error ingesting files: {str(e)}")
         raise HTTPException(

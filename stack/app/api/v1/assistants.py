@@ -215,16 +215,6 @@ async def create_assistant_file(
                 status_code=403, detail="User does not have access to this file."
             )
 
-        # Old method - we'll bring back some version of this for the "recursive" chunking strategy
-        # file_content = await file_repository.retrieve_file_content(data.file_id)
-        # file_content_io = BytesIO(file_content)
-        # config = {"configurable": {"assistant_id": str(assistant_id), "file_id": str(data.file_id)}}
-        # ids = ingest_runnable.batch([file_content_io], config)
-        # if not ids:
-        #     logger.exception(f"Error ingesting file: {data.file_id}")
-        #     raise HTTPException(status_code=500, detail="An error occurred while ingesting the file.")
-
-        # TODO: Should we expand the API to accept a list of file_id's?
         files_to_ingest = [FileSchema.model_validate(file)]
 
         config = IngestRequestPayload(
