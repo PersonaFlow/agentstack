@@ -21,8 +21,6 @@ DEFAULT_TAG = "Users"
     summary="Retrieve a specific user ",
     description="""
         GET endpoint to fetch details of the logged-in user.
-        USAGE: Admins can use this endpoint to retrieve details of a specific user.
-        TODO: Add RBAC for this endpoint.
         """,
 )
 async def retrieve_me(

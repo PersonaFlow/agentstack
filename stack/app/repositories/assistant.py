@@ -109,7 +109,7 @@ class AssistantRepository(BaseRepository):
                 f"Failed to update assistant due to a database error. {e}",
                 exc_info=True,
             )
-            raise HTTPException(status_code=400, detail="Failed to update assistant.")
+            raise HTTPException(status_code=400, detail=f"Failed to update assistant: {e}.")
 
     async def delete_assistant(self, assistant_id: uuid.UUID) -> Assistant:
         """Removes an assistant from the database."""
