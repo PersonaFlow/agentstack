@@ -98,6 +98,7 @@ export function CreateAssistant() {
   function onSubmit(values: z.infer<typeof formSchema>) {
     createAssistant.mutate(values, {
       onSuccess: (response) => {
+        console.log("Successfully created assistant: ");
         console.log(response);
         setSelectedAssistant(response);
       },

@@ -25,11 +25,14 @@ type TToolDialog = {
 
 export function ToolDialog({ form }: TToolDialog) {
   const { availableTools } = useConfigSchema();
-
+  console.log("form: ");
+  console.log(form.getValues());
   return (
     <Dialog>
       <DialogTrigger>
-        <Button className="rounded-xl">Add tool</Button>
+        <Button className="rounded-xl" type="button">
+          Add tool
+        </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
