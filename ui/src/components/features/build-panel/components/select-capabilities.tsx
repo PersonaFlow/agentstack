@@ -12,7 +12,6 @@ import {
   FormItem,
   FormLabel,
 } from "@/components/ui/form";
-import { useRunnableConfigSchema } from "@/data-provider/query-service";
 import { TTool } from "@/data-provider/types";
 import { useConfigSchema } from "@/hooks/useConfig";
 import { UseFormReturn } from "react-hook-form";

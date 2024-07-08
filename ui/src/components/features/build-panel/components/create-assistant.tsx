@@ -13,41 +13,7 @@ import { useAtom } from "jotai";
 import { assistantAtom } from "@/store";
 import Spinner from "@/components/ui/spinner";
 import { useConfigSchema } from "@/hooks/useConfig";
-
-const toolSchema = z.object({
-  title: z.string(),
-  properties: z.object({
-    type: z.object({
-      default: z.string(),
-    }),
-    name: z.object({
-      default: z.string(),
-    }),
-    description: z.object({
-      default: z.string(),
-    }),
-    multi_use: z.object({
-      default: z.boolean(),
-    }),
-  }),
-});
-
-const formSchema = z.object({
-  public: z.boolean(),
-  name: z.string().min(1, { message: "Name is required" }),
-  config: z.object({
-    configurable: z.object({
-      interrupt_before_action: z.boolean(),
-      type: z.string().nullable(),
-      agent_type: z.string().optional(),
-      llm_type: z.string(),
-      retrieval_description: z.string(),
-      system_message: z.string(),
-      tools: z.array(toolSchema),
-    }),
-  }),
-  file_ids: z.array(z.string()),
-});
+import { formSchema } from "@/data-provider/types";
 
 const defaultValues = {
   public: false,
@@ -85,6 +51,10 @@ export function CreateAssistant() {
   const { systemMessage, retrievalDescription, availableTools } =
     useConfigSchema(architectureType ?? "");
 
+  const {
+    formState: { errors },
+  } = form;
+
   useEffect(() => {
     if (architectureType) {
       form.setValue("config.configurable.system_message", systemMessage);
@@ -94,6 +64,15 @@ export function CreateAssistant() {
       );
     }
   }, [architectureType]);
+
+  useEffect(() => {
+    console.log(tools);
+  }, [tools]);
+
+  useEffect(() => {
+    console.log("errors: ");
+    console.log(errors);
+  }, [errors]);
 
   useEffect(() => {
     if (architectureType !== "agent") {

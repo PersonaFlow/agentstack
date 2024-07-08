@@ -8,46 +8,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { TAssistant } from "@/data-provider/types";
+import { TAssistant, formSchema } from "@/data-provider/types";
 import { AssistantForm } from "./assistant-form";
 import { useAtom } from "jotai";
 import { assistantAtom } from "@/store";
 import { useConfigSchema } from "@/hooks/useConfig";
-
-const toolSchema = z.object({
-  title: z.string(),
-  properties: z.object({
-    type: z.object({
-      default: z.string(),
-    }),
-    name: z.object({
-      default: z.string(),
-    }),
-    description: z.object({
-      default: z.string(),
-    }),
-    multi_use: z.object({
-      default: z.boolean(),
-    }),
-  }),
-});
-
-const formSchema = z.object({
-  public: z.boolean(),
-  name: z.string(),
-  config: z.object({
-    configurable: z.object({
-      interrupt_before_action: z.boolean(),
-      type: z.string(),
-      agent_type: z.string().optional(),
-      llm_type: z.string(),
-      retrieval_description: z.string(),
-      system_message: z.string(),
-      tools: z.array(toolSchema),
-    }),
-  }),
-  file_ids: z.array(z.string()),
-});
 
 const RetrievalType = "retrieval";
 

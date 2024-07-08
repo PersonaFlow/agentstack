@@ -1,3 +1,33 @@
+import { z } from "zod";
+
+export const toolSchema = z.object({
+  title: z.string(),
+  properties: z.object({
+    type: z.string(),
+    name: z.string(),
+    description: z.string(),
+    multi_use: z.boolean(),
+    config: z.object({}),
+  }),
+});
+
+export const formSchema = z.object({
+  public: z.boolean(),
+  name: z.string().min(1, { message: "Name is required" }),
+  config: z.object({
+    configurable: z.object({
+      interrupt_before_action: z.boolean(),
+      type: z.string().nullable(),
+      agent_type: z.string().optional(),
+      llm_type: z.string(),
+      retrieval_description: z.string(),
+      system_message: z.string(),
+      tools: z.array(toolSchema),
+    }),
+  }),
+  file_ids: z.array(z.string()),
+});
+
 export type TRunInput = {
   content: string;
   role: string;
