@@ -51,10 +51,6 @@ export function CreateAssistant() {
   const { systemMessage, retrievalDescription, availableTools } =
     useConfigSchema(architectureType ?? "");
 
-  const {
-    formState: { errors },
-  } = form;
-
   useEffect(() => {
     if (architectureType) {
       form.setValue("config.configurable.system_message", systemMessage);
@@ -64,15 +60,6 @@ export function CreateAssistant() {
       );
     }
   }, [architectureType]);
-
-  useEffect(() => {
-    console.log(tools);
-  }, [tools]);
-
-  useEffect(() => {
-    console.log("errors: ");
-    console.log(errors);
-  }, [errors]);
 
   useEffect(() => {
     if (architectureType !== "agent") {

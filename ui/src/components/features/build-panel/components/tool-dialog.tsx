@@ -25,8 +25,7 @@ type TToolDialog = {
 
 export function ToolDialog({ form }: TToolDialog) {
   const { availableTools } = useConfigSchema();
-  console.log("form: ");
-  console.log(form.getValues());
+
   return (
     <Dialog>
       <DialogTrigger>
