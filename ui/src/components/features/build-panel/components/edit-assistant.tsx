@@ -74,14 +74,14 @@ export function EditAssistant() {
   }, [selectedAssistant]);
 
   useEffect(() => {
-    if (systemMessage && retrievalDescription && architectureType) {
+    if (architectureType) {
       form.setValue("config.configurable.system_message", systemMessage);
       form.setValue(
         "config.configurable.retrieval_description",
         retrievalDescription,
       );
     }
-  }, [retrievalDescription, architectureType, systemMessage]);
+  }, [architectureType]);
 
   useEffect(() => {
     if (architectureType !== "agent") {

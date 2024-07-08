@@ -3,14 +3,12 @@
 import {
   useAssistants,
   useCreateAssistant,
-  useRunnableConfigSchema,
 } from "@/data-provider/query-service";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { AssistantForm } from "./assistant-form";
-import { TAssistant, TConfigSchema, TSchemaField } from "@/data-provider/types";
 import { useAtom } from "jotai";
 import { assistantAtom } from "@/store";
 import Spinner from "@/components/ui/spinner";
@@ -63,14 +61,6 @@ export function CreateAssistant() {
     defaultValues: defaultValues,
   });
 
-  const {
-    formState: { errors },
-  } = form;
-
-  useEffect(() => {
-    console.log(errors);
-  }, [errors]);
-
   const architectureType = form.watch("config.configurable.type");
   const tools = form.watch("config.configurable.tools");
 
@@ -78,14 +68,14 @@ export function CreateAssistant() {
     useConfigSchema(architectureType ?? "");
 
   useEffect(() => {
-    if (systemMessage && retrievalDescription && architectureType) {
+    if (architectureType) {
       form.setValue("config.configurable.system_message", systemMessage);
       form.setValue(
         "config.configurable.retrieval_description",
         retrievalDescription,
       );
     }
-  }, [systemMessage, architectureType, retrievalDescription]);
+  }, [architectureType]);
 
   useEffect(() => {
     if (architectureType !== "agent") {
