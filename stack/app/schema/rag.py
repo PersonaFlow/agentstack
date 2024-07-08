@@ -92,13 +92,6 @@ class EncoderConfig(BaseModel):
                 "default_model_name": "mistral-embed",
                 "default_dimensions": 1024,
             },
-            # TODO: huggingface encoders requires pytorch and transformers which adds a lot of weight to the docker image.
-            # ...Should we just get rid of this since we have ollama?
-            # EncoderProvider.huggingface: {
-            #     "class": HuggingFaceEncoder,
-            #     "default_model_name": settings.HUGGINGFACE_EMBEDDING_MODEL_NAME or "distilbert-base-uncased",
-            #     "default_dimensions": 1024,
-            # },
         }
         return encoder_configs.get(encoder_provider)
 
