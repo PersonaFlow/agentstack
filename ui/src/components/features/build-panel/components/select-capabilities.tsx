@@ -30,10 +30,8 @@ export default function SelectCapabilities({ form }: TSelectCapabilitiesProps) {
   const { availableTools } = useConfigSchema();
   const { type: architectureType } = form.getValues().config.configurable;
 
-  console.log(availableTools);
-
   const capabilities = availableTools?.filter((tool) =>
-    options.includes(tool.id),
+    options.includes(tool.type),
   );
 
   const isChatRetrieval = (checkboxValue: string) =>
@@ -46,7 +44,7 @@ export default function SelectCapabilities({ form }: TSelectCapabilitiesProps) {
         <AccordionContent className="overflow-y-scroll p-2 flex flex-col gap-3">
           {capabilities?.map((capability) => (
             <FormField
-              key={capability.id}
+              key={capability.type}
               control={form.control}
               name="config.configurable.tools"
               render={({ field }) => {
@@ -54,12 +52,12 @@ export default function SelectCapabilities({ form }: TSelectCapabilitiesProps) {
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                     <FormControl>
                       <Checkbox
-                        disabled={isChatRetrieval(capability.id)}
+                        disabled={isChatRetrieval(capability.type)}
                         checked={
                           field.value?.some(
                             (selection: TTool) =>
-                              selection.id === capability.id,
-                          ) || isChatRetrieval(capability.id)
+                              selection.type === capability.type,
+                          ) || isChatRetrieval(capability.type)
                         }
                         onCheckedChange={(checked) => {
                           return checked
@@ -67,7 +65,7 @@ export default function SelectCapabilities({ form }: TSelectCapabilitiesProps) {
                             : field.onChange(
                                 field.value?.filter(
                                   (selection: TTool) =>
-                                    selection.id !== capability.id,
+                                    selection.type !== capability.type,
                                 ),
                               );
                         }}

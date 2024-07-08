@@ -14,6 +14,24 @@ import { assistantAtom } from "@/store";
 import Spinner from "@/components/ui/spinner";
 import { useConfigSchema } from "@/hooks/useConfig";
 
+const toolSchema = z.object({
+  title: z.string(),
+  properties: z.object({
+    type: z.object({
+      default: z.string(),
+    }),
+    name: z.object({
+      default: z.string(),
+    }),
+    description: z.object({
+      default: z.string(),
+    }),
+    multi_use: z.object({
+      default: z.boolean(),
+    }),
+  }),
+});
+
 const formSchema = z.object({
   public: z.boolean(),
   name: z.string().min(1, { message: "Name is required" }),
@@ -25,7 +43,7 @@ const formSchema = z.object({
       llm_type: z.string(),
       retrieval_description: z.string(),
       system_message: z.string(),
-      tools: z.array(z.any()),
+      tools: z.array(toolSchema),
     }),
   }),
   file_ids: z.array(z.string()),

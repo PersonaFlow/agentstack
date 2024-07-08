@@ -15,8 +15,6 @@ import {
   FormItem,
   FormLabel,
 } from "@/components/ui/form";
-import Spinner from "@/components/ui/spinner";
-import { useRunnableConfigSchema } from "@/data-provider/query-service";
 import { TTool } from "@/data-provider/types";
 import { useConfigSchema } from "@/hooks/useConfig";
 import { UseFormReturn } from "react-hook-form";
@@ -26,12 +24,7 @@ type TToolDialog = {
 };
 
 export function ToolDialog({ form }: TToolDialog) {
-  const { data: config, isLoading, isError } = useRunnableConfigSchema();
-  const { availableTools } = useConfigSchema(config);
-
-  if (isLoading) return <Spinner />;
-
-  if (isError) return <div>Issue fetching available tools.</div>;
+  const { availableTools } = useConfigSchema();
 
   return (
     <Dialog>
@@ -44,7 +37,7 @@ export function ToolDialog({ form }: TToolDialog) {
           <DialogDescription>
             {availableTools?.map((tool) => (
               <FormField
-                key={tool.id}
+                key={tool.type}
                 control={form.control}
                 name={`config.configurable.tools`}
                 render={({ field }) => {
@@ -53,7 +46,7 @@ export function ToolDialog({ form }: TToolDialog) {
                       <FormControl>
                         <Checkbox
                           checked={field.value?.some(
-                            (selection: TTool) => selection.id === tool.id,
+                            (selection: TTool) => selection.type === tool.type,
                           )}
                           onCheckedChange={(checked) => {
                             return checked
@@ -61,7 +54,7 @@ export function ToolDialog({ form }: TToolDialog) {
                               : field.onChange(
                                   field.value?.filter(
                                     (selection: TTool) =>
-                                      selection.id !== tool.id,
+                                      selection.type !== tool.type,
                                   ),
                                 );
                           }}

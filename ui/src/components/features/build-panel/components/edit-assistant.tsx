@@ -26,6 +26,9 @@ const toolSchema = z.object({
     description: z.object({
       default: z.string(),
     }),
+    multi_use: z.object({
+      default: z.boolean(),
+    }),
   }),
 });
 

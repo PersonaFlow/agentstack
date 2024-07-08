@@ -52,10 +52,10 @@ export const useConfigSchema = (selectedArchType?: string) => {
     const toolProperties = toolDefinition[1] as TConfigDefinitions;
 
     const tool = {
-      id: toolProperties.properties.type.default,
       type: toolProperties.properties.type.default,
       name: toolProperties.properties.name.default,
       description: toolProperties.properties.description.default,
+      multi_use: toolProperties.properties.multi_use.default,
       config: {},
     };
 

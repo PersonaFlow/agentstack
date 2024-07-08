@@ -33,7 +33,7 @@ export default function SelectTools({ form }: TSelectToolsProps) {
             {tools.map((tool: TTool, index: number) => {
               return (
                 <FormField
-                  key={tool.id}
+                  key={tool.type}
                   control={form.control}
                   name="config.configurable.tools"
                   render={({ field }) => {

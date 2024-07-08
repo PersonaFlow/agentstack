@@ -187,11 +187,11 @@ export type TAssistantFile = {
 export type TPurpose = "assistants" | "threads" | "personas";
 
 export type TTool = {
-  id: string;
   name: string;
   type: string;
   description: string;
   config: {};
+  multi_use: boolean;
 };
 
 export type TConfigDefinitions = {
@@ -205,6 +205,9 @@ export type TConfigDefinitions = {
     };
     description: {
       default: string;
+    };
+    multi_use: {
+      default: boolean;
     };
   };
 };
