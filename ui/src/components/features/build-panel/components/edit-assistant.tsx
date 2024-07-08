@@ -40,7 +40,7 @@ const formSchema = z.object({
       llm_type: z.string(),
       retrieval_description: z.string(),
       system_message: z.string(),
-      tools: z.array(z.any()),
+      tools: z.array(toolSchema),
     }),
   }),
   file_ids: z.array(z.string()),

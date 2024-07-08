@@ -16,7 +16,7 @@ import { useConfigSchema } from "@/hooks/useConfig";
 
 const formSchema = z.object({
   public: z.boolean(),
-  name: z.string(),
+  name: z.string().min(1, { message: "Name is required" }),
   config: z.object({
     configurable: z.object({
       interrupt_before_action: z.boolean(),
