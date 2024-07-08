@@ -32,8 +32,7 @@ DEFAULT_TAG = "RAG"
 
 
 async def handle_assistant_files(
-    payload: IngestRequestPayload,
-    assistant_repository: AssistantRepository
+    payload: IngestRequestPayload, assistant_repository: AssistantRepository
 ) -> tuple[list[str], set[str], Assistant]:
     assistant = await assistant_repository.retrieve_assistant(payload.namespace)
     if assistant is None:
@@ -52,6 +51,7 @@ async def handle_assistant_files(
         )
 
     return list(new_file_ids), existing_file_ids, assistant
+
 
 @router.post(
     "/ingest",
@@ -74,7 +74,9 @@ async def ingest(
         assistant = None
 
         if is_assistant:
-            payload.files, existing_file_ids, assistant = await handle_assistant_files(payload, assistant_repository)
+            payload.files, existing_file_ids, assistant = await handle_assistant_files(
+                payload, assistant_repository
+            )
 
         for file_id in payload.files:
             file_model = await file_repository.retrieve_file(UUID(file_id))
@@ -99,7 +101,10 @@ async def ingest(
                 payload.files,
             )
 
-        return {"success": True, "message": f"Ingested {len(files_to_ingest)} new files."}
+        return {
+            "success": True,
+            "message": f"Ingested {len(files_to_ingest)} new files.",
+        }
     except HTTPException as he:
         # Re-raise HTTP exceptions
         raise he

@@ -206,8 +206,12 @@ class Settings(BaseSettings):
         True if os.getenv("CREATE_SUMMARY_COLLECTION", "false") == "true" else False
     )
 
-    SUMMARIZATION_MODEL_PROVIDER: str = os.getenv("SUMMARIZATION_MODEL_PROVIDER", "openai")
-    SUMMARIZATION_MODEL_NAME: str = os.getenv("SUMMARIZATION_MODEL_NAME", "gpt-3.5-turbo")
+    SUMMARIZATION_MODEL_PROVIDER: str = os.getenv(
+        "SUMMARIZATION_MODEL_PROVIDER", "openai"
+    )
+    SUMMARIZATION_MODEL_NAME: str = os.getenv(
+        "SUMMARIZATION_MODEL_NAME", "gpt-3.5-turbo"
+    )
 
     ENABLE_RERANK_BY_DEFAULT: bool = (
         True if os.getenv("ENABLE_RERANK_BY_DEFAULT", "false") == "true" else False
