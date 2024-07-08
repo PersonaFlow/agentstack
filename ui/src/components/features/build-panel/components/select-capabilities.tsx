@@ -27,9 +27,10 @@ const options = [
 ];
 
 export default function SelectCapabilities({ form }: TSelectCapabilitiesProps) {
-  const { data: configSchema } = useRunnableConfigSchema();
-  const { availableTools } = useConfigSchema(configSchema);
+  const { availableTools } = useConfigSchema();
   const { type: architectureType } = form.getValues().config.configurable;
+
+  console.log(availableTools);
 
   const capabilities = availableTools?.filter((tool) =>
     options.includes(tool.id),
