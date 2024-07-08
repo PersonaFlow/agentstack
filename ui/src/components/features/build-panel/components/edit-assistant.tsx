@@ -64,16 +64,14 @@ export function EditAssistant() {
   const architectureType = form.watch("config.configurable.type");
   const tools = form.watch("config.configurable.tools");
 
-  const {
-    formState: { errors },
-  } = form;
-
-  useEffect(() => {
-    console.log(errors);
-  }, [errors]);
-
   const { systemMessage, retrievalDescription, availableTools } =
     useConfigSchema(architectureType ?? "");
+
+  useEffect(() => {
+    if (selectedAssistant) {
+      form.reset(selectedAssistant);
+    }
+  }, [selectedAssistant]);
 
   useEffect(() => {
     if (systemMessage && retrievalDescription && architectureType) {

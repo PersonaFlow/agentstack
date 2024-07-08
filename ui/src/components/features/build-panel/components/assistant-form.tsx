@@ -34,6 +34,8 @@ export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
   const { type: architectureType } = form.getValues().config.configurable;
   const { data: config, isLoading, isError } = useRunnableConfigSchema();
 
+  console.log(form.getValues());
+
   if (isLoading) return <Spinner />;
 
   if (isError) return <div>There was an issue fetching config schema.</div>;
