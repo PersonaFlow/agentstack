@@ -12,8 +12,9 @@ from fastapi import (
     Request,
 )
 import uuid
+import structlog
 from stack.app.repositories.file import get_file_repository, FileRepository
-
+from stack.app.schema.rag import DeleteDocumentsResponse
 from stack.app.core.auth.utils import get_header_user_id
 from stack.app.schema.file import (
     FileSchema,
@@ -24,12 +25,8 @@ from stack.app.schema.file import (
 from stack.app.core.auth.request_validators import AuthenticatedUser
 from stack.app.core.configuration import settings
 from typing import Optional
-from stack.app.core.logger import logging
-from stack.app.utils.file_helpers import (
-    guess_mime_type,
-    is_mime_type_supported,
-    guess_file_extension,
-)
+from stack.app.utils.file_helpers import guess_mime_type, is_mime_type_supported
+
 from stack.app.vectordbs.qdrant import QdrantService
 from stack.app.repositories.assistant import (
     get_assistant_repository,
@@ -38,7 +35,7 @@ from stack.app.repositories.assistant import (
 
 router = APIRouter()
 DEFAULT_TAG = "Files"
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger()
 
 
 @router.post(
@@ -75,7 +72,7 @@ async def upload_file(
         user_id = get_header_user_id(request)
 
         file_content = await file.read()
-        mime_type = guess_mime_type(file_content)
+        mime_type = guess_mime_type(file.filename, file_content)
         if not is_mime_type_supported(mime_type):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, detail="Unsupported file type."
@@ -102,7 +99,7 @@ async def upload_file(
     except HTTPException as e:
         raise e
     except Exception as e:
-        logger.error(f"Error uploading file: {str(e)}", exc_info=True)
+        logger.exception(f"Error uploading file: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while uploading the file.",
@@ -128,7 +125,7 @@ async def retrieve_files(
         files = await files_repository.retrieve_files(user_id=user_id, purpose=purpose)
         return files
     except Exception as e:
-        logger.error(f"Error retrieving files: {str(e)}", exc_info=True)
+        logger.exception(f"Error retrieving files: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while retrieving the files.",
@@ -152,13 +149,13 @@ async def retrieve_file(
     try:
         file = await files_repository.retrieve_file(file_id=file_id)
         if not file:
-            logger.error(f"File not found for file id: {file_id}")
+            logger.exception(f"File not found for file id: {file_id}")
             raise HTTPException(status_code=404, detail="File not found")
         return file
     except HTTPException as e:
         raise e
     except Exception as e:
-        logger.error(f"Error retrieving file: {str(e)}", exc_info=True)
+        logger.exception(f"Error retrieving file: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while retrieving the file.",
@@ -187,6 +184,11 @@ async def delete_file(
             raise HTTPException(status_code=404, detail="File not found")
         if file.user_id != user_id:
             raise HTTPException(status_code=403, detail="Forbidden")
+
+        deleted_chunks = DeleteDocumentsResponse(num_deleted_chunks=0)
+        assistants = []
+        num_of_assistants = 0
+
         if file.purpose in [
             FilePurpose.ASSISTANTS,
             FilePurpose.THREADS,
@@ -195,33 +197,37 @@ async def delete_file(
             # delete any embeddings associated with the file from the vector db
             service = QdrantService()
             deleted_chunks = await service.delete(str(file_id))
+
             # If this is an assistants file, delete the file from any assistants that may be using it
-            assistants = await assistant_repository.remove_all_file_references(file_id)
-            num_of_assistants = len(assistants)
-            logger.info(f"Deleted file from {num_of_assistants} assistants")
-        else:
-            deleted_chunks = []
-            num_of_assistants = 0
+            if file.purpose == FilePurpose.ASSISTANTS:
+                assistants = await assistant_repository.remove_all_file_references(
+                    file_id
+                )
+                num_of_assistants = len(assistants)
+                logger.info(f"Deleted file from {num_of_assistants} assistants")
 
-        # delete the file from the filesystem
-        ext = guess_file_extension(file.mime_type)
-        file_path = f"{settings.FILE_DATA_DIRECTORY}/{file.id}.{ext}"
-
-        if os.path.isfile(file_path):
-            os.remove(file_path)
+        if os.path.isfile(file.source):
+            os.remove(file.source)
         else:
-            logger.error(f"File not found on filesystem: {file_path}", exc_info=True)
+            logger.exception(f"File not found on filesystem: {file.source}")
+            raise HTTPException(
+                status_code=400,
+                detail=f"File not found on filesystem at location: {file.source}. Unable to delete.",
+            )
+
         # delete the file from the database
         await files_repository.delete_file(file_id=file_id)
 
         return DeleteFileResponse(
             file_id=file_id,
+            num_of_deleted_chunks=deleted_chunks.num_deleted_chunks,
             num_of_assistants=num_of_assistants,
-            deleted_chunks=deleted_chunks,
             assistants=assistants,
         )
+    except HTTPException as e:
+        raise e
     except Exception as e:
-        logger.error(f"Error deleting assistant file: {str(e)}", exc_info=True)
+        logger.exception(f"Error deleting file: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=500,
             detail="An error occurred while deleting the file from the system.",
@@ -244,7 +250,7 @@ async def retrieve_file_content(
     try:
         return await files_repository.retrieve_file_content_as_response(str(file_id))
     except Exception as e:
-        logger.error(f"Error retrieving file content: {str(e)}", exc_info=True)
+        logger.exception(f"Error retrieving file content: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=500,
             detail="An server error occurred while retrieving the file content.",

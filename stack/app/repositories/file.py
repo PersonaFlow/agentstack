@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from stack.app.core.datastore import get_postgresql_session_provider
 from typing import Optional, Any
 from stack.app.core.configuration import settings
-from stack.app.utils.file_helpers import guess_file_extension
+from stack.app.utils.file_helpers import guess_file_extension, guess_mime_type
 from fastapi import Response
 
 logger = structlog.get_logger()
@@ -28,14 +28,21 @@ class FileRepository(BaseRepository):
         self.postgresql_session = postgresql_session
 
     async def create_file(self, data: dict, file_content: bytes) -> File:
-        """Creates a new file in the database and saves the file content to the
-        local file system."""
         try:
+            # Guess the mime type and file extension
+            mime_type = guess_mime_type(data.get("filename", ""), file_content)
+            file_extension = guess_file_extension(
+                data.get("filename", ""), file_content
+            )
+
+            # Update the data dictionary with the guessed mime type
+            data["mime_type"] = mime_type
+
             file = await self.create(model=File, values=data)
             await self.postgresql_session.commit()
+
             # Create the file data directory if it doesn't exist
             os.makedirs(settings.FILE_DATA_DIRECTORY, exist_ok=True)
-            file_extension = guess_file_extension(data.get("mime_type"))
 
             # Save the file content to the local file system using the generated UUID
             local_file_name = f"{file.id}.{file_extension}"
@@ -58,7 +65,7 @@ class FileRepository(BaseRepository):
                 file_data=data,
             )
             raise HTTPException(
-                status_code=400, detail=f"Failed to create file."
+                status_code=400, detail=f"Failed to create file: {e}."
             ) from e
 
     @staticmethod
@@ -122,9 +129,9 @@ class FileRepository(BaseRepository):
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
             logger.exception(
-                f"Failed to delete file due to a database error: ", exc_info=True
+                f"Failed to delete file due to a database error: {e}", exc_info=True
             )
-            raise HTTPException(status_code=400, detail="Failed to delete file.")
+            raise HTTPException(status_code=400, detail=f"Failed to delete file.")
 
     async def retrieve_file_content(self, file_id: str) -> Any:
         """Fetches the content of a file by ID from the local file system."""
