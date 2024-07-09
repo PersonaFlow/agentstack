@@ -15,8 +15,8 @@ import {
   FormItem,
   FormLabel,
 } from "@/components/ui/form";
-import Spinner from "@/components/ui/spinner";
-import { useRunnableConfigSchema } from "@/data-provider/query-service";
+import { TTool } from "@/data-provider/types";
+import { useAvailableTools } from "@/hooks/useAvailableTools";
 import { UseFormReturn } from "react-hook-form";
 
 type TToolDialog = {
@@ -24,24 +24,22 @@ type TToolDialog = {
 };
 
 export function ToolDialog({ form }: TToolDialog) {
-  const { data: config, isLoading, isError } = useRunnableConfigSchema();
-
-  if (isLoading) return <Spinner />;
-
-  if (isError) return <div>Issue fetching available tools.</div>;
+  const { availableTools } = useAvailableTools();
 
   return (
     <Dialog>
       <DialogTrigger>
-        <Button className="rounded-xl">Add tool</Button>
+        <Button className="rounded-xl" type="button">
+          Add tool
+        </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Tools</DialogTitle>
           <DialogDescription>
-            {config?.definitions.AvailableTools.enum?.map((tool) => (
+            {availableTools?.map((tool) => (
               <FormField
-                key={tool}
+                key={tool.type}
                 control={form.control}
                 name={`config.configurable.tools`}
                 render={({ field }) => {
@@ -49,20 +47,23 @@ export function ToolDialog({ form }: TToolDialog) {
                     <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                       <FormControl>
                         <Checkbox
-                          checked={field.value?.includes(tool)}
+                          checked={field.value?.some(
+                            (selection: TTool) => selection.type === tool.type,
+                          )}
                           onCheckedChange={(checked) => {
                             return checked
                               ? field.onChange([...field.value, tool])
                               : field.onChange(
                                   field.value?.filter(
-                                    (value: string) => value !== tool,
+                                    (selection: TTool) =>
+                                      selection.type !== tool.type,
                                   ),
                                 );
                           }}
                         />
                       </FormControl>
                       <FormLabel className="text-sm font-normal">
-                        {tool}
+                        {tool.name}
                       </FormLabel>
                     </FormItem>
                   );

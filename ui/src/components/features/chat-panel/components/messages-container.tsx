@@ -38,8 +38,6 @@ export default function MessagesContainer({
   const divRef = useRef(null);
 
   useEffect(() => {
-    console.log("messages changed!");
-    console.log(messages);
     if (divRef.current) {
       divRef.current.scrollTo({
         top: divRef.current.scrollHeight,

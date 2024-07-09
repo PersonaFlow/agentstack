@@ -20,7 +20,7 @@ export default function Navbar() {
     useGetMyThreads(true);
 
   const [filteredThreads, setFilteredThreads] = useState(threadsData || {});
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const [selectedAssistant, setSelectedAssistant] = useAtom(assistantAtom);
 
   const router = useRouter();

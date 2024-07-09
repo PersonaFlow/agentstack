@@ -3,35 +3,18 @@
 import {
   useAssistants,
   useCreateAssistant,
-  useRunnableConfigSchema,
 } from "@/data-provider/query-service";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { AssistantForm } from "./assistant-form";
-import { TAssistant, TConfigSchema, TSchemaField } from "@/data-provider/types";
 import { useAtom } from "jotai";
 import { assistantAtom } from "@/store";
 import Spinner from "@/components/ui/spinner";
 import { useConfigSchema } from "@/hooks/useConfig";
-
-const formSchema = z.object({
-  public: z.boolean(),
-  name: z.string(),
-  config: z.object({
-    configurable: z.object({
-      interrupt_before_action: z.boolean(),
-      type: z.string().nullable(),
-      agent_type: z.string().optional(),
-      llm_type: z.string(),
-      retrieval_description: z.string(),
-      system_message: z.string(),
-      tools: z.array(z.string()),
-    }),
-  }),
-  file_ids: z.array(z.string()),
-});
+import { formSchema } from "@/data-provider/types";
+import { useAvailableTools } from "@/hooks/useAvailableTools";
 
 const defaultValues = {
   public: false,
@@ -50,12 +33,13 @@ const defaultValues = {
   file_ids: [],
 };
 
+const RetrievalType = "retrieval";
+
 export function CreateAssistant() {
   const { data: assistantsData, isLoading } = useAssistants();
   const [_, setSelectedAssistant] = useAtom(assistantAtom);
 
   const createAssistant = useCreateAssistant();
-  const { data: configSchema } = useRunnableConfigSchema();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -66,19 +50,20 @@ export function CreateAssistant() {
   const tools = form.watch("config.configurable.tools");
 
   const { systemMessage, retrievalDescription } = useConfigSchema(
-    configSchema,
     architectureType ?? "",
   );
 
+  const { availableTools } = useAvailableTools();
+
   useEffect(() => {
-    if (configSchema && architectureType) {
+    if (architectureType) {
       form.setValue("config.configurable.system_message", systemMessage);
       form.setValue(
         "config.configurable.retrieval_description",
         retrievalDescription,
       );
     }
-  }, [configSchema, architectureType]);
+  }, [architectureType]);
 
   useEffect(() => {
     if (architectureType !== "agent") {
@@ -91,7 +76,10 @@ export function CreateAssistant() {
     }
 
     if (architectureType === "chat_retrieval") {
-      const retrievalTools = ["Retrieval"];
+      const retrievalTool = availableTools?.find(
+        (tool) => tool.type === RetrievalType,
+      );
+      const retrievalTools = [retrievalTool];
       const containsCodeInterpreter = tools.includes("Code interpretor");
       // if (containsCodeInterpreter) retrievalTools.push("Code interpreter");
       form.setValue("config.configurable.tools", retrievalTools);
@@ -101,6 +89,7 @@ export function CreateAssistant() {
   function onSubmit(values: z.infer<typeof formSchema>) {
     createAssistant.mutate(values, {
       onSuccess: (response) => {
+        console.log("Successfully created assistant: ");
         console.log(response);
         setSelectedAssistant(response);
       },

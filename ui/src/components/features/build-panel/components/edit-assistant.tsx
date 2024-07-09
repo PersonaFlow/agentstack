@@ -2,40 +2,24 @@
 
 import {
   useAssistants,
-  useRunnableConfigSchema,
   useUpdateAssistant,
 } from "@/data-provider/query-service";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { TAssistant } from "@/data-provider/types";
+import { TAssistant, formSchema } from "@/data-provider/types";
 import { AssistantForm } from "./assistant-form";
 import { useAtom } from "jotai";
 import { assistantAtom } from "@/store";
 import { useConfigSchema } from "@/hooks/useConfig";
+import { useAvailableTools } from "@/hooks/useAvailableTools";
 
-const formSchema = z.object({
-  public: z.boolean(),
-  name: z.string(),
-  config: z.object({
-    configurable: z.object({
-      interrupt_before_action: z.boolean(),
-      type: z.string(),
-      agent_type: z.string().optional(),
-      llm_type: z.string(),
-      retrieval_description: z.string(),
-      system_message: z.string(),
-      tools: z.array(z.string()),
-    }),
-  }),
-  file_ids: z.array(z.string()),
-});
+const RetrievalType = "retrieval";
 
 export function EditAssistant() {
   const { data: assistantsData, isLoading } = useAssistants();
   const [selectedAssistant] = useAtom(assistantAtom);
-  const { data: configSchema } = useRunnableConfigSchema();
 
   const updateAssistant = useUpdateAssistant(selectedAssistant?.id);
 
@@ -50,19 +34,26 @@ export function EditAssistant() {
   const tools = form.watch("config.configurable.tools");
 
   const { systemMessage, retrievalDescription } = useConfigSchema(
-    configSchema,
     architectureType ?? "",
   );
 
+  const { availableTools } = useAvailableTools();
+
   useEffect(() => {
-    if (configSchema && architectureType) {
+    if (selectedAssistant) {
+      form.reset(selectedAssistant);
+    }
+  }, [selectedAssistant]);
+
+  useEffect(() => {
+    if (architectureType) {
       form.setValue("config.configurable.system_message", systemMessage);
       form.setValue(
         "config.configurable.retrieval_description",
         retrievalDescription,
       );
     }
-  }, [configSchema, architectureType]);
+  }, [architectureType]);
 
   useEffect(() => {
     if (architectureType !== "agent") {
@@ -75,10 +66,14 @@ export function EditAssistant() {
     }
 
     if (architectureType === "chat_retrieval") {
-      const retrievalTools = ["Retrieval"];
+      const retrievalTool = availableTools?.find(
+        (tool) => tool.type === RetrievalType,
+      );
       const containsCodeInterpreter = tools.includes("Code interpretor");
       // if (containsCodeInterpreter) retrievalTools.push("Code interpreter");
-      form.setValue("config.configurable.tools", retrievalTools);
+      if (retrievalTool) {
+        form.setValue("config.configurable.tools", [retrievalTool]);
+      }
     }
   }, [architectureType]);
 
