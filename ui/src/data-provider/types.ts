@@ -1,3 +1,33 @@
+import { z } from "zod";
+
+export const toolSchema = z.object({
+  title: z.string(),
+  properties: z.object({
+    type: z.string(),
+    name: z.string(),
+    description: z.string(),
+    multi_use: z.boolean(),
+    config: z.object({}),
+  }),
+});
+
+export const formSchema = z.object({
+  public: z.boolean(),
+  name: z.string().min(1, { message: "Name is required" }),
+  config: z.object({
+    configurable: z.object({
+      interrupt_before_action: z.boolean(),
+      type: z.string().nullable(),
+      agent_type: z.string().optional(),
+      llm_type: z.string(),
+      retrieval_description: z.string(),
+      system_message: z.string(),
+      tools: z.array(z.any()),
+    }),
+  }),
+  file_ids: z.array(z.string()),
+});
+
 export type TRunInput = {
   content: string;
   role: string;
@@ -155,24 +185,6 @@ export type TMessage = {
   invalid_tool_calls?: string[];
 };
 
-// export type TMessage = {
-//   content: string;
-//   thread_id?: string;
-//   user_id?: string;
-//   assistant_id?: string;
-//   content: string;
-//   type: string;
-//   name?: string | null;
-//   tool_calls?: string[];
-//   invalid_tool_calls?: string[];
-//   additional_kwargs: {};
-//   response_metadata?: {};
-//   example: boolean;
-//   id?: string;
-//   created_at?: string;
-//   updated_at?: string;
-// };
-
 export type TUpdateMessageRequest = {
   assistant_id: string;
   content: string;
@@ -203,6 +215,32 @@ export type TAssistantFile = {
 };
 
 export type TPurpose = "assistants" | "threads" | "personas";
+
+export type TTool = {
+  name: string;
+  type: string;
+  description: string;
+  config: {};
+  multi_use: boolean;
+};
+
+export type TConfigDefinitions = {
+  title: string;
+  properties: {
+    type: {
+      default: string;
+    };
+    name: {
+      default: string;
+    };
+    description: {
+      default: string;
+    };
+    multi_use: {
+      default: boolean;
+    };
+  };
+};
 
 export type TFile = {
   id: string;

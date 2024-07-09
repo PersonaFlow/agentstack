@@ -85,7 +85,10 @@ export default function FilesDialog({ form }: TFilesDialog) {
 
   return (
     <Dialog>
-      <DialogTrigger className="flex gap-2 border-2 rounded-md p-2 border-black">
+      <DialogTrigger
+        className="flex gap-2 border-2 rounded-md p-2 border-black"
+        type="button"
+      >
         <SquarePlus />
         Add Files
       </DialogTrigger>

@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { AssistentBuilder } from "./assistant-builder";
 
 export default function BuildPanel() {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
 
   const drawerStyles = {
     open: "p-4 border-solid border-2 h-full flex flex-col gap-4 overflow-x-hidden sm:min-w-[520px]",
