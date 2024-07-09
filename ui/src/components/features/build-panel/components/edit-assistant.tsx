@@ -13,6 +13,7 @@ import { AssistantForm } from "./assistant-form";
 import { useAtom } from "jotai";
 import { assistantAtom } from "@/store";
 import { useConfigSchema } from "@/hooks/useConfig";
+import { useAvailableTools } from "@/hooks/useAvailableTools";
 
 const RetrievalType = "retrieval";
 
@@ -32,8 +33,11 @@ export function EditAssistant() {
   const architectureType = form.watch("config.configurable.type");
   const tools = form.watch("config.configurable.tools");
 
-  const { systemMessage, retrievalDescription, availableTools } =
-    useConfigSchema(architectureType ?? "");
+  const { systemMessage, retrievalDescription } = useConfigSchema(
+    architectureType ?? "",
+  );
+
+  const { availableTools } = useAvailableTools();
 
   useEffect(() => {
     if (selectedAssistant) {

@@ -13,7 +13,7 @@ import {
   FormLabel,
 } from "@/components/ui/form";
 import { TTool } from "@/data-provider/types";
-import { useConfigSchema } from "@/hooks/useConfig";
+import { useAvailableTools } from "@/hooks/useAvailableTools";
 import { UseFormReturn } from "react-hook-form";
 
 type TSelectCapabilitiesProps = {
@@ -26,7 +26,7 @@ const options = [
 ];
 
 export default function SelectCapabilities({ form }: TSelectCapabilitiesProps) {
-  const { availableTools } = useConfigSchema();
+  const { availableTools } = useAvailableTools();
   const { type: architectureType } = form.getValues().config.configurable;
 
   const capabilities = availableTools?.filter((tool) =>

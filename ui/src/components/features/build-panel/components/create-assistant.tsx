@@ -14,6 +14,7 @@ import { assistantAtom } from "@/store";
 import Spinner from "@/components/ui/spinner";
 import { useConfigSchema } from "@/hooks/useConfig";
 import { formSchema } from "@/data-provider/types";
+import { useAvailableTools } from "@/hooks/useAvailableTools";
 
 const defaultValues = {
   public: false,
@@ -48,8 +49,11 @@ export function CreateAssistant() {
   const architectureType = form.watch("config.configurable.type");
   const tools = form.watch("config.configurable.tools");
 
-  const { systemMessage, retrievalDescription, availableTools } =
-    useConfigSchema(architectureType ?? "");
+  const { systemMessage, retrievalDescription } = useConfigSchema(
+    architectureType ?? "",
+  );
+
+  const { availableTools } = useAvailableTools();
 
   useEffect(() => {
     if (architectureType) {

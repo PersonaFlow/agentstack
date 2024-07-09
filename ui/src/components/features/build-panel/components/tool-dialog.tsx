@@ -16,7 +16,7 @@ import {
   FormLabel,
 } from "@/components/ui/form";
 import { TTool } from "@/data-provider/types";
-import { useConfigSchema } from "@/hooks/useConfig";
+import { useAvailableTools } from "@/hooks/useAvailableTools";
 import { UseFormReturn } from "react-hook-form";
 
 type TToolDialog = {
@@ -24,7 +24,7 @@ type TToolDialog = {
 };
 
 export function ToolDialog({ form }: TToolDialog) {
-  const { availableTools } = useConfigSchema();
+  const { availableTools } = useAvailableTools();
 
   return (
     <Dialog>
