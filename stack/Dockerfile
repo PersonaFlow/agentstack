@@ -44,7 +44,6 @@ ENV ENVIRONMENT='' \
     AZURE_OPENAI_API_BASE='' \
     AZURE_OPENAI_API_KEY='' \
     AZURE_OPENAI_API_VERSION=''
-# RUN apt-get update && apt-get upgrade && apt-get clean && apt-get install -y libmagic1
 
 COPY stack/local.pex /bin/app
 
