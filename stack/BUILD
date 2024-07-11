@@ -9,6 +9,8 @@ pex_binary(
 
 docker_image(
     name="docker",
+    dependencies=[":local"],
+    repository="personaflow/stack"
 )
 
 shell_sources()

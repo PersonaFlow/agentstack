@@ -43,26 +43,8 @@ ENV ENVIRONMENT='' \
     AZURE_OPENAI_DEPLOYMENT_NAME='' \
     AZURE_OPENAI_API_BASE='' \
     AZURE_OPENAI_API_KEY='' \
-    AZURE_OPENAI_API_VERSION='' \
-    POETRY_NO_INTERACTION=1 \
-    POETRY_VIRTUALENVS_IN_PROJECT=1 \
-    POETRY_VIRTUALENVS_CREATE=1 \
-    POETRY_CACHE_DIR=/tmp/poetry_cache
-RUN apt-get update && apt-get upgrade && apt-get clean && apt-get install -y libmagic1
+    AZURE_OPENAI_API_VERSION=''
 
-FROM base as builder
-WORKDIR /app
+COPY stack/local.pex /bin/app
 
-
-COPY pyproject.toml poetry.lock /app/
-RUN pip install --upgrade pip \
-    && pip install poetry \
-    && poetry config virtualenvs.in-project true \
-    && poetry install --without dev --no-root
-
-FROM base as runner
-WORKDIR /app
-COPY --from=builder /app /app
-COPY . /app
-EXPOSE 9000
-CMD ["/app/.venv/bin/uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "9000"]
+ENTRYPOINT ["/usr/local/bin/python3.11", "/bin/app"]

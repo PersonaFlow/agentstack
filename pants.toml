@@ -50,3 +50,6 @@ resolves = { python-default = "constraints.txt"}
 #  problematic system Pythons. See
 #  https://www.pantsbuild.org/docs/python-interpreter-compatibility#changing-the-interpreter-search-path.
 search_path = ["<PATH>", "<PYENV>"]
+
+[docker]
+build_verbose = true
