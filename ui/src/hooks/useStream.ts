@@ -9,9 +9,9 @@ export const useStream = () => {
   const startStream = useCallback(
     async (
       input: TMessage[] | Record<string, any> | null,
-      user_id: string,
       thread_id: string,
       assistant_id: string,
+      user_id?: string,
     ) => {
       const controller = new AbortController();
       setController(controller);
