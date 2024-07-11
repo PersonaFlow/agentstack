@@ -20,7 +20,7 @@ export const formSchema = z.object({
       type: z.string().nullable(),
       agent_type: z.string().optional(),
       llm_type: z.string(),
-      retrieval_description: z.string(),
+      retrieval_description: z.string().optional(),
       system_message: z.string(),
       tools: z.array(z.any()),
     }),
