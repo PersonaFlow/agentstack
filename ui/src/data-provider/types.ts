@@ -168,6 +168,14 @@ export type TThreadState = {
   next: string[];
 };
 
+export type TToolCall = {
+  name: string;
+  args: {
+    query: string;
+  };
+  id: string;
+};
+
 export type TMessage = {
   content: string;
   additional_kwargs?: {
@@ -181,7 +189,7 @@ export type TMessage = {
   name?: string | null;
   id: string;
   example: boolean;
-  tool_calls?: string[];
+  tool_calls?: TToolCall[];
   invalid_tool_calls?: string[];
 };
 
