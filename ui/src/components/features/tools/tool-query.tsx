@@ -12,13 +12,13 @@ type TToolQueryProps = {
 
 export default function ToolQuery({ query, tool }: TToolQueryProps) {
   return (
-    <div className="flex px-2 b-2">
-      <h2>
+    <>
+      <h2 className="flex gap-2 rounded-sm border-2 p-2">
         <List /> Query: {query}
       </h2>
-      <h2>
+      <h2 className="flex gap-2 rounded-sm border-2 p-2">
         <Search /> Using: {tool}
       </h2>
-    </div>
+    </>
   );
 }
