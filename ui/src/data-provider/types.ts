@@ -38,6 +38,7 @@ export type TRunInput = {
 export enum MessageType {
   AI = "ai",
   HUMAN = "human",
+  TOOL = "tool",
 }
 
 export type TConfigurable = {
@@ -174,6 +175,13 @@ export type TToolCall = {
     query: string;
   };
   id: string;
+};
+
+export type TToolResult = {
+  content: string | [];
+  type: string;
+  id: string;
+  tool_call_id: string;
 };
 
 export type TMessage = {
