@@ -6,6 +6,7 @@ import {
 } from "@/components/ui/collapsible";
 import { TMessage, TToolResult } from "@/data-provider/types";
 import { CaretSortIcon } from "@radix-ui/react-icons";
+import Link from "next/link";
 import { useState } from "react";
 
 export function ToolResult({ toolResult }: { toolResult: TMessage }) {
@@ -27,8 +28,10 @@ export function ToolResult({ toolResult }: { toolResult: TMessage }) {
         <CollapsibleContent className="space-y-2">
           {Array.isArray(toolResult.content)
             ? toolResult.content.map((item) => (
-                <div className="rounded-md border px-4 py-2 font-mono text-sm shadow-sm">
-                  {item.url}
+                <div className="cursor-pointer rounded-md border px-4 py-2 font-mono text-sm shadow-sm transition-all delay-150 ease-in-out hover:bg-stone-400 hover:text-white">
+                  <Link href={item.url} target="_blank">
+                    {item.url}
+                  </Link>
                 </div>
               ))
             : toolResult.content}
