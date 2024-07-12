@@ -102,6 +102,17 @@ Note: `::` means all files in project. For more information on targeting, see: [
 
 To run the APIs, you can use the Swagger UI at `http://localhost:9000/docs` or via [the Postman collection](/stack/tests/integration/PersonaFlow.postman_collection.json).
 
+## UI Setup
+
+_Dependencies are managed by [NPM](https://www.npmjs.com/)_
+
+1. Install node or make sure you have it installed (`node -v`).
+2. Navigate to `ui` folder.
+3. Run `npm install` to install dependencies.
+4. copy `.env.local.example` into `.env.local` file (e.g., `cp .env.local.example .env.local`).
+5. Update `.env.local` and comment out the line where `NEXT_PUBLIC_BASE_API_URL` is defined. Make sure that the key value is correct and you have backend running under the same address.
+6. Run `npm run dev` and open the link from the console in a browser.
+
 # Documentation
 - [Assistants](/docs/assistants.md)
 - [Document Processing and RAG](/docs/rag.md)
