@@ -184,13 +184,18 @@ export type TToolResult = {
   tool_call_id: string;
 };
 
-export type TMessage = {
+export type TToolContent = {
+  url: string;
   content: string;
+};
+
+export type TMessage = {
+  content: string | TToolContent[];
   additional_kwargs?: {
     additional_kwargs?: {};
     example?: boolean;
   };
-  responsoe_metadata?: {
+  response_metadata?: {
     finish_reason?: boolean;
   };
   type: string;
@@ -199,6 +204,7 @@ export type TMessage = {
   example: boolean;
   tool_calls?: TToolCall[];
   invalid_tool_calls?: string[];
+  tool_call_id?: string;
 };
 
 export type TUpdateMessageRequest = {

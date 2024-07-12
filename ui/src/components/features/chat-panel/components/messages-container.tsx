@@ -11,6 +11,7 @@ import { ReactNode, useEffect, useRef, useState } from "react";
 import Spinner from "@/components/ui/spinner";
 import { useChatMessages } from "@/hooks/useChat";
 import ToolContainer from "../../tools/tool-container";
+import { ToolResult } from "../../tools/tool-result";
 
 type Props = {
   isStreaming?: boolean;
@@ -39,7 +40,6 @@ export default function MessagesContainer({
   conversationId,
   threadId,
 }: Props) {
-  const [toolResults, setToolResults] = useState<TToolResult[]>([]);
   const { messages, next, refreshMessages } = useChatMessages(threadId, stream);
   const prevMessages = usePrevious(messages);
   const divRef = useRef(null);
@@ -66,8 +66,7 @@ export default function MessagesContainer({
           const isToolResult = message.type === MessageType.TOOL;
 
           if (isToolResult) {
-            // setToolResults((results) => [...results, message]);
-            return <></>;
+            return <ToolResult toolResult={message} />;
           }
 
           if (isToolCall) {
