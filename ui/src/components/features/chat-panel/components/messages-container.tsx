@@ -1,10 +1,17 @@
 "use client";
-import { TMessage } from "@/data-provider/types";
+import {
+  MessageType,
+  TMessage,
+  TToolCall,
+  TToolResult,
+} from "@/data-provider/types";
 import MessageItem from "./message-item";
 import { useParams } from "next/navigation";
-import { ReactNode, useEffect, useRef } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import Spinner from "@/components/ui/spinner";
 import { useChatMessages } from "@/hooks/useChat";
+import ToolContainer from "../../tools/tool-container";
+import { ToolResult } from "../../tools/tool-result";
 
 type Props = {
   isStreaming?: boolean;
@@ -52,9 +59,31 @@ export default function MessagesContainer({
   return (
     <div className="h-full flex flex-col">
       <div className="p-6 overflow-y-scroll" ref={divRef}>
-        {messages?.map((message, index) => (
-          <MessageItem message={message} key={`${message.id}-${index}`} />
-        ))}
+        {messages?.map((message, index) => {
+          const isToolCall =
+            message.tool_calls?.length && message.tool_calls.length > 0;
+
+          const isToolResult = message.type === MessageType.TOOL;
+
+          if (isToolResult) {
+            return (
+              <ToolResult toolResult={message} key={`${message.id}-${index}`} />
+            );
+          }
+
+          if (isToolCall) {
+            return (
+              <ToolContainer
+                toolCalls={message.tool_calls as TToolCall[]}
+                key={`${message.id}-${index}`}
+              />
+            );
+          }
+
+          return (
+            <MessageItem message={message} key={`${message.id}-${index}`} />
+          );
+        })}
       </div>
       {composer}
     </div>

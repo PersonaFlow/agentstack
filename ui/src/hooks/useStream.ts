@@ -2,17 +2,19 @@ import { TMessage, TStreamState } from "@/data-provider/types";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 import { useCallback, useState } from "react";
 
+type TStartStreamProps = {
+  input: TMessage[] | Record<string, any> | null;
+  thread_id: string;
+  assistant_id: string;
+  user_id?: string;
+};
+
 export const useStream = () => {
   const [current, setCurrent] = useState<TStreamState | null>(null);
   const [controller, setController] = useState<AbortController | null>(null);
 
   const startStream = useCallback(
-    async (
-      input: TMessage[] | Record<string, any> | null,
-      user_id: string,
-      thread_id: string,
-      assistant_id: string,
-    ) => {
+    async ({ input, thread_id, assistant_id, user_id }: TStartStreamProps) => {
       const controller = new AbortController();
       setController(controller);
       setCurrent({ status: "inflight", messages: [] });
