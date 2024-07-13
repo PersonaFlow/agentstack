@@ -20,7 +20,7 @@ export const formSchema = z.object({
       type: z.string().nullable(),
       agent_type: z.string().optional(),
       llm_type: z.string(),
-      retrieval_description: z.string(),
+      retrieval_description: z.string().optional(),
       system_message: z.string(),
       tools: z.array(z.any()),
     }),
@@ -38,6 +38,7 @@ export type TRunInput = {
 export enum MessageType {
   AI = "ai",
   HUMAN = "human",
+  TOOL = "tool",
 }
 
 export type TConfigurable = {
@@ -168,21 +169,42 @@ export type TThreadState = {
   next: string[];
 };
 
-export type TMessage = {
+export type TToolCall = {
+  name: string;
+  args: {
+    query: string;
+  };
+  id: string;
+};
+
+export type TToolResult = {
+  content: string | [];
+  type: string;
+  id: string;
+  tool_call_id: string;
+};
+
+export type TToolContent = {
+  url: string;
   content: string;
+};
+
+export type TMessage = {
+  content: string | TToolContent[];
   additional_kwargs?: {
     additional_kwargs?: {};
     example?: boolean;
   };
-  responsoe_metadata?: {
+  response_metadata?: {
     finish_reason?: boolean;
   };
   type: string;
   name?: string | null;
   id: string;
   example: boolean;
-  tool_calls?: string[];
+  tool_calls?: TToolCall[];
   invalid_tool_calls?: string[];
+  tool_call_id?: string;
 };
 
 export type TUpdateMessageRequest = {
