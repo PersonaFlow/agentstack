@@ -66,7 +66,9 @@ export default function MessagesContainer({
           const isToolResult = message.type === MessageType.TOOL;
 
           if (isToolResult) {
-            return <ToolResult toolResult={message} />;
+            return (
+              <ToolResult toolResult={message} key={`${message.id}-${index}`} />
+            );
           }
 
           if (isToolCall) {

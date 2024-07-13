@@ -10,9 +10,9 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { TMessage, TToolResult } from "@/data-provider/types";
+import { TMessage } from "@/data-provider/types";
 import { CaretSortIcon } from "@radix-ui/react-icons";
-import { ArrowRight, MoveUpRight } from "lucide-react";
+import { MoveUpRight } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -64,7 +64,11 @@ export function ToolResult({ toolResult }: { toolResult: TMessage }) {
         <CollapsibleContent className="space-y-2">
           {Array.isArray(toolResult.content)
             ? toolResult.content.map((item) => (
-                <AccordionToolContent url={item.url} content={item.content} />
+                <AccordionToolContent
+                  url={item.url}
+                  content={item.content}
+                  key={item.url}
+                />
               ))
             : toolResult.content}
         </CollapsibleContent>
