@@ -32,15 +32,15 @@ async function _delete<T>(url: string, data?: any): Promise<T> {
   return response.data;
 }
 
-axios.defaults.baseURL = "http://localhost:9000";
+axios.defaults.baseURL = "http://127.0.0.1:9000";
 
 // Set token for requests
 axios.interceptors.request.use(
   async (config) => {
     // @ts-ignore
-    config.headers = {
-      "X-API-KEY": process.env.NEXT_PUBLIC_PERSONAFLOW_API_KEY,
-    };
+    // config.headers = {
+    //   "X-API-KEY": process.env.NEXT_PUBLIC_PERSONAFLOW_API_KEY,
+    // };
 
     return config;
   },
