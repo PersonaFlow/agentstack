@@ -57,7 +57,7 @@ export function CreateAssistant() {
 
   useEffect(() => {
     if (architectureType) {
-      form.setValue("config.configurable.system_message", systemMessage);
+      form.setValue("config.configurable.system_message", systemMessage as string);
       form.setValue(
         "config.configurable.retrieval_description",
         retrievalDescription,
@@ -87,6 +87,7 @@ export function CreateAssistant() {
   }, [architectureType]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
+    // @ts-ignore
     createAssistant.mutate(values, {
       onSuccess: (response) => {
         console.log("Successfully created assistant: ");

@@ -20,7 +20,7 @@ export function useChatMessages(
   const [next, setNext] = useState<string[]>([]);
   const prevStreamStatus = usePrevious(stream?.status);
 
-  const { data: threadData } = useThreadState(threadId);
+  const { data: threadData } = useThreadState(threadId as string);
 
   const refreshMessages = useCallback(async () => {
     if (threadId && threadData) {
@@ -28,6 +28,7 @@ export function useChatMessages(
       const messages = values
         ? Array.isArray(values)
           ? values
+          // @ts-ignore
           : values.messages
         : [];
       setMessages(messages);

@@ -9,7 +9,7 @@ export const useConfigSchema = (selectedArchType?: string) => {
   const { definitions } = configSchema;
 
   const configProperties =
-    definitions["Configurable" as TConfigurableSchema].properties;
+    (definitions["Configurable"] as TConfigurableSchema).properties;
 
   let systemMessage;
   let retrievalDescription;
