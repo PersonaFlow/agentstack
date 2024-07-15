@@ -15,7 +15,7 @@ import Spinner from "@/components/ui/spinner";
 export default function ChatPanel() {
   const [conversation, setConversation] = useAtom(conversationAtom);
   const [assistant] = useAtom(assistantAtom);
-  const { id: threadId } = useParams();
+  const { id: threadId } = useParams<{id: string}>();
   const {
     data: threadState,
     isError,
@@ -46,7 +46,7 @@ export default function ChatPanel() {
     await startStream({
       input,
       thread_id: threadId,
-      assistant_id: assistant.id,
+      assistant_id: assistant.id as string,
     });
   };
 
@@ -58,6 +58,7 @@ export default function ChatPanel() {
       {isLoadingThreads && <Spinner />}
       <MessagesContainer
         threadId={threadId}
+        // @ts-ignore
         stream={stream}
         composer={
           <Composer

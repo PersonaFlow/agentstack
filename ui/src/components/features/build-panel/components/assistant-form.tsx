@@ -23,6 +23,7 @@ import PublicSwitch from "./public-switch";
 import SelectArchitecture from "./select-architecture";
 import SelectFiles from "./select-files";
 import { useRunnableConfigSchema } from "@/data-provider/query-service";
+import type { TSchemaField } from "@/data-provider/types";
 import Spinner from "@/components/ui/spinner";
 
 type TAssistantFormProps = {
@@ -67,19 +68,19 @@ export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
           </div>
           <SelectArchitecture
             form={form}
-            types={config?.definitions.Bot_Type.enum ?? []}
+            types={(config?.definitions.Bot_Type as TSchemaField).enum  ?? []}
           />
           {architectureType && (
             <>
               {architectureType === "agent" ? (
                 <SelectModel
                   form={form}
-                  models={config?.definitions.AgentType.enum ?? []}
+                  models={(config?.definitions.AgentType as TSchemaField).enum ?? []}
                 />
               ) : (
                 <SelectLLM
                   form={form}
-                  llms={config?.definitions.LLMType.enum ?? []}
+                  llms={(config?.definitions.LLMType as TSchemaField).enum ?? []}
                 />
               )}
               <SystemPrompt form={form} />
