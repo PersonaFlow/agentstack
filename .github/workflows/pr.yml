@@ -6,8 +6,9 @@ on:
   push:
     branches:
       - main  # or whatever your default branch is named
-    paths:
-      - '!ui/**'
+    paths-ignore:
+      - 'ui/**'
+      - '.github/workflows/pr-ui.yml'
 
 jobs:
   pr-check:
