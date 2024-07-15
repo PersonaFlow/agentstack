@@ -6,9 +6,14 @@ name: UI PR Check
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - 'ui/**'
+      - '.github/workflows/pr-ui.yml'
   pull_request:
     branches: [ "main" ]
-
+    paths:
+      - 'ui/**'
+      - '.github/workflows/pr-ui.yml'
 jobs:
   build:
     name: Build and Test UI
@@ -25,6 +30,7 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
+    - run: cd ui
     - run: npm ci
     - run: npm run build
     - run: npm run test:ci
