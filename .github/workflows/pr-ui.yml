@@ -31,7 +31,7 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
         cache-dependency-path: ui/package-lock.json
-    - run: cd ui
+    - run: cd ${{ github.workspace }}/ui
     - run: pwd
     - run: npm ci
     - run: npm run build
