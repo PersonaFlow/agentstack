@@ -42,7 +42,7 @@ export default function MessagesContainer({
 }: Props) {
   const { messages, next, refreshMessages } = useChatMessages(threadId, stream);
   const prevMessages = usePrevious(messages);
-  const divRef = useRef(null);
+  const divRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (divRef.current) {

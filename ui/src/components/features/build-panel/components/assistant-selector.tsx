@@ -43,7 +43,7 @@ export function AssistantSelector() {
       </SelectTrigger>
       <SelectContent>
         {assistantsData.map((assistant) => (
-          <SelectItem key={assistant.id} value={assistant.id}>
+          <SelectItem key={assistant.id} value={assistant.id as string}>
             {assistant.name}
           </SelectItem>
         ))}

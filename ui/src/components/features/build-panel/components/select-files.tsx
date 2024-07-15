@@ -18,7 +18,7 @@ type TBadgeValue = {
 export default function SelectFiles({ form }: TSelectFilesProps) {
   const [badgeValues, setBadgeValues] = useState([]);
 
-  const { data: files, isLoading } = useFiles("1234");
+  const { data: files, isLoading } = useFiles("assistants");
 
   const fileIds = form.watch("file_ids");
 

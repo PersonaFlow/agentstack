@@ -21,12 +21,12 @@ export function EditAssistant() {
   const { data: assistantsData, isLoading } = useAssistants();
   const [selectedAssistant] = useAtom(assistantAtom);
 
-  const updateAssistant = useUpdateAssistant(selectedAssistant?.id);
+  const updateAssistant = useUpdateAssistant(selectedAssistant?.id as string);
 
   const form = useForm<TAssistant>({
     resolver: zodResolver(formSchema),
     defaultValues: useMemo(() => {
-      return selectedAssistant;
+      return selectedAssistant as TAssistant;
     }, [selectedAssistant]),
   });
 
@@ -47,9 +47,11 @@ export function EditAssistant() {
 
   useEffect(() => {
     if (architectureType) {
+      // @ts-ignore
       form.setValue("config.configurable.system_message", systemMessage);
       form.setValue(
         "config.configurable.retrieval_description",
+        // @ts-ignore
         retrievalDescription,
       );
     }
@@ -72,12 +74,13 @@ export function EditAssistant() {
       const containsCodeInterpreter = tools.includes("Code interpretor");
       // if (containsCodeInterpreter) retrievalTools.push("Code interpreter");
       if (retrievalTool) {
-        form.setValue("config.configurable.tools", [retrievalTool]);
+        form.setValue("config.configurable.tools", [retrievalTool.toString()]);
       }
     }
   }, [architectureType]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
+    // @ts-ignore
     updateAssistant.mutate(values);
   }
 

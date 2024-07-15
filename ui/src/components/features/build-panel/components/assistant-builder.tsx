@@ -13,7 +13,7 @@ import { useAssistant, useThread } from "@/data-provider/query-service";
 
 export function AssistentBuilder() {
   const [selectedAssistant, setSelectedAssistant] = useAtom(assistantAtom);
-  const { id: threadId } = useParams();
+  const { id: threadId } = useParams<{id:string}>();
 
   const { data: threadData } = useThread(threadId, {
     enabled: !!threadId,
