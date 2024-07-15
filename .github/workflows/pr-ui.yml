@@ -28,7 +28,6 @@ jobs:
         sparse-checkout: |
           .github
           ui
-    - run: pwd
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
       with:
@@ -36,7 +35,19 @@ jobs:
         cache: 'npm'
         cache-dependency-path: ui/package-lock.json
 
-    # - run: cd ${{ github.workspace }}/ui
+    - name: Cache build
+      uses: actions/cache@v4
+      with:
+        # See here for caching with `yarn` https://github.com/actions/cache/blob/main/examples.md#node---yarn or you can leverage caching with actions/setup-node https://github.com/actions/setup-node
+        path: |
+          ~/.npm
+          ${{ github.workspace }}/.next/cache
+        # Generate a new cache whenever packages or source files change.
+        key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
+        # If source files changed but packages didn't, rebuild from a prior cache.
+        restore-keys: |
+          ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-
+
     - name: Build and Test UI
       working-directory: ui
       run: |
