@@ -25,13 +25,14 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - run: pwd
-    - run: cd ui
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
         cache-dependency-path: ui/packgage-lock.json
+    - run: cd ui
+    - run: pwd
     - run: npm ci
     - run: npm run build
     - run: npm run test:ci
