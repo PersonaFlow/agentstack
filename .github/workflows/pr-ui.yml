@@ -24,6 +24,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        sparse-checkout: |
+          .github
+          ui
     - run: pwd
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
@@ -31,8 +35,12 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
         cache-dependency-path: ui/package-lock.json
-    - run: cd ${{ github.workspace }}/ui
-    - run: pwd
-    - run: npm ci
-    - run: npm run build
-    - run: npm run test:ci
+
+    # - run: cd ${{ github.workspace }}/ui
+    - name: Build and Test UI
+      working-directory: ui
+      run: |
+          pwd
+          npm ci
+          npm run build
+          npm run test:ci
