@@ -1,11 +1,32 @@
 import { MessageType, TMessage } from "@/data-provider/types";
+// import Markdown from "../../markdown/markdown";
+import { unified } from "unified";
+import remarkParse from "remark-parse";
+import remarkRehype from "remark-rehype";
+import rehypeDocument from "rehype-document";
+import rehypeFormat from "rehype-format";
+import rehypeStringify from "rehype-stringify";
+import { read } from "to-vfile";
+import ReactMarkdown from "react-markdown";
 import Markdown from "../../markdown/markdown";
 
 type TMessageItemProps = {
   message: TMessage;
 };
 
+// async function getFormattedText(text: string) {
+//   const result = await unified()
+//     .use(remarkParse)
+//     .use(remarkRehype)
+//     .use(rehypeDocument)
+//     .use(rehypeFormat)
+//     .use(rehypeStringify)
+//     .process(await read(text));
+//   return result;
+// }
+
 export default function MessageItem({ message }: TMessageItemProps) {
+  // const content = getFormattedText(message.content);
   if (message.type === MessageType.HUMAN) {
     return (
       <div className="flex w-full flex-col gap-1 items-end">
