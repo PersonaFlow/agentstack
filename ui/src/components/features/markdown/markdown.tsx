@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
 
 type TMarkdownProps = {
   text: string;
@@ -27,7 +28,9 @@ export default function Markdown({ text, className }: TMarkdownProps) {
         className,
       )}
     >
-      <ReactMarkdown remarkPlugins={[remarkGfm]}>{text}</ReactMarkdown>
+      <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]}>
+        {text}
+      </ReactMarkdown>
     </div>
   );
 }
