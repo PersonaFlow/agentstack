@@ -26,7 +26,7 @@ export const useStream = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "X-API-KEY": "personaflow-api-key",
+            "X-API-KEY": "personaflow_api_key",
           },
           body: JSON.stringify({ user_id, input, thread_id, assistant_id }),
           openWhenHidden: true,
