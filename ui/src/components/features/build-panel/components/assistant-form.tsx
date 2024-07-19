@@ -25,6 +25,7 @@ import SelectFiles from "./select-files";
 import { useRunnableConfigSchema } from "@/data-provider/query-service";
 import type { TSchemaField } from "@/data-provider/types";
 import Spinner from "@/components/ui/spinner";
+import { useEffect } from "react";
 
 type TAssistantFormProps = {
   form: UseFormReturn<any>;
@@ -34,6 +35,10 @@ type TAssistantFormProps = {
 export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
   const { type: architectureType } = form.getValues().config.configurable;
   const { data: config, isLoading, isError } = useRunnableConfigSchema();
+
+  const {
+    formState: { isDirty, isValid },
+  } = form;
 
   if (isLoading) return <Spinner />;
 
@@ -68,19 +73,23 @@ export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
           </div>
           <SelectArchitecture
             form={form}
-            types={(config?.definitions.Bot_Type as TSchemaField).enum  ?? []}
+            types={(config?.definitions.Bot_Type as TSchemaField).enum ?? []}
           />
           {architectureType && (
             <>
               {architectureType === "agent" ? (
                 <SelectModel
                   form={form}
-                  models={(config?.definitions.AgentType as TSchemaField).enum ?? []}
+                  models={
+                    (config?.definitions.AgentType as TSchemaField).enum ?? []
+                  }
                 />
               ) : (
                 <SelectLLM
                   form={form}
-                  llms={(config?.definitions.LLMType as TSchemaField).enum ?? []}
+                  llms={
+                    (config?.definitions.LLMType as TSchemaField).enum ?? []
+                  }
                 />
               )}
               <SystemPrompt form={form} />
@@ -103,7 +112,11 @@ export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
                   )}
                 </>
               )}
-              <Button type="submit" className="w-1/4 self-center">
+              <Button
+                type="submit"
+                className="w-1/4 self-center"
+                disabled={!isDirty}
+              >
                 Save
               </Button>
             </>
