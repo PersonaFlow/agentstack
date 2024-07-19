@@ -15,6 +15,7 @@ import Spinner from "@/components/ui/spinner";
 import { useConfigSchema } from "@/hooks/useConfig";
 import { formSchema } from "@/data-provider/types";
 import { useAvailableTools } from "@/hooks/useAvailableTools";
+import { useToast } from "@/components/ui/use-toast";
 
 const defaultValues = {
   public: false,
@@ -41,6 +42,8 @@ export function CreateAssistant() {
 
   const createAssistant = useCreateAssistant();
 
+  const { toast } = useToast();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: defaultValues,
@@ -57,7 +60,10 @@ export function CreateAssistant() {
 
   useEffect(() => {
     if (architectureType) {
-      form.setValue("config.configurable.system_message", systemMessage as string);
+      form.setValue(
+        "config.configurable.system_message",
+        systemMessage as string,
+      );
       form.setValue(
         "config.configurable.retrieval_description",
         retrievalDescription,
@@ -93,6 +99,16 @@ export function CreateAssistant() {
         console.log("Successfully created assistant: ");
         console.log(response);
         setSelectedAssistant(response);
+        toast({
+          variant: "default",
+          title: "Successfully created new assistant.",
+        });
+      },
+      onError: () => {
+        toast({
+          variant: "destructive",
+          title: "Failed to update assistant.",
+        });
       },
     });
   }

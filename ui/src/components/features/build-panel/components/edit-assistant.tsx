@@ -14,6 +14,7 @@ import { useAtom } from "jotai";
 import { assistantAtom } from "@/store";
 import { useConfigSchema } from "@/hooks/useConfig";
 import { useAvailableTools } from "@/hooks/useAvailableTools";
+import { useToast } from "@/components/ui/use-toast";
 
 const RetrievalType = "retrieval";
 
@@ -32,6 +33,8 @@ export function EditAssistant() {
 
   const architectureType = form.watch("config.configurable.type");
   const tools = form.watch("config.configurable.tools");
+
+  const { toast } = useToast();
 
   const { systemMessage, retrievalDescription } = useConfigSchema(
     architectureType ?? "",
@@ -81,7 +84,20 @@ export function EditAssistant() {
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     // @ts-ignore
-    updateAssistant.mutate(values);
+    updateAssistant.mutate(values, {
+      onSuccess: () => {
+        toast({
+          variant: "default",
+          title: "Successfully updated assistant.",
+        });
+      },
+      onError: () => {
+        toast({
+          variant: "destructive",
+          title: "Failed to update assistant."
+        })
+      }
+    });
   }
 
   if (isLoading || !assistantsData) return <div>is loading</div>;
