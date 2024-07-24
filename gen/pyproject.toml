@@ -1,0 +1,35 @@
+[tool.poetry]
+name = "personagen"
+version = "0.1.0"
+description = ""
+authors = ["PersonaFlow"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.12"
+pydantic = "^2.0.1"
+asyncio = "^3.4.3"
+langchain-core = "^0.1.44"
+langchain-community = "^0.0.34"
+semantic-router = { extras = ["processing"], version = ">=0.0.34" }
+tiktoken = "^0.6.0"
+structlog = "^23.1.0"
+rich = "^13.5.2"
+colorama = "^0.4.6"
+beautifulsoup4 = "^4.12.3"
+pdfminer-six = "^20221105"
+psycopg2-binary = "^2.9.9"
+qdrant-client = "^1.8.0"
+unstructured-client = "^0.22.0"
+pytest = "^8.2.2"
+factory-boy = "^3.3.0"
+pytest-asyncio = "^0.23.7"
+pytest-mock = "^3.14.0"
+pytest-socket = "^0.6.0"
+pytest-cov = "^5.0.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

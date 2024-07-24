@@ -14,3 +14,14 @@ docker_image(
 )
 
 shell_sources()
+
+
+python_distribution(
+    name="dist",
+    dependencies=[":lib"],
+    provides=setup_py(
+        name="personagen",
+        version="0.1.0",
+        description="RAG library",
+    ),
+)
