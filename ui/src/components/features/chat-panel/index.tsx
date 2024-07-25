@@ -15,7 +15,7 @@ import Spinner from "@/components/ui/spinner";
 export default function ChatPanel() {
   const [conversation, setConversation] = useAtom(conversationAtom);
   const [assistant] = useAtom(assistantAtom);
-  const { id: threadId } = useParams<{id: string}>();
+  const { id: threadId } = useParams<{ id: string }>();
   const {
     data: threadState,
     isError,
