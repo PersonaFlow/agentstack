@@ -8,24 +8,42 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Spinner from "@/components/ui/spinner";
-import { useAssistants } from "@/data-provider/query-service";
+import { useAssistant, useAssistants } from "@/data-provider/query-service";
+import { TAssistant } from "@/data-provider/types";
+import { useSlugRoutes } from "@/hooks/useSlugParams";
 import { assistantAtom } from "@/store";
 import { useAtom } from "jotai";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export function AssistantSelector() {
-  const [selectedAssistant, setSelectedAssistant] = useAtom(assistantAtom);
-  const { data: assistantsData, isLoading } = useAssistants();
+  const [selectedAssistant, setSelectedAssistant] = useState<TAssistant>();
 
-  const handleValueChange = (assistantId: string) => {
+  const {assistantId} = useSlugRoutes();
+  const { data: assistantsData, isLoading } = useAssistants();
+  const router = useRouter();
+
+  useEffect(() => {
+    console.log('assistant chsnged')
+    if (assistantId !== selectedAssistant?.id) {
+      const _selectedAssistant = assistantsData?.find(
+        (assistant) => assistant.id === assistantId,
+      );
+
+      console.log(_selectedAssistant)
+
+      setSelectedAssistant(_selectedAssistant);
+    }
+  },[assistantId])
+
+  const handleValueChange = (selectedAssistantId: string) => {
+    router.push(`/a/${selectedAssistantId}`)
+
     const _selectedAssistant = assistantsData?.find(
-      (assistant) => assistant.id === assistantId,
+      (assistant) => assistant.id === selectedAssistantId,
     );
 
     if (_selectedAssistant) {
-      localStorage.setItem(
-        "personaflow_defaultAssistant",
-        JSON.stringify(_selectedAssistant),
-      );
       setSelectedAssistant(_selectedAssistant);
     }
   };
