@@ -1,11 +1,12 @@
-// 'use client'
-
 import ChatPanel from "@/components/features/chat-panel";
-import { isValidParam } from "@/lib/utils";
+import { isValidParam } from "@/utils/routeUtils";
 import { notFound } from "next/navigation";
 
-export default function ConversationPage({params}: {params: {slug?: string[]}}) {
-
+export default function ConversationPage({
+  params,
+}: {
+  params: { slug?: string[] };
+}) {
   console.log(params);
 
   if (!isValidParam(params.slug)) return notFound();

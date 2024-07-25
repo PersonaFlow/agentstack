@@ -4,7 +4,7 @@ import {
   useCreateThread,
   useGetMyThreads,
 } from "@/data-provider/query-service";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import NewThreadBtn from "./new-thread-btn";

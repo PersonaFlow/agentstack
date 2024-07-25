@@ -5,7 +5,7 @@ import {
   useUpdateThread,
 } from "@/data-provider/query-service";
 import { TThread } from "@/data-provider/types";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/utils";
 import { assistantAtom, threadAtom } from "@/store";
 import { useAtom } from "jotai";
 import { Brain, EditIcon, Trash } from "lucide-react";
