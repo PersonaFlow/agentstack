@@ -7,13 +7,12 @@ export default function ConversationPage({
 }: {
   params: { slug?: string[] };
 }) {
-  console.log(params);
 
   if (!isValidParam(params.slug)) return notFound();
 
   return (
     <div className="border-solid border-2 w-full gap-4 flex flex-col">
-      {/* <ChatPanel /> */}
+      {params.slug === undefined ? <h1>Init page</h1> : <ChatPanel /> }
     </div>
   );
 }
