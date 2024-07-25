@@ -5,8 +5,8 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function isValidParam (params: string[]) {
-  if (params.length === 0) return true;
+export function isValidParam (params?: string[]) {
+  if (!params) return true;
 
   const route = params.join('/');
 
