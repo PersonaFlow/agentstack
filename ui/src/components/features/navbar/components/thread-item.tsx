@@ -6,8 +6,6 @@ import {
 } from "@/data-provider/query-service";
 import { TThread } from "@/data-provider/types";
 import { cn } from "@/utils/utils";
-import { assistantAtom } from "@/store";
-import { useAtom } from "jotai";
 import { Brain, EditIcon, Trash } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { ChangeEvent, useEffect, useState } from "react";
@@ -35,7 +33,7 @@ export default function ThreadItem({ thread }: TThreadItemProps) {
 
   const handleItemClick = () => {
     if (isSelected) return;
-    router.push(`/c/${thread.id}`);
+    router.push(`/a/${thread.assistant_id}/c/${thread.id}`);
   };
 
   const submitUpdatedName = () => {
