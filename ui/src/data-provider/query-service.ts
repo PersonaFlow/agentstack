@@ -207,11 +207,12 @@ export const useDeleteThread = (threadId: string) => {
   });
 };
 
-export const useThreadState = (threadId: string) => {
+export const useThreadState = (threadId: string, enabled?: { enabled?: boolean }) => {
   return useQuery<t.TThreadState, Error>({
     queryKey: [QueryKeys.conversation, threadId],
     queryFn: async (): Promise<t.TThreadState> =>
       await dataService.getThreadState(threadId),
+    ...enabled
   });
 };
 

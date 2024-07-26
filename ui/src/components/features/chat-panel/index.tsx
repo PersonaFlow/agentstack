@@ -11,16 +11,20 @@ import { useStream } from "@/hooks/useStream";
 import { useState } from "react";
 import { MessageType } from "@/data-provider/types";
 import Spinner from "@/components/ui/spinner";
+import { useSlugRoutes } from "@/hooks/useSlugParams";
 
 export default function ChatPanel() {
-  const [conversation, setConversation] = useAtom(conversationAtom);
   const [assistant] = useAtom(assistantAtom);
-  const { id: threadId } = useParams<{ id: string }>();
+  const {assistantId, threadId} = useSlugRoutes()
+
   const {
     data: threadState,
     isError,
     isLoading: isLoadingThreads,
-  } = useThreadState(threadId);
+  } = useThreadState(threadId as string, {
+    enabled: !!assistantId
+  });
+
   const [userMessage, setUserMessage] = useState("");
   const { stream, startStream } = useStream();
   const { toast } = useToast();
