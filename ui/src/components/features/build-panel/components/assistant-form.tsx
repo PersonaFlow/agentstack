@@ -26,6 +26,7 @@ import { useRunnableConfigSchema } from "@/data-provider/query-service";
 import type { TSchemaField } from "@/data-provider/types";
 import Spinner from "@/components/ui/spinner";
 import { useEffect } from "react";
+import { FormSelect } from "./form-select";
 
 type TAssistantFormProps = {
   form: UseFormReturn<any>;
@@ -71,26 +72,31 @@ export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
             />
             <PublicSwitch form={form} />
           </div>
-          <SelectArchitecture
+          <FormSelect
             form={form}
-            types={(config?.definitions.Bot_Type as TSchemaField).enum ?? []}
+            options={(config?.definitions.Bot_Type as TSchemaField).enum ?? []}
+            formName="config.configurable.type"
+            title="Select architecture"
+            placeholder="Select architecture"
           />
           {architectureType && (
             <>
               {architectureType === "agent" ? (
-                <SelectModel
-                  form={form}
-                  models={
-                    (config?.definitions.AgentType as TSchemaField).enum ?? []
-                  }
-                />
+                <FormSelect
+                form={form}
+                options={(config?.definitions.AgentType as TSchemaField).enum ?? []}
+                formName="config.configurable.agent_type"
+                title="Agent type"
+                placeholder="Select agent type"
+              />
               ) : (
-                <SelectLLM
-                  form={form}
-                  llms={
-                    (config?.definitions.LLMType as TSchemaField).enum ?? []
-                  }
-                />
+                <FormSelect
+                form={form}
+                options={(config?.definitions.LLMType as TSchemaField).enum ?? []}
+                formName="config.configurable.llm_type"
+                title="LLM type"
+                placeholder="Select LLM type"
+              />
               )}
               <SystemPrompt form={form} />
               {architectureType !== "chatbot" && (
