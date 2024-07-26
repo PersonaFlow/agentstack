@@ -1,26 +1,31 @@
 "use client";
 
 import {
-  useAssistants,
+  useAssistant,
   useUpdateAssistant,
 } from "@/data-provider/query-service";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { TAssistant, formSchema } from "@/data-provider/types";
 import { AssistantForm } from "./assistant-form";
-import { useAtom } from "jotai";
-import { assistantAtom } from "@/store";
 import { useConfigSchema } from "@/hooks/useConfig";
 import { useAvailableTools } from "@/hooks/useAvailableTools";
 import { useToast } from "@/components/ui/use-toast";
+import { useSlugRoutes } from "@/hooks/useSlugParams";
+import Spinner from "@/components/ui/spinner";
 
 const RetrievalType = "retrieval";
 
 export function EditAssistant() {
-  const { data: assistantsData, isLoading } = useAssistants();
-  const [selectedAssistant] = useAtom(assistantAtom);
+  // const { data: assistantsData, isLoading } = useAssistants();
+  // const [selectedAssistant] = useAtom(assistantAtom);
+  const {assistantId} = useSlugRoutes();
+
+  const {data: selectedAssistant, isLoading: isLoadingAssistant} = useAssistant(assistantId as string, {
+    enabled: !!assistantId
+  })
 
   const updateAssistant = useUpdateAssistant(selectedAssistant?.id as string);
 
@@ -100,7 +105,7 @@ export function EditAssistant() {
     });
   }
 
-  if (isLoading || !assistantsData) return <div>is loading</div>;
+  if (isLoadingAssistant) return <Spinner />
 
   return <AssistantForm form={form} onSubmit={onSubmit} />;
 }
