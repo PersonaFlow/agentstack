@@ -14,7 +14,6 @@ import Spinner from "@/components/ui/spinner";
 import { useSlugRoutes } from "@/hooks/useSlugParams";
 
 export default function ChatPanel() {
-  const [assistant] = useAtom(assistantAtom);
   const {assistantId, threadId} = useSlugRoutes()
 
   const {
@@ -30,7 +29,7 @@ export default function ChatPanel() {
   const { toast } = useToast();
 
   const handleSend = async () => {
-    if (!assistant) {
+    if (!assistantId) {
       toast({
         variant: "destructive",
         title: "Please select an assistant.",
@@ -49,8 +48,8 @@ export default function ChatPanel() {
 
     await startStream({
       input,
-      thread_id: threadId,
-      assistant_id: assistant.id as string,
+      thread_id: threadId as string,
+      assistant_id: assistantId as string,
     });
   };
 
@@ -61,7 +60,7 @@ export default function ChatPanel() {
     <div className="h-full w-full gap-4 flex flex-col">
       {isLoadingThreads && <Spinner />}
       <MessagesContainer
-        threadId={threadId}
+        threadId={threadId as string}
         // @ts-ignore
         stream={stream}
         composer={
