@@ -24,8 +24,10 @@ export function AssistantSelector() {
   const router = useRouter();
 
   useEffect(() => {
-    console.log('assistant chsnged')
-    if (assistantId !== selectedAssistant?.id) {
+    if (isLoading) return;
+
+    if (!selectedAssistant || assistantId !== selectedAssistant?.id) {
+      console.log(assistantId)
       const _selectedAssistant = assistantsData?.find(
         (assistant) => assistant.id === assistantId,
       );
@@ -34,7 +36,7 @@ export function AssistantSelector() {
 
       setSelectedAssistant(_selectedAssistant);
     }
-  },[assistantId])
+  },[assistantId, assistantsData])
 
   const handleValueChange = (selectedAssistantId: string) => {
     router.push(`/a/${selectedAssistantId}`)

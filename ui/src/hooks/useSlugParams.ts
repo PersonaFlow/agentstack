@@ -13,12 +13,13 @@ import { useMemo } from "react";
  */
 
 export const useSlugRoutes = () => {
-  const { params } = useParams();
+  const {slug} = useParams();
 
   const { assistantId, threadId } = useMemo(() => {
-    const slug = (params ?? []) as string[];
-    return getSlugParams(slug);
-  }, [params]);
+    const formatSlug = (slug ?? []) as string[];
+    console.log(slug)
+    return getSlugParams(formatSlug);
+  }, [slug]);
 
   return { assistantId, threadId };
 };
