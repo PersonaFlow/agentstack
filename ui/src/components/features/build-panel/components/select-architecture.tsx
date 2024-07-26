@@ -36,7 +36,11 @@ export default function SelectArchitecture({
         <FormItem className="flex flex-col">
           <FormLabel>Architecture</FormLabel>
           <FormControl>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <Select
+              // value={field.value}
+              onValueChange={field.onChange}
+              defaultValue={field.value}
+            >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Select architecture" />
               </SelectTrigger>
