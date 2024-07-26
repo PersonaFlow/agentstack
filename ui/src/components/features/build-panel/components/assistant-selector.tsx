@@ -8,11 +8,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Spinner from "@/components/ui/spinner";
-import { useAssistant, useAssistants } from "@/data-provider/query-service";
+import { useAssistants } from "@/data-provider/query-service";
 import { TAssistant } from "@/data-provider/types";
 import { useSlugRoutes } from "@/hooks/useSlugParams";
-import { assistantAtom } from "@/store";
-import { useAtom } from "jotai";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -27,14 +25,7 @@ export function AssistantSelector() {
     if (isLoading) return;
 
     if (!selectedAssistant || assistantId !== selectedAssistant?.id) {
-      console.log(assistantId)
-      const _selectedAssistant = assistantsData?.find(
-        (assistant) => assistant.id === assistantId,
-      );
-
-      console.log(_selectedAssistant)
-
-      setSelectedAssistant(_selectedAssistant);
+      updateSelectedAssistant(assistantId as string)
     }
   },[assistantId, assistantsData])
 
@@ -49,6 +40,14 @@ export function AssistantSelector() {
       setSelectedAssistant(_selectedAssistant);
     }
   };
+
+  const updateSelectedAssistant = (selectedId: string) => {
+    const _selectedAssistant = assistantsData?.find(
+      (assistant) => assistant.id === selectedId,
+    );
+
+    setSelectedAssistant(_selectedAssistant);
+  }
 
   if (isLoading || !assistantsData) return <Spinner />;
 
