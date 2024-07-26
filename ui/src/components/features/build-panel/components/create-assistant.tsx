@@ -9,8 +9,6 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { AssistantForm } from "./assistant-form";
-import { useAtom } from "jotai";
-import { assistantAtom } from "@/store";
 import Spinner from "@/components/ui/spinner";
 import { useConfigSchema } from "@/hooks/useConfig";
 import { formSchema } from "@/data-provider/types";
@@ -38,9 +36,6 @@ const defaultValues = {
 const RetrievalType = "retrieval";
 
 export function CreateAssistant() {
-  const { data: assistantsData, isLoading } = useAssistants();
-  const [_, setSelectedAssistant] = useAtom(assistantAtom);
-
   const createAssistant = useCreateAssistant();
 
   const router = useRouter()
@@ -115,8 +110,6 @@ export function CreateAssistant() {
       },
     });
   }
-
-  if (isLoading || !assistantsData) return <Spinner />;
 
   return <AssistantForm form={form} onSubmit={onSubmit} />;
 }
