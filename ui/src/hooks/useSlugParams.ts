@@ -17,7 +17,6 @@ export const useSlugRoutes = () => {
 
   const { assistantId, threadId } = useMemo(() => {
     const formatSlug = (slug ?? []) as string[];
-    console.log(slug)
     return getSlugParams(formatSlug);
   }, [slug]);
 
