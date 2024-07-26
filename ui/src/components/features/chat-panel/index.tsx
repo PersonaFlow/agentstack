@@ -3,9 +3,6 @@
 import { Composer } from "./components/composer";
 import MessagesContainer from "./components/messages-container";
 import { useThreadState } from "@/data-provider/query-service";
-import { useAtom } from "jotai";
-import { assistantAtom, conversationAtom } from "@/store";
-import { useParams } from "next/navigation";
 import { useToast } from "@/components/ui/use-toast";
 import { useStream } from "@/hooks/useStream";
 import { useState } from "react";
