@@ -19,8 +19,6 @@ import Spinner from "@/components/ui/spinner";
 const RetrievalType = "retrieval";
 
 export function EditAssistant() {
-  // const { data: assistantsData, isLoading } = useAssistants();
-  // const [selectedAssistant] = useAtom(assistantAtom);
   const {assistantId} = useSlugRoutes();
 
   const {data: selectedAssistant, isLoading: isLoadingAssistant} = useAssistant(assistantId as string, {

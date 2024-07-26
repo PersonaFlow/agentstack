@@ -16,6 +16,7 @@ import { useConfigSchema } from "@/hooks/useConfig";
 import { formSchema } from "@/data-provider/types";
 import { useAvailableTools } from "@/hooks/useAvailableTools";
 import { useToast } from "@/components/ui/use-toast";
+import { useRouter } from "next/navigation";
 
 const defaultValues = {
   public: false,
@@ -41,6 +42,8 @@ export function CreateAssistant() {
   const [_, setSelectedAssistant] = useAtom(assistantAtom);
 
   const createAssistant = useCreateAssistant();
+
+  const router = useRouter()
 
   const { toast } = useToast();
 
@@ -98,7 +101,7 @@ export function CreateAssistant() {
       onSuccess: (response) => {
         console.log("Successfully created assistant: ");
         console.log(response);
-        setSelectedAssistant(response);
+        router.push(`/a/${response.id}`);
         toast({
           variant: "default",
           title: "Successfully created new assistant.",
