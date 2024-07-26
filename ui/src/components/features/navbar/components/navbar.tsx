@@ -7,6 +7,8 @@ import { useEffect, useState } from "react";
 import ThreadItem from "./thread-item";
 import { TGroupedThreads } from "@/data-provider/types";
 import { useSlugRoutes } from "@/hooks/useSlugParams";
+import NewThreadBtn from "./new-thread-btn";
+import { useRouter } from "next/navigation";
 
 export default function Navbar() {
   const { data: threadsData, isLoading: threadsLoading } =
@@ -15,7 +17,9 @@ export default function Navbar() {
   const [filteredThreads, setFilteredThreads] = useState(threadsData || {});
   const [open, setOpen] = useState(false);
 
-  const { assistantId } = useSlugRoutes();
+  const router = useRouter()
+
+  const { assistantId, threadId } = useSlugRoutes();
 
   useEffect(() => {
     if (assistantId && threadsData) {
@@ -38,6 +42,10 @@ export default function Navbar() {
       },
       {},
     );
+  
+    const onNewThreadClick = () => {
+      router.push('/')
+    };
 
   return (
     <div className="flex h-full border-2">
@@ -45,6 +53,7 @@ export default function Navbar() {
       <div
         className={cn("flex flex-col m-3", open ? "w-72" : "w-0 collapse m-0")}
       >
+        {!threadsLoading && <NewThreadBtn handleClick={onNewThreadClick} disabled={!threadId} />}
         {!threadsLoading && Object.values(filteredThreads).every((value) => value.length === 0) && (
           <div className="border border-2 flex flex-col items-center justify-center">
             <h1>No threads found.</h1>
