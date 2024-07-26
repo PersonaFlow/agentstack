@@ -18,7 +18,6 @@ type Props = {
   stream?: TMessage[];
   streamingMessage?: TMessage | null;
   onRetry?: VoidFunction;
-  composer: ReactNode;
   conversationId?: string;
   threadId: string;
 };
@@ -36,7 +35,6 @@ export default function MessagesContainer({
   stream,
   streamingMessage,
   onRetry,
-  composer,
   conversationId,
   threadId,
 }: Props) {
@@ -85,7 +83,6 @@ export default function MessagesContainer({
           );
         })}
       </div>
-      {composer}
     </div>
   );
 }

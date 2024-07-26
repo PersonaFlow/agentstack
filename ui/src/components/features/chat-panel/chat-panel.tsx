@@ -2,28 +2,17 @@
 
 import { Composer } from "./components/composer";
 import MessagesContainer from "./components/messages-container";
-import { useThreadState } from "@/data-provider/query-service";
 import { useToast } from "@/components/ui/use-toast";
 import { useStream } from "@/hooks/useStream";
 import { useState } from "react";
 import { MessageType } from "@/data-provider/types";
-import Spinner from "@/components/ui/spinner";
 import { useSlugRoutes } from "@/hooks/useSlugParams";
 
 export default function ChatPanel() {
-  const {assistantId, threadId} = useSlugRoutes()
-
-  const {
-    data: threadState,
-    isError,
-    isLoading: isLoadingThreads,
-  } = useThreadState(threadId as string, {
-    enabled: !!assistantId
-  });
-
   const [userMessage, setUserMessage] = useState("");
   const { stream, startStream } = useStream();
   const { toast } = useToast();
+  const { assistantId, threadId } = useSlugRoutes();
 
   const handleSend = async () => {
     if (!assistantId) {
@@ -50,23 +39,18 @@ export default function ChatPanel() {
     });
   };
 
-  if (!threadState && isError)
-    return <div>There was an issue fetching messages.</div>;
-
   return (
     <div className="h-full w-full gap-4 flex flex-col">
-      {isLoadingThreads && <Spinner />}
-      <MessagesContainer
+      {threadId ? <MessagesContainer
         threadId={threadId as string}
         // @ts-ignore
         stream={stream}
-        composer={
-          <Composer
-            onChange={(e) => setUserMessage(e.target.value)}
-            value={userMessage}
-            sendMessage={handleSend}
-          />
-        }
+      /> : <h1>Welcome!</h1>}
+      <Composer
+        onChange={(e) => setUserMessage(e.target.value)}
+        value={userMessage}
+        sendMessage={handleSend}
+        disabled={!assistantId}
       />
     </div>
   );
