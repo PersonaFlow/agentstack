@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  useAssistants,
   useCreateAssistant,
 } from "@/data-provider/query-service";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,7 +8,6 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { AssistantForm } from "./assistant-form";
-import Spinner from "@/components/ui/spinner";
 import { useConfigSchema } from "@/hooks/useConfig";
 import { formSchema } from "@/data-provider/types";
 import { useAvailableTools } from "@/hooks/useAvailableTools";

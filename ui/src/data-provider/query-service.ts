@@ -93,7 +93,7 @@ export const useUpdateMe = (payload: t.TUser) => {
 };
 
 export const useGetMyThreads = (grouped: boolean) => {
-  return useQuery<t.TThread[], Error>({
+  return useQuery<t.TThread[] | t.TGroupedThreads, Error>({
     queryKey: [QueryKeys.userThreads],
     queryFn: async () => await dataService.getMyThreads(grouped),
   });
