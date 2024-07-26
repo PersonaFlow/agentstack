@@ -10,8 +10,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { UseFormReturn } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import SelectModel from "./select-model";
-import { SelectLLM } from "./select-llm";
 import { SystemPrompt } from "./system-prompt";
 import { RetrievalInstructions } from "./retrieval-description";
 import SelectTools from "./select-tools";
@@ -20,12 +18,10 @@ import SelectOptions from "./select-options";
 import SelectActions from "./select-actions";
 import FilesDialog from "./files-dialog";
 import PublicSwitch from "./public-switch";
-import SelectArchitecture from "./select-architecture";
 import SelectFiles from "./select-files";
 import { useRunnableConfigSchema } from "@/data-provider/query-service";
 import type { TSchemaField } from "@/data-provider/types";
 import Spinner from "@/components/ui/spinner";
-import { useEffect } from "react";
 import { FormSelect } from "./form-select";
 
 type TAssistantFormProps = {
@@ -38,7 +34,7 @@ export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
   const { data: config, isLoading, isError } = useRunnableConfigSchema();
 
   const {
-    formState: { isDirty, isValid },
+    formState: { isDirty },
   } = form;
 
   if (isLoading) return <Spinner />;
