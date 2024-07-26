@@ -1,8 +1,6 @@
 "use client";
 import Spinner from "@/components/ui/spinner";
-import {
-  useGetMyThreads,
-} from "@/data-provider/query-service";
+import { useGetMyThreads } from "@/data-provider/query-service";
 import { cn } from "@/utils/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -17,11 +15,13 @@ export default function Navbar() {
   const [filteredThreads, setFilteredThreads] = useState(threadsData || {});
   const [open, setOpen] = useState(false);
 
-  const {assistantId} = useSlugRoutes()
+  const { assistantId } = useSlugRoutes();
 
   useEffect(() => {
     if (assistantId && threadsData) {
-      let _filteredThreads = assistantId ? filterThreads(threadsData as TGroupedThreads) : threadsData;
+      let _filteredThreads = assistantId
+        ? filterThreads(threadsData as TGroupedThreads)
+        : threadsData;
       setFilteredThreads(_filteredThreads);
     }
   }, [assistantId, threadsData]);
@@ -45,6 +45,11 @@ export default function Navbar() {
       <div
         className={cn("flex flex-col m-3", open ? "w-72" : "w-0 collapse m-0")}
       >
+        {!threadsLoading && Object.values(filteredThreads).every((value) => value.length === 0) && (
+          <div className="border border-2 flex flex-col items-center justify-center">
+            <h1>No threads found.</h1>
+          </div>
+        )}
         <nav className="overflow-y-auto">
           {/* Threads loading */}
           {threadsLoading ? (
