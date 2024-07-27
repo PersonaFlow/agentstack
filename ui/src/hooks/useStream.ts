@@ -10,14 +10,14 @@ type TStartStreamProps = {
 };
 
 export const useStream = () => {
-  const [current, setCurrent] = useState<TStreamState | null>(null);
+  const [currentState, setCurrentState] = useState<TStreamState | null>(null);
   const [controller, setController] = useState<AbortController | null>(null);
 
   const startStream = useCallback(
     async ({ input, thread_id, assistant_id, user_id }: TStartStreamProps) => {
       const controller = new AbortController();
       setController(controller);
-      setCurrent({ status: "inflight", messages: [] });
+      setCurrentState({ status: "inflight", messages: [] });
 
       await fetchEventSource(
         `${process.env.NEXT_PUBLIC_BASE_API_URL}/api/v1/runs/stream`,
@@ -33,39 +33,39 @@ export const useStream = () => {
           onmessage(msg) {
             if (msg.event === "data") {
               const messages = JSON.parse(msg.data);
-              setCurrent((current) => ({
+              setCurrentState((currentState) => ({
                 status: "inflight" as TStreamState["status"],
-                messages: mergeMessagesById(current?.messages, messages),
-                run_id: current?.run_id,
+                messages: mergeMessagesById(currentState?.messages, messages),
+                run_id: currentState?.run_id,
               }));
             } else if (msg.event === "metadata") {
               const { run_id } = JSON.parse(msg.data);
-              setCurrent((current) => ({
+              setCurrentState((currentState) => ({
                 status: "inflight",
-                messages: current?.messages,
+                messages: currentState?.messages,
                 run_id: run_id,
               }));
             } else if (msg.event === "error") {
-              setCurrent((current) => ({
+              setCurrentState((currentState) => ({
                 status: "error",
-                messages: current?.messages,
-                run_id: current?.run_id,
+                messages: currentState?.messages,
+                run_id: currentState?.run_id,
               }));
             }
           },
           onclose() {
-            setCurrent((current) => ({
-              status: current?.status === "error" ? current.status : "done",
-              messages: current?.messages,
-              run_id: current?.run_id,
+            setCurrentState((currentState) => ({
+              status: currentState?.status === "error" ? currentState.status : "done",
+              messages: currentState?.messages,
+              run_id: currentState?.run_id,
             }));
             setController(null);
           },
           onerror(error) {
-            setCurrent((current) => ({
+            setCurrentState((currentState) => ({
               status: "error",
-              messages: current?.messages,
-              run_id: current?.run_id,
+              messages: currentState?.messages,
+              run_id: currentState?.run_id,
             }));
             setController(null);
             throw error;
@@ -81,15 +81,15 @@ export const useStream = () => {
       controller?.abort();
       setController(null);
       if (clear) {
-        setCurrent((current) => ({
+        setCurrentState((currentState) => ({
           status: "done",
-          run_id: current?.run_id,
+          run_id: currentState?.run_id,
         }));
       } else {
-        setCurrent((current) => ({
+        setCurrentState((currentState) => ({
           status: "done",
-          messages: current?.messages,
-          run_id: current?.run_id,
+          messages: currentState?.messages,
+          run_id: currentState?.run_id,
         }));
       }
     },
@@ -99,7 +99,7 @@ export const useStream = () => {
   return {
     startStream,
     stopStream,
-    stream: current,
+    stream: currentState,
   };
 };
 
@@ -107,6 +107,10 @@ export function mergeMessagesById(
   left: TMessage[] | Record<string, any> | null | undefined,
   right: TMessage[] | Record<string, any> | null | undefined,
 ): TMessage[] {
+  console.log()
+  console.log(left);
+  console.log()
+  console.log(right)
   const leftMsgs = Array.isArray(left) ? left : left?.messages;
   const rightMsgs = Array.isArray(right) ? right : right?.messages;
 

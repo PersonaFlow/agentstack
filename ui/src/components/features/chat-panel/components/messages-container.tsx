@@ -15,10 +15,8 @@ import { ToolResult } from "../../tools/tool-result";
 
 type Props = {
   isStreaming?: boolean;
-  stream?: TMessage[];
   streamingMessage?: TMessage | null;
   onRetry?: VoidFunction;
-  conversationId?: string;
   threadId: string;
 };
 
@@ -32,16 +30,17 @@ function usePrevious<T>(value: T): T | undefined {
 
 export default function MessagesContainer({
   isStreaming,
-  stream,
   streamingMessage,
   onRetry,
-  conversationId,
   threadId,
 }: Props) {
   const { messages, next, refreshMessages } = useChatMessages(threadId, stream);
   const prevMessages = usePrevious(messages);
+  const { stream, startStream } = useStream();
+
   const divRef = useRef<HTMLDivElement>(null);
 
+  // Auto-scroll
   useEffect(() => {
     if (divRef.current) {
       divRef.current.scrollTo({
@@ -55,7 +54,6 @@ export default function MessagesContainer({
   }, [messages]);
 
   return (
-    <div className="h-full flex flex-col">
       <div className="p-6 overflow-y-scroll" ref={divRef}>
         {messages?.map((message, index) => {
           const isToolCall =
@@ -83,6 +81,5 @@ export default function MessagesContainer({
           );
         })}
       </div>
-    </div>
   );
 }
