@@ -59,7 +59,7 @@ class BaseVectorDatabase(ABC):
             raise ValueError("API key for Cohere is not present.")
         cohere_client = Client(api_key=api_key)
 
-        # Avoid duplications, TODO: fix ingestion for duplications
+        # Avoid duplications
         # Deduplicate documents based on content while preserving order
         seen = set()
         deduplicated_documents = [
