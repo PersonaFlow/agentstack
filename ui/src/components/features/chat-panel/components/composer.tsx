@@ -28,8 +28,8 @@ export function Composer({ onChange, sendMessage, value, disabled }: Props) {
 
   return (
     <div className="mt-auto flex items-center m-3">
-      <TooltipProvider disableHoverableContent={disabled}>
-        <Tooltip>
+      <TooltipProvider>
+        <Tooltip delayDuration={0}>
           <TooltipTrigger asChild>
             <Input
               endIcon={Send}
