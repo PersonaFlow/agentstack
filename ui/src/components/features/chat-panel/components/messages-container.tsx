@@ -2,6 +2,7 @@
 import {
   MessageType,
   TMessage,
+  TStreamState,
   TToolCall,
   TToolResult,
 } from "@/data-provider/types";
@@ -18,6 +19,7 @@ type Props = {
   streamingMessage?: TMessage | null;
   onRetry?: VoidFunction;
   threadId: string;
+  stream: TStreamState;
 };
 
 function usePrevious<T>(value: T): T | undefined {
@@ -33,10 +35,10 @@ export default function MessagesContainer({
   streamingMessage,
   onRetry,
   threadId,
+  stream
 }: Props) {
-  const { messages, next, refreshMessages } = useChatMessages(threadId, stream);
+  const { messages } = useChatMessages(threadId, stream);
   const prevMessages = usePrevious(messages);
-  const { stream, startStream } = useStream();
 
   const divRef = useRef<HTMLDivElement>(null);
 

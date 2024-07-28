@@ -2,7 +2,6 @@
 
 import { Composer } from "./components/composer";
 import MessagesContainer from "./components/messages-container";
-import { useToast } from "@/components/ui/use-toast";
 import { useStream } from "@/hooks/useStream";
 import { useState } from "react";
 import { MessageType, TStreamState } from "@/data-provider/types";
