@@ -15,7 +15,6 @@ import ToolContainer from "../../tools/tool-container";
 import { ToolResult } from "../../tools/tool-result";
 
 type Props = {
-  isStreaming?: boolean;
   streamingMessage?: TMessage | null;
   onRetry?: VoidFunction;
   threadId: string;
@@ -31,7 +30,6 @@ function usePrevious<T>(value: T): T | undefined {
 }
 
 export default function MessagesContainer({
-  isStreaming,
   streamingMessage,
   onRetry,
   threadId,

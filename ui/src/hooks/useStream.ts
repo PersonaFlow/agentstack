@@ -1,6 +1,6 @@
 import { TMessage, TStreamState } from "@/data-provider/types";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 type TStartStreamProps = {
   input: TMessage[] | Record<string, any> | null;
@@ -12,12 +12,20 @@ type TStartStreamProps = {
 export const useStream = () => {
   const [currentState, setCurrentState] = useState<TStreamState | null>(null);
   const [controller, setController] = useState<AbortController | null>(null);
+  const [isStreaming, setIsStreaming] = useState(false);
+
+  useEffect(() => {
+    if (currentState?.status === 'error' || currentState?.status === 'done') {
+      setIsStreaming(false);
+    }
+  },[currentState])
 
   const startStream = useCallback(
     async ({ input, thread_id, assistant_id, user_id }: TStartStreamProps) => {
       const controller = new AbortController();
       setController(controller);
       setCurrentState({ status: "inflight", messages: [] });
+      setIsStreaming(true);
 
       await fetchEventSource(
         `${process.env.NEXT_PUBLIC_BASE_API_URL}/api/v1/runs/stream`,
@@ -100,6 +108,7 @@ export const useStream = () => {
     startStream,
     stopStream,
     stream: currentState,
+    isStreaming
   };
 };
 
@@ -107,10 +116,6 @@ export function mergeMessagesById(
   left: TMessage[] | Record<string, any> | null | undefined,
   right: TMessage[] | Record<string, any> | null | undefined,
 ): TMessage[] {
-  console.log()
-  console.log(left);
-  console.log()
-  console.log(right)
   const leftMsgs = Array.isArray(left) ? left : left?.messages;
   const rightMsgs = Array.isArray(right) ? right : right?.messages;
 

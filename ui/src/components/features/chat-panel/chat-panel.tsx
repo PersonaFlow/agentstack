@@ -9,7 +9,7 @@ import { useSlugRoutes } from "@/hooks/useSlugParams";
 
 export default function ChatPanel() {
   const [userMessage, setUserMessage] = useState("");
-  const { stream, startStream } = useStream();
+  const { stream, startStream, stopStream: handleStop, isStreaming } = useStream();
   
   const { assistantId, threadId } = useSlugRoutes();
 
@@ -47,7 +47,9 @@ export default function ChatPanel() {
         <Composer
           onChange={(e) => setUserMessage(e.target.value)}
           value={userMessage}
-          sendMessage={handleSend}
+          onSend={handleSend}
+          onStop={handleStop}
+          isStreaming={isStreaming}
           disabled={!assistantId}
         />
       </div>
