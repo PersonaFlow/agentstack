@@ -5,6 +5,7 @@ import {
   useUpdateThread,
 } from "@/data-provider/query-service";
 import { TThread } from "@/data-provider/types";
+import { useSlugRoutes } from "@/hooks/useSlugParams";
 import { cn } from "@/utils/utils";
 import { Brain, EditIcon, Trash } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
@@ -26,6 +27,7 @@ export default function ThreadItem({ thread }: TThreadItemProps) {
   const router = useRouter();
   const pathname = usePathname();
   const { toast } = useToast();
+  const { assistantId } = useSlugRoutes();
 
   useEffect(() => {
     setIsSelected(pathname.includes(thread.id!));
@@ -59,10 +61,12 @@ export default function ThreadItem({ thread }: TThreadItemProps) {
   const handleDeleteThread = () => {
     setIsDeleting(true);
     deleteThread.mutate(undefined, {
-      onSuccess: () =>
+      onSuccess: () => {
+        router.push(`/a/${assistantId}`);
         toast({
           title: "Thread has been deleted.",
-        }),
+        });
+      },
     });
   };
 
