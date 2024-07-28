@@ -39,9 +39,11 @@ export function Composer({ onChange, sendMessage, value, disabled }: Props) {
               disabled={disabled}
             />
           </TooltipTrigger>
-          <TooltipContent>
-            <p>Select an assistant to start a new thread.</p>
-          </TooltipContent>
+          {disabled && (
+            <TooltipContent>
+              <p>Select an assistant to start a new thread.</p>
+            </TooltipContent>
+          )}
         </Tooltip>
       </TooltipProvider>
     </div>
