@@ -44,7 +44,7 @@ export default function Navbar() {
     );
   
     const onNewThreadClick = () => {
-      router.push('/')
+      router.push(`/a/${assistantId}`)
     };
 
   return (
