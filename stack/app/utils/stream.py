@@ -26,7 +26,7 @@ async def astream_state(
             root_run_id = event["run_id"]
             yield {
                 "run_id": root_run_id,
-                "thread_id": config["configurable"].get("thread_id")
+                "thread_id": config["configurable"].get("thread_id"),
             }
         elif event["event"] == "on_chain_stream" and event["run_id"] == root_run_id:
             new_messages: list[BaseMessage] = []
@@ -68,7 +68,7 @@ dumps = functools.partial(orjson.dumps, default=_default)
 async def to_sse(messages_stream: MessagesStream) -> AsyncIterator[dict]:
     """Consume the stream into an EventSourceResponse."""
     try:
-         async for chunk in messages_stream:
+        async for chunk in messages_stream:
             if isinstance(chunk, dict) and "run_id" in chunk:
                 yield {
                     "event": "metadata",
