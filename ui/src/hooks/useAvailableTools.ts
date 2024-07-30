@@ -1,8 +1,8 @@
-import { useRunnableConfigSchema } from "@/data-provider/query-service";
+import { useRunnableConfigSchema as useRunnableConfigSchemaQuery } from "@/data-provider/query-service";
 import { TConfigDefinitions, TSchemaField, TTool } from "@/data-provider/types";
 
 export const useAvailableTools = () => {
-  const { data: configSchema, isLoading, isError } = useRunnableConfigSchema();
+  const { data: configSchema, isLoading, isError } = useRunnableConfigSchemaQuery();
 
   if (!configSchema || isLoading || isError) return {};
 

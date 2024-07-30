@@ -1,15 +1,22 @@
-import { useRunnableConfigSchema } from "@/data-provider/query-service";
+import { useRunnableConfigSchema as useRunnableConfigSchemaQuery } from "@/data-provider/query-service";
 import { TConfigurableSchema } from "@/data-provider/types";
 
 export const useConfigSchema = (selectedArchType?: string) => {
-  const { data: configSchema, isLoading, isError } = useRunnableConfigSchema();
+  const {
+    data: configSchema,
+    isLoading,
+    isError,
+  } = useRunnableConfigSchemaQuery();
 
   if (!configSchema || isLoading || isError) return {};
 
   const { definitions } = configSchema;
 
-  const configProperties =
-    (definitions["Configurable"] as TConfigurableSchema).properties;
+  if ("Configurable" in definitions === false) return {};
+
+  if ("properties" in definitions["Configurable"] === false) return {};
+
+  const configProperties = definitions["Configurable"].properties;
 
   let systemMessage;
   let retrievalDescription;

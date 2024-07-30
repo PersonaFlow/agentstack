@@ -1,33 +1,23 @@
 "use client";
 
-import {
-  useAssistants,
-  useUpdateAssistant,
-} from "@/data-provider/query-service";
+import { useUpdateAssistant as useUpdateAssistantMutation } from "@/data-provider/query-service";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { TAssistant, formSchema } from "@/data-provider/types";
 import { AssistantForm } from "./assistant-form";
-import { useAtom } from "jotai";
-import { assistantAtom } from "@/store";
 import { useConfigSchema } from "@/hooks/useConfig";
 import { useAvailableTools } from "@/hooks/useAvailableTools";
 
 const RetrievalType = "retrieval";
 
-export function EditAssistant() {
-  const { data: assistantsData, isLoading } = useAssistants();
-  const [selectedAssistant] = useAtom(assistantAtom);
-
-  const updateAssistant = useUpdateAssistant(selectedAssistant?.id as string);
+export function EditAssistant({ assistant }: { assistant: TAssistant }) {
+  const assistantMutation = useUpdateAssistantMutation(assistant?.id as string);
 
   const form = useForm<TAssistant>({
     resolver: zodResolver(formSchema),
-    defaultValues: useMemo(() => {
-      return selectedAssistant as TAssistant;
-    }, [selectedAssistant]),
+    defaultValues: useMemo(() => assistant, [assistant]),
   });
 
   const architectureType = form.watch("config.configurable.type");
@@ -40,10 +30,10 @@ export function EditAssistant() {
   const { availableTools } = useAvailableTools();
 
   useEffect(() => {
-    if (selectedAssistant) {
-      form.reset(selectedAssistant);
+    if (assistant) {
+      form.reset(assistant);
     }
-  }, [selectedAssistant]);
+  }, [assistant, form]);
 
   useEffect(() => {
     if (architectureType) {
@@ -55,7 +45,7 @@ export function EditAssistant() {
         retrievalDescription,
       );
     }
-  }, [architectureType]);
+  }, [architectureType, form, retrievalDescription, systemMessage]);
 
   useEffect(() => {
     if (architectureType !== "agent") {
@@ -81,10 +71,13 @@ export function EditAssistant() {
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     // @ts-ignore
-    updateAssistant.mutate(values);
+    assistantMutation.mutate(values);
   }
 
-  if (isLoading || !assistantsData) return <div>is loading</div>;
-
-  return <AssistantForm form={form} onSubmit={onSubmit} />;
+  return (
+    <>
+      <h1>Edit Assistant</h1>
+      <AssistantForm form={form} onSubmit={onSubmit} />
+    </>
+  );
 }

@@ -9,25 +9,30 @@ import { useAtom } from "jotai";
 import { assistantAtom } from "@/store";
 import { useEffect } from "react";
 import { useParams } from "next/navigation";
-import { useAssistant, useThread } from "@/data-provider/query-service";
+import {
+  useAssistant as useAssistantQuery,
+  useThread as useThreadQuery,
+} from "@/data-provider/query-service";
 
 export function AssistentBuilder() {
   const [selectedAssistant, setSelectedAssistant] = useAtom(assistantAtom);
-  const { id: threadId } = useParams<{id:string}>();
-
-  const { data: threadData } = useThread(threadId, {
+  const { id: threadId } = useParams<{ id: string }>();
+  const { data: threadData } = useThreadQuery(threadId, {
     enabled: !!threadId,
   });
-
-  const { data: assistantData } = useAssistant(threadData?.assistant_id!, {
+  const { data: assistantData } = useAssistantQuery(threadData?.assistant_id!, {
     enabled: !!threadData?.assistant_id,
   });
 
-  useEffect(() => {
-    if (assistantData) {
-      setSelectedAssistant(assistantData);
-    }
-  }, [threadId, assistantData]);
+  // Select assistant when assistant data is available for current thread
+  useEffect(
+    function selectAssistant() {
+      if (assistantData) {
+        setSelectedAssistant(assistantData);
+      }
+    },
+    [setSelectedAssistant, assistantData],
+  );
 
   return (
     <>
@@ -41,7 +46,14 @@ export function AssistentBuilder() {
           Create Assistant
         </Button>
       </div>
-      {selectedAssistant ? <EditAssistant /> : <CreateAssistant />}
+
+      <hr className="border-x-8" />
+
+      {selectedAssistant ? (
+        <EditAssistant assistant={selectedAssistant} />
+      ) : (
+        <CreateAssistant onAssistantCreated={(a) => setSelectedAssistant(a)} />
+      )}
     </>
   );
 }
