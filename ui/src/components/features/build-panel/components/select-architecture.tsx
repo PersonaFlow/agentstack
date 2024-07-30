@@ -37,7 +37,7 @@ export default function SelectArchitecture({
           <FormLabel>Architecture</FormLabel>
           <FormControl>
             <Select onValueChange={field.onChange} defaultValue={field.value}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-[180px]" aria-label="architecture">
                 <SelectValue placeholder="Select architecture" />
               </SelectTrigger>
               <SelectContent>

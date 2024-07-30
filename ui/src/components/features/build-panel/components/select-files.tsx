@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
 import Spinner from "@/components/ui/spinner";
-import { useFiles } from "@/data-provider/query-service";
+import { useFiles as useFilesQuery } from "@/data-provider/query-service";
 import { CircleX } from "lucide-react";
 import { useEffect, useState } from "react";
 import { UseFormReturn, useFieldArray } from "react-hook-form";
@@ -18,7 +18,7 @@ type TBadgeValue = {
 export default function SelectFiles({ form }: TSelectFilesProps) {
   const [badgeValues, setBadgeValues] = useState([]);
 
-  const { data: files, isLoading } = useFiles("assistants");
+  const { data: files, isLoading } = useFilesQuery("assistants");
 
   const fileIds = form.watch("file_ids");
 

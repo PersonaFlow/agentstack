@@ -5,6 +5,7 @@ import {
   FormControl,
   FormField,
   FormItem,
+  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -22,7 +23,7 @@ import FilesDialog from "./files-dialog";
 import PublicSwitch from "./public-switch";
 import SelectArchitecture from "./select-architecture";
 import SelectFiles from "./select-files";
-import { useRunnableConfigSchema } from "@/data-provider/query-service";
+import { useRunnableConfigSchema as useRunnableConfigSchemaQuery } from "@/data-provider/query-service";
 import type { TSchemaField } from "@/data-provider/types";
 import Spinner from "@/components/ui/spinner";
 
@@ -33,7 +34,7 @@ type TAssistantFormProps = {
 
 export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
   const { type: architectureType } = form.getValues().config.configurable;
-  const { data: config, isLoading, isError } = useRunnableConfigSchema();
+  const { data: config, isLoading, isError } = useRunnableConfigSchemaQuery();
 
   if (isLoading) return <Spinner />;
 
@@ -52,6 +53,7 @@ export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
               name="name"
               render={({ field }) => (
                 <FormItem>
+                  <FormLabel>Assistant Name</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Assistant Name"
@@ -64,23 +66,29 @@ export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
                 </FormItem>
               )}
             />
-            <PublicSwitch form={form} />
           </div>
+          <PublicSwitch form={form} />
+
           <SelectArchitecture
             form={form}
-            types={(config?.definitions.Bot_Type as TSchemaField).enum  ?? []}
+            types={(config?.definitions.Bot_Type as TSchemaField).enum ?? []}
           />
+
           {architectureType && (
             <>
               {architectureType === "agent" ? (
                 <SelectModel
                   form={form}
-                  models={(config?.definitions.AgentType as TSchemaField).enum ?? []}
+                  models={
+                    (config?.definitions.AgentType as TSchemaField).enum ?? []
+                  }
                 />
               ) : (
                 <SelectLLM
                   form={form}
-                  llms={(config?.definitions.LLMType as TSchemaField).enum ?? []}
+                  llms={
+                    (config?.definitions.LLMType as TSchemaField).enum ?? []
+                  }
                 />
               )}
               <SystemPrompt form={form} />

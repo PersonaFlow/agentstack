@@ -28,7 +28,7 @@ const llmTypes = [
 
 type TSelectLLMProps = {
   form: UseFormReturn<any>;
-  llms: string[]
+  llms: string[];
 };
 
 export function SelectLLM({ form, llms }: TSelectLLMProps) {
@@ -41,7 +41,7 @@ export function SelectLLM({ form, llms }: TSelectLLMProps) {
           <FormLabel>LLM Type</FormLabel>
           <FormControl>
             <Select onValueChange={field.onChange} defaultValue={field.value}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-[180px]" aria-label="LLM Type">
                 <SelectValue placeholder="LLM Type" />
               </SelectTrigger>
               <SelectContent>

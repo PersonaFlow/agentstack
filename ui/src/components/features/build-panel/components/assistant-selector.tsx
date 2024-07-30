@@ -14,7 +14,7 @@ import { useAtom } from "jotai";
 
 export function AssistantSelector() {
   const [selectedAssistant, setSelectedAssistant] = useAtom(assistantAtom);
-  const { data: assistantsData, isLoading } = useAssistants();
+  const { data: assistantsData, isLoading, isError } = useAssistants();
 
   const handleValueChange = (assistantId: string) => {
     const _selectedAssistant = assistantsData?.find(
@@ -30,7 +30,10 @@ export function AssistantSelector() {
     }
   };
 
-  if (isLoading || !assistantsData) return <Spinner />;
+  if (isLoading) return <Spinner />;
+  if (isError) return <div>Failed to load assistants</div>;
+  if (!assistantsData)
+    return <div>No AI assistants found. Please, create one to start</div>;
 
   return (
     <Select

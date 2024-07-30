@@ -39,7 +39,7 @@ export default function SelectModel({ form, models }: TSelectModalProps) {
           <FormLabel>Model</FormLabel>
           <FormControl>
             <Select onValueChange={field.onChange} defaultValue={field.value}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-[180px]" aria-label="model">
                 <SelectValue placeholder="Select Agent Type" />
               </SelectTrigger>
               <SelectContent>
