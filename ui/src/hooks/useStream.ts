@@ -7,6 +7,7 @@ type TStartStreamProps = {
   thread_id: string;
   assistant_id: string;
   user_id?: string;
+  setIsNewThread: (arg: boolean) => void;
 };
 
 export const useStream = () => {
@@ -45,19 +46,22 @@ export const useStream = () => {
                 status: "inflight" as TStreamState["status"],
                 messages: mergeMessagesById(currentState?.messages, messages),
                 run_id: currentState?.run_id,
+                thread_id: currentState?.thread_id
               }));
             } else if (msg.event === "metadata") {
-              const { run_id } = JSON.parse(msg.data);
+              const { run_id, thread_id } = JSON.parse(msg.data);
               setCurrentState((currentState) => ({
                 status: "inflight",
                 messages: currentState?.messages,
                 run_id: run_id,
+                thread_id: thread_id
               }));
             } else if (msg.event === "error") {
               setCurrentState((currentState) => ({
                 status: "error",
                 messages: currentState?.messages,
                 run_id: currentState?.run_id,
+                thread_id: currentState?.thread_id
               }));
             }
           },
@@ -66,6 +70,7 @@ export const useStream = () => {
               status: currentState?.status === "error" ? currentState.status : "done",
               messages: currentState?.messages,
               run_id: currentState?.run_id,
+              thread_id: currentState?.thread_id
             }));
             setController(null);
           },
@@ -74,6 +79,7 @@ export const useStream = () => {
               status: "error",
               messages: currentState?.messages,
               run_id: currentState?.run_id,
+              thread_id: currentState?.thread_id
             }));
             setController(null);
             throw error;
@@ -92,12 +98,14 @@ export const useStream = () => {
         setCurrentState((currentState) => ({
           status: "done",
           run_id: currentState?.run_id,
+          thread_id: currentState?.thread_id
         }));
       } else {
         setCurrentState((currentState) => ({
           status: "done",
           messages: currentState?.messages,
           run_id: currentState?.run_id,
+          thread_id: currentState?.thread_id
         }));
       }
     },
@@ -108,7 +116,7 @@ export const useStream = () => {
     startStream,
     stopStream,
     stream: currentState,
-    isStreaming
+    isStreaming,
   };
 };
 

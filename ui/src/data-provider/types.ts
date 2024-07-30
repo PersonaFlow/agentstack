@@ -59,6 +59,7 @@ export type TStreamState = {
   status: "inflight" | "error" | "done";
   messages?: TMessage[] | Record<string, any>;
   run_id?: string;
+  thread_id?: string;
 };
 
 export type TSchemaField = {

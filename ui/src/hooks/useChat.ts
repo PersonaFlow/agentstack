@@ -15,12 +15,15 @@ export function useChatMessages(
   threadId: string | null,
   stream: any | null,
   stopStream?: (clear?: boolean) => void,
+  isNewThread?: boolean
 ) {
   const [messages, setMessages] = useState<TMessage[] | null>(null);
   const [next, setNext] = useState<string[]>([]);
   const prevStreamStatus = usePrevious(stream?.status);
 
-  const { data: threadData } = useThreadState(threadId as string);
+  const { data: threadData } = useThreadState(threadId as string, {
+    enabled: !isNewThread
+  });
 
   const refreshMessages = useCallback(async () => {
     if (threadId && threadData) {
