@@ -7,7 +7,6 @@ type TStartStreamProps = {
   thread_id: string;
   assistant_id: string;
   user_id?: string;
-  setIsNewThread: (arg: boolean) => void;
 };
 
 export const useStream = () => {

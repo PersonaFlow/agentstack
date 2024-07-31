@@ -21,17 +21,11 @@ export default function ChatPanel() {
   useEffect(() => {
     const isStreamDone = stream?.status === 'done';
 
-    if (isNewThread && isStreamDone && (threadId !== stream.thread_id)) {
+    if (isNewThread && isStreamDone) {
       router.push(`/a/${assistantId}/c/${stream?.thread_id}`);
     }
 
   }, [stream?.status])
-  
-  // useEffect(() => {
-  //   if (threadId && !isNewThread) {
-  //     setIsNewThread(false)
-  //   }
-  // },[threadId])
 
   const handleSend = async () => {
     const input = [
@@ -50,7 +44,6 @@ export default function ChatPanel() {
       input,
       thread_id: threadId as string,
       assistant_id: assistantId as string,
-      setIsNewThread
     });
 
   };
@@ -58,8 +51,7 @@ export default function ChatPanel() {
   return (
     <div className="h-full w-full gap-4 flex flex-col">
       <div className="h-full flex flex-col">
-        
-        {threadId || (isNewThread) ? (
+        {threadId || isNewThread ? (
           <MessagesContainer
             threadId={threadId as string}
             stream={stream as TStreamState}
