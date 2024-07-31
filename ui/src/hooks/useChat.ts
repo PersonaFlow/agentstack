@@ -1,7 +1,9 @@
-import { TMessage } from "@/data-provider/types";
+import { TMessage, TStreamState } from "@/data-provider/types";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { mergeMessagesById } from "./useStream";
 import { useThreadState } from "@/data-provider/query-service";
+import { useAtom } from "jotai";
+import { messagesAtom, threadAtom } from "@/store";
 
 function usePrevious<T>(value: T): T | undefined {
   const ref = useRef<T>();
@@ -13,23 +15,46 @@ function usePrevious<T>(value: T): T | undefined {
 
 export function useChatMessages(
   threadId: string | null,
-  stream: any | null,
-  stopStream?: (clear?: boolean) => void,
-  isNewThread?: boolean
+  stream: TStreamState,
 ) {
-  const { data: threadData, refetch } = useThreadState(threadId as string);
+  const [streamedMessages, setStreamedMessages] = useAtom(messagesAtom)
+  const [currentThreadId, setCurrentThreadId] = useAtom(threadAtom)
+
+  const { data: threadData, refetch, isFetched } = useThreadState(threadId as string, {
+    enabled: !!threadId
+  });
 
   useEffect(() => {
     if (stream?.status !== "inflight" && threadId) {
-      stopStream?.(true);
       refetch();
     }
-  }, [stream?.status, threadId, refetch, stopStream]);
+  }, [stream?.status, threadId, refetch]);
+
+  useEffect(() => {
+    // Reset streamedMessages after stream
+    if (isFetched) {
+      setStreamedMessages([])
+    }
+  },[isFetched])
+
+  useEffect(() => {
+    if (stream?.messages) {
+      setStreamedMessages(stream?.messages)
+    }
+  }, [stream?.messages])
+
+  useEffect(() => {
+    if (currentThreadId && threadId !== currentThreadId) {
+      console.log(currentThreadId)
+      setStreamedMessages([])
+      setCurrentThreadId(threadId)
+    }
+  }, [threadId])
 
   const messages = threadData?.values ? threadData.values : null;
 
   return {
-    messages: mergeMessagesById(messages, stream?.messages),
+    messages: mergeMessagesById(messages, streamedMessages),
     next: threadData?.next || [],
     refreshMessages: refetch
   };
