@@ -1,9 +1,6 @@
 import { TMessage, TStreamState } from "@/data-provider/types";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 import { useCallback, useEffect, useState } from "react";
-import { useSlugRoutes } from "./useSlugParams";
-import { useAtom } from "jotai";
-import { messagesAtom } from "@/store";
 
 type TStartStreamProps = {
   input: TMessage[] | Record<string, any> | null;
@@ -17,19 +14,12 @@ export const useStream = () => {
   const [currentState, setCurrentState] = useState<TStreamState | null>(null);
   const [controller, setController] = useState<AbortController | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
-  const {threadId} = useSlugRoutes()
 
   useEffect(() => {
     if (currentState?.status === 'error' || currentState?.status === 'done') {
       setIsStreaming(false);
     }
   }, [currentState]);
-  
-
-  useEffect(() => {
-    console.log(currentState?.messages);
-    console.log(threadId)
-  },[currentState])
 
   const startStream = useCallback(
     async ({ input, thread_id, assistant_id, user_id }: TStartStreamProps) => {
