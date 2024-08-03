@@ -15,35 +15,31 @@ import {
 } from "@/components/ui/select";
 import { UseFormReturn } from "react-hook-form";
 
-const architectureTypes = [
-  { display: "Chat", value: "chatbot" },
-  { display: "Chat with Retrieval", value: "chat_retrieval" },
-  { display: "Agent", value: "agent" },
-];
-
-export default function SelectArchitecture({
-  form,
-  types,
-}: {
+type TFormSelectProps = {
   form: UseFormReturn<any>;
-  types: string[];
-}) {
+  title: string;
+  formName: string;
+  options: string[];
+  placeholder: string;
+};
+
+export function FormSelect({ form, title ,options, formName, placeholder }: TFormSelectProps) {
   return (
     <FormField
       control={form.control}
-      name="config.configurable.type"
+      name={formName}
       render={({ field }) => (
         <FormItem className="flex flex-col">
-          <FormLabel>Architecture</FormLabel>
+          <FormLabel>{title}</FormLabel>
           <FormControl>
             <Select onValueChange={field.onChange} defaultValue={field.value}>
               <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Select architecture" />
+                <SelectValue placeholder={placeholder} />
               </SelectTrigger>
               <SelectContent>
-                {types.map((item) => (
-                  <SelectItem key={item} value={item}>
-                    {item}
+                {options.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
                   </SelectItem>
                 ))}
               </SelectContent>

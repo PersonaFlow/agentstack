@@ -1,6 +1,4 @@
-import { atom } from "jotai";
-import { TAssistant, TMessage, TThread } from "./data-provider/types";
+import { atom } from 'jotai'
+import { TMessage } from './data-provider/types'
 
-export const assistantAtom = atom<TAssistant | null>(null);
-export const conversationAtom = atom<TMessage[]>([]);
-export const threadAtom = atom<TThread | null>(null);
+export const messagesAtom = atom<TMessage[]>([]);

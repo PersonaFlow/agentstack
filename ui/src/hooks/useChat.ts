@@ -1,72 +1,45 @@
-import { TMessage } from "@/data-provider/types";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { TMessage, TStreamState } from "@/data-provider/types";
+import { useEffect } from "react";
 import { mergeMessagesById } from "./useStream";
 import { useThreadState } from "@/data-provider/query-service";
-
-function usePrevious<T>(value: T): T | undefined {
-  const ref = useRef<T>();
-  useEffect(() => {
-    ref.current = value;
-  });
-  return ref.current;
-}
+import { useAtom } from "jotai";
+import { messagesAtom } from "@/store";
 
 export function useChatMessages(
   threadId: string | null,
-  stream: any | null,
-  stopStream?: (clear?: boolean) => void,
+  stream: TStreamState | null,
 ) {
-  const [messages, setMessages] = useState<TMessage[] | null>(null);
-  const [next, setNext] = useState<string[]>([]);
-  const prevStreamStatus = usePrevious(stream?.status);
+  const [streamedMessages, setStreamedMessages] = useAtom(messagesAtom)
 
-  const { data: threadData } = useThreadState(threadId as string);
+  const { data: threadData, refetch, isFetched } = useThreadState(threadId as string, {
+    enabled: !!threadId
+  });
 
-  const refreshMessages = useCallback(async () => {
-    if (threadId && threadData) {
-      const { values, next } = threadData;
-      const messages = values
-        ? Array.isArray(values)
-          ? values
-          // @ts-ignore
-          : values.messages
-        : [];
-      setMessages(messages);
-      setNext(next);
+  // Refetch messages after streaming
+  useEffect(() => {
+    if (stream?.status !== "inflight" && threadId) {
+      refetch();
     }
-  }, [threadId, threadData]);
+  }, [stream?.status, threadId, refetch]);
+
+  // Stop persisting streamed messages after streaming and message refetch
+  useEffect(() => {
+    if (isFetched) {
+      setStreamedMessages([])
+    }
+  },[isFetched])
 
   useEffect(() => {
-    refreshMessages();
-    return () => {
-      setMessages(null);
-    };
-  }, [threadId, refreshMessages]);
-
-  useEffect(() => {
-    async function fetchMessages() {
-      if (threadId && threadData) {
-        const { values: messages, next } = threadData;
-        setMessages(messages);
-        setNext(next);
-        stopStream?.(true);
-      }
+    if (stream?.messages) {
+      setStreamedMessages(stream.messages as TMessage[])
     }
+  }, [stream?.messages])
 
-    if (prevStreamStatus === "inflight" && stream?.status !== "inflight") {
-      setNext([]);
-      fetchMessages();
-    }
+  const messages = threadData?.values ? threadData.values : null;
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stream?.status, threadData]);
-
-  return useMemo(
-    () => ({
-      refreshMessages,
-      messages: mergeMessagesById(messages, stream?.messages),
-      next,
-    }),
-    [messages, stream?.messages, next, refreshMessages],
-  );
+  return {
+    messages: mergeMessagesById(messages, streamedMessages),
+    next: threadData?.next || [],
+    refreshMessages: refetch
+  };
 }

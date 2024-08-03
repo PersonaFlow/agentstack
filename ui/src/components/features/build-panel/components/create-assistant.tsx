@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  useAssistants,
   useCreateAssistant,
 } from "@/data-provider/query-service";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,12 +8,11 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { AssistantForm } from "./assistant-form";
-import { useAtom } from "jotai";
-import { assistantAtom } from "@/store";
-import Spinner from "@/components/ui/spinner";
 import { useConfigSchema } from "@/hooks/useConfig";
 import { formSchema } from "@/data-provider/types";
 import { useAvailableTools } from "@/hooks/useAvailableTools";
+import { useToast } from "@/components/ui/use-toast";
+import { useRouter } from "next/navigation";
 
 const defaultValues = {
   public: false,
@@ -36,10 +34,11 @@ const defaultValues = {
 const RetrievalType = "retrieval";
 
 export function CreateAssistant() {
-  const { data: assistantsData, isLoading } = useAssistants();
-  const [_, setSelectedAssistant] = useAtom(assistantAtom);
-
   const createAssistant = useCreateAssistant();
+
+  const router = useRouter()
+
+  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -57,7 +56,10 @@ export function CreateAssistant() {
 
   useEffect(() => {
     if (architectureType) {
-      form.setValue("config.configurable.system_message", systemMessage as string);
+      form.setValue(
+        "config.configurable.system_message",
+        systemMessage as string,
+      );
       form.setValue(
         "config.configurable.retrieval_description",
         retrievalDescription,
@@ -92,12 +94,20 @@ export function CreateAssistant() {
       onSuccess: (response) => {
         console.log("Successfully created assistant: ");
         console.log(response);
-        setSelectedAssistant(response);
+        router.push(`/a/${response.id}`);
+        toast({
+          variant: "default",
+          title: "Successfully created new assistant.",
+        });
+      },
+      onError: () => {
+        toast({
+          variant: "destructive",
+          title: "Failed to update assistant.",
+        });
       },
     });
   }
-
-  if (isLoading || !assistantsData) return <Spinner />;
 
   return <AssistantForm form={form} onSubmit={onSubmit} />;
 }

@@ -10,8 +10,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { UseFormReturn } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import SelectModel from "./select-model";
-import { SelectLLM } from "./select-llm";
 import { SystemPrompt } from "./system-prompt";
 import { RetrievalInstructions } from "./retrieval-description";
 import SelectTools from "./select-tools";
@@ -20,11 +18,11 @@ import SelectOptions from "./select-options";
 import SelectActions from "./select-actions";
 import FilesDialog from "./files-dialog";
 import PublicSwitch from "./public-switch";
-import SelectArchitecture from "./select-architecture";
 import SelectFiles from "./select-files";
 import { useRunnableConfigSchema } from "@/data-provider/query-service";
 import type { TSchemaField } from "@/data-provider/types";
 import Spinner from "@/components/ui/spinner";
+import { FormSelect } from "./form-select";
 
 type TAssistantFormProps = {
   form: UseFormReturn<any>;
@@ -34,6 +32,10 @@ type TAssistantFormProps = {
 export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
   const { type: architectureType } = form.getValues().config.configurable;
   const { data: config, isLoading, isError } = useRunnableConfigSchema();
+
+  const {
+    formState: { isDirty },
+  } = form;
 
   if (isLoading) return <Spinner />;
 
@@ -66,22 +68,31 @@ export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
             />
             <PublicSwitch form={form} />
           </div>
-          <SelectArchitecture
+          <FormSelect
             form={form}
-            types={(config?.definitions.Bot_Type as TSchemaField).enum  ?? []}
+            options={(config?.definitions.Bot_Type as TSchemaField).enum ?? []}
+            formName="config.configurable.type"
+            title="Select architecture"
+            placeholder="Select architecture"
           />
           {architectureType && (
             <>
               {architectureType === "agent" ? (
-                <SelectModel
-                  form={form}
-                  models={(config?.definitions.AgentType as TSchemaField).enum ?? []}
-                />
+                <FormSelect
+                form={form}
+                options={(config?.definitions.AgentType as TSchemaField).enum ?? []}
+                formName="config.configurable.agent_type"
+                title="Agent type"
+                placeholder="Select agent type"
+              />
               ) : (
-                <SelectLLM
-                  form={form}
-                  llms={(config?.definitions.LLMType as TSchemaField).enum ?? []}
-                />
+                <FormSelect
+                form={form}
+                options={(config?.definitions.LLMType as TSchemaField).enum ?? []}
+                formName="config.configurable.llm_type"
+                title="LLM type"
+                placeholder="Select LLM type"
+              />
               )}
               <SystemPrompt form={form} />
               {architectureType !== "chatbot" && (
@@ -103,7 +114,11 @@ export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
                   )}
                 </>
               )}
-              <Button type="submit" className="w-1/4 self-center">
+              <Button
+                type="submit"
+                className="w-1/4 self-center"
+                disabled={!isDirty}
+              >
                 Save
               </Button>
             </>
