@@ -93,7 +93,7 @@ export const useUpdateMe = (payload: t.TUser) => {
 };
 
 export const useGetMyThreads = (grouped: boolean) => {
-  return useQuery<t.TThread[], Error>({
+  return useQuery<t.TThread[] | t.TGroupedThreads, Error>({
     queryKey: [QueryKeys.userThreads],
     queryFn: async () => await dataService.getMyThreads(grouped),
   });
@@ -207,11 +207,12 @@ export const useDeleteThread = (threadId: string) => {
   });
 };
 
-export const useThreadState = (threadId: string) => {
+export const useThreadState = (threadId: string, enabled?: { enabled?: boolean }) => {
   return useQuery<t.TThreadState, Error>({
     queryKey: [QueryKeys.conversation, threadId],
     queryFn: async (): Promise<t.TThreadState> =>
       await dataService.getThreadState(threadId),
+    ...enabled
   });
 };
 

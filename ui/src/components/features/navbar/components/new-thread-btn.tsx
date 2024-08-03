@@ -3,11 +3,12 @@ import { PlusSquareIcon } from "lucide-react";
 
 type TNewThreadBtnProps = {
   handleClick: () => void;
+  disabled?: boolean;
 };
 
-export default function NewThreadBtn({ handleClick }: TNewThreadBtnProps) {
+export default function NewThreadBtn({ handleClick, disabled }: TNewThreadBtnProps) {
   return (
-    <Button onClick={handleClick} className="p-6 w-[calc(100%-20px)]">
+    <Button onClick={handleClick} className="p-6 w-[calc(100%-20px)] mb-4" disabled={disabled}>
       <a className="flex gap-x-2 items-center">
         <PlusSquareIcon />
         <span>New thread</span>

@@ -1,19 +1,14 @@
 "use client";
 import Spinner from "@/components/ui/spinner";
-import {
-  useCreateThread,
-  useGetMyThreads,
-} from "@/data-provider/query-service";
-import { cn } from "@/lib/utils";
+import { useGetMyThreads } from "@/data-provider/query-service";
+import { cn } from "@/utils/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
+import ThreadItem from "./thread-item";
+import { TGroupedThreads } from "@/data-provider/types";
+import { useSlugRoutes } from "@/hooks/useSlugParams";
 import NewThreadBtn from "./new-thread-btn";
 import { useRouter } from "next/navigation";
-import ThreadItem from "./thread-item";
-import { TGroupedThreads, TThread } from "@/data-provider/types";
-import { useToast } from "@/components/ui/use-toast";
-import { useAtom } from "jotai";
-import { assistantAtom } from "@/store";
 
 export default function Navbar() {
   const { data: threadsData, isLoading: threadsLoading } =
@@ -21,32 +16,25 @@ export default function Navbar() {
 
   const [filteredThreads, setFilteredThreads] = useState(threadsData || {});
   const [open, setOpen] = useState(false);
-  const [selectedAssistant, setSelectedAssistant] = useAtom(assistantAtom);
 
-  const router = useRouter();
-  const createNewThread = useCreateThread();
+  const router = useRouter()
 
-  const { toast } = useToast();
+  const { assistantId, threadId } = useSlugRoutes();
 
   useEffect(() => {
-    if (!selectedAssistant && threadsData) {
-      setFilteredThreads(threadsData);
-    }
-  }, [threadsData]);
-
-  useEffect(() => {
-    if (selectedAssistant && threadsData) {
-      // @ts-ignore
-      const _filteredThreads = filterThreads(threadsData);
+    if (assistantId && threadsData) {
+      let _filteredThreads = assistantId
+        ? filterThreads(threadsData as TGroupedThreads)
+        : threadsData;
       setFilteredThreads(_filteredThreads);
     }
-  }, [selectedAssistant, threadsData]);
+  }, [assistantId, threadsData]);
 
   const filterThreads = (groupedThreads: TGroupedThreads) =>
     Object.entries(groupedThreads).reduce(
       (newGroupedThreads, [grouping, threads]) => {
         const filtered = threads.filter(
-          (thread) => thread.assistant_id === selectedAssistant?.id,
+          (thread) => thread.assistant_id === assistantId,
         );
         // @ts-ignore
         newGroupedThreads[grouping] = filtered;
@@ -54,28 +42,10 @@ export default function Navbar() {
       },
       {},
     );
-
-  const onNewThreadClick = () => {
-    if (!selectedAssistant)
-      return toast({
-        variant: "destructive",
-        title: "Please select an assistant before creating a new thread.",
-      });
-
-    createNewThread.mutate(
-      {
-        assistant_id: selectedAssistant?.id as string,
-        name: "New thread",
-        // @ts-ignore
-        user_id: "1234",
-      },
-      {
-        onSuccess: (thread: TThread) => {
-          router.push(`/c/${thread.id}`);
-        },
-      },
-    );
-  };
+  
+    const onNewThreadClick = () => {
+      router.push(`/a/${assistantId}`)
+    };
 
   return (
     <div className="flex h-full border-2">
@@ -83,8 +53,12 @@ export default function Navbar() {
       <div
         className={cn("flex flex-col m-3", open ? "w-72" : "w-0 collapse m-0")}
       >
-        {/* New Thread Link */}
-        {!threadsLoading && <NewThreadBtn handleClick={onNewThreadClick} />}
+        {!threadsLoading && <NewThreadBtn handleClick={onNewThreadClick} disabled={!threadId} />}
+        {!threadsLoading && Object.values(filteredThreads).every((value) => value.length === 0) && (
+          <div className="border border-2 flex flex-col items-center justify-center">
+            <h1>No threads found.</h1>
+          </div>
+        )}
         <nav className="overflow-y-auto">
           {/* Threads loading */}
           {threadsLoading ? (
@@ -111,6 +85,7 @@ export default function Navbar() {
           )}
         </nav>
       </div>
+
       {/* Toggle Sidebar */}
       <div className="self-center hover:cursor-pointer p-1">
         {open ? (

@@ -1,11 +1,10 @@
 import { render, screen } from "@testing-library/react";
 import { AssistentBuilder } from "../assistant-builder";
-import { useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
-  useAssistant,
-  useThread,
   useAssistants,
 } from "@/data-provider/query-service";
+import { useSlugRoutes } from "@/hooks/useSlugParams";
 
 jest.mock("../edit-assistant", () => {
   return {
@@ -20,22 +19,26 @@ jest.mock("../create-assistant", () => {
 
 jest.mock("next/navigation", () => {
   return {
-    useParams: jest.fn(),
+    useRouter: jest.fn()
   };
 });
+
 jest.mock("@/data-provider/query-service", () => {
   return {
-    useAssistant: jest.fn(),
-    useThread: jest.fn(),
     useAssistants: jest.fn(),
   };
 });
 
+jest.mock("@/hooks/useSlugParams", () => {
+  return {
+    useSlugRoutes: jest.fn()
+  }
+})
+
 test("should render", () => {
-  (useParams as jest.Mock).mockReturnValue({ id: "1" });
-  (useThread as jest.Mock).mockReturnValue({ data: { assistant_id: "1" } });
-  (useAssistant as jest.Mock).mockReturnValue({ data: { id: "1" } });
   (useAssistants as jest.Mock).mockReturnValue({ data: [{ id: "1" }] });
+  (useRouter as jest.Mock).mockReturnValue([]);
+  (useSlugRoutes as jest.Mock).mockReturnValue({ assistantId: "1"})
 
   render(<AssistentBuilder />);
 
