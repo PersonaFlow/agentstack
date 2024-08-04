@@ -240,14 +240,14 @@ export const useUpdateMessage = (
   });
 };
 
-export const useDeleteMessage = (messageId: string) => {
+export const useDeleteMessage = () => {
   const queryClient = useQueryClient();
-  return useMutation<void, Error>({
-    mutationFn: async (): Promise<void> =>
+  return useMutation<void, Error, string>({
+    mutationFn: async (messageId: string): Promise<void> =>
       await dataService.deleteMessage(messageId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QueryKeys.messages] });
-      queryClient.invalidateQueries({ queryKey: [messageId] });
+      // queryClient.invalidateQueries({ queryKey: [QueryKeys.messages] });
+      // queryClient.invalidateQueries({ queryKey: [messageId] });
     },
   });
 };

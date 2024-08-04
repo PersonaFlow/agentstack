@@ -1,3 +1,4 @@
+import { useDeleteMessage } from "@/data-provider/query-service";
 import { TMessage, TStreamState } from "@/data-provider/types";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 import { useCallback, useEffect, useState } from "react";
@@ -13,6 +14,8 @@ export const useStream = () => {
   const [currentState, setCurrentState] = useState<TStreamState | null>(null);
   const [controller, setController] = useState<AbortController | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
+
+  const deleteMessage = useDeleteMessage();
 
   useEffect(() => {
     if (currentState?.status === 'error' || currentState?.status === 'done') {
@@ -93,20 +96,27 @@ export const useStream = () => {
     (clear: boolean = false) => {
       controller?.abort();
       setController(null);
-      if (clear) {
-        setCurrentState((currentState) => ({
-          status: "done",
-          run_id: currentState?.run_id,
-          thread_id: currentState?.thread_id
-        }));
-      } else {
-        setCurrentState((currentState) => ({
-          status: "done",
-          messages: currentState?.messages,
-          run_id: currentState?.run_id,
-          thread_id: currentState?.thread_id
-        }));
-      }
+      setIsStreaming(false);
+      // const deleteUserMsg = currentState?.messages[lastMsg].id;
+      // deleteMessage()
+      // if (clear) {
+      //   console.log(currentState)
+      //   setCurrentState((currentState) => ({
+      //     status: "done",
+      //     run_id: currentState?.run_id,
+      //     thread_id: currentState?.thread_id
+      //   }));
+      //   console.log(currentState)
+      // } else {
+      //   console.log(currentState)
+      //   setCurrentState((currentState) => ({
+      //     status: "done",
+      //     messages: currentState?.messages,
+      //     run_id: currentState?.run_id,
+      //     thread_id: currentState?.thread_id
+      //   }));
+      //   console.log(currentState)
+      // }
     },
     [controller],
   );
