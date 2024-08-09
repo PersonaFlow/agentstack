@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 
 type Props = {
   streamingMessage?: TMessage | null;
-  onRetry?: VoidFunction;
+  onRetry: (message: TMessage) => void;
   threadId: string;
   stream: TStreamState;
 };
@@ -60,7 +60,7 @@ export default function MessagesContainer({
         const isToolResult = message.type === MessageType.TOOL;
 
         const isLastMessage = index === messages.length - 1;
-        const isStopped = stream?.status === 'stopped'
+        const isStopped = stream?.status === "stopped";
 
         if (isToolResult) {
           return (
@@ -77,10 +77,14 @@ export default function MessagesContainer({
           );
         }
 
-        return <>
-          <MessageItem message={message} key={`${message.id}-${index}`} />
-          {isStopped && isLastMessage && <Button onClick={onRetry}>Retry</Button>}
-          </>;
+        return (
+          <>
+            <MessageItem message={message} key={`${message.id}-${index}`} />
+            {isStopped && isLastMessage && (
+              <Button onClick={() => onRetry(message)}>Retry</Button>
+            )}
+          </>
+        );
       })}
     </div>
   );
