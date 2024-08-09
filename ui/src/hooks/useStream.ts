@@ -93,10 +93,18 @@ export const useStream = () => {
   );
 
   const stopStream = useCallback(
-    (clear: boolean = false) => {
-      controller?.abort();
+    async (clear: boolean = false) => {
+      await controller?.abort();
       setController(null);
       setIsStreaming(false);
+      setCurrentState((currentState) => ({
+            status: "stopped",
+            run_id: currentState?.run_id,
+            thread_id: currentState?.thread_id
+          }));
+      // const lastIndex = currentState?.messages?.length - 1;
+      // const prevHumanMsg = currentState?.messages[lastIndex]
+      // deleteMessage.mutate(currentState?)
       // const deleteUserMsg = currentState?.messages[lastMsg].id;
       // deleteMessage()
       // if (clear) {

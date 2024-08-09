@@ -1,7 +1,7 @@
 import { TMessage, TStreamState } from "@/data-provider/types";
 import { useEffect } from "react";
 import { mergeMessagesById } from "./useStream";
-import { useThreadState } from "@/data-provider/query-service";
+import { useDeleteMessage, useThreadState } from "@/data-provider/query-service";
 import { useAtom } from "jotai";
 import { messagesAtom } from "@/store";
 
@@ -15,10 +15,18 @@ export function useChatMessages(
     enabled: !!threadId
   });
 
+  const deleteMessage = useDeleteMessage()
+
   // Refetch messages after streaming
   useEffect(() => {
     if (stream?.status !== "inflight" && threadId) {
       refetch();
+    }
+
+    if (stream?.status === "stopped") {
+      const lastHumanMsg = streamedMessages?.slice().reverse().find(message => message.type === 'human');
+      console.log(lastHumanMsg);
+      // deleteMessage.mutate(lastHumanMsg?.id as string)
     }
   }, [stream?.status, threadId, refetch]);
 

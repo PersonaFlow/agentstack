@@ -56,7 +56,7 @@ export type TConfigType = {
 };
 
 export type TStreamState = {
-  status: "inflight" | "error" | "done";
+  status: "inflight" | "error" | "done" | "stopped";
   messages?: TMessage[] | Record<string, any>;
   run_id?: string;
   thread_id?: string;
