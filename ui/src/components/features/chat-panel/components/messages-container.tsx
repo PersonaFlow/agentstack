@@ -51,6 +51,12 @@ export default function MessagesContainer({
     }
   }, [messages]);
 
+  const handleRetry = () => {
+    const lastHumanMsg = messages.slice().reverse().find(msg => msg.type === 'human')
+    console.log(lastHumanMsg)
+    onRetry(lastHumanMsg as TMessage)
+  }
+
   return (
     <div className="p-6 overflow-y-scroll" ref={divRef}>
       {messages?.map((message, index) => {
@@ -81,7 +87,7 @@ export default function MessagesContainer({
           <>
             <MessageItem message={message} key={`${message.id}-${index}`} />
             {isStopped && isLastMessage && (
-              <Button onClick={() => onRetry(message)}>Retry</Button>
+              <Button onClick={handleRetry}>Retry</Button>
             )}
           </>
         );
