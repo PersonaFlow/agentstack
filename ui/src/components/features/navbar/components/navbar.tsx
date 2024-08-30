@@ -56,14 +56,14 @@ export default function Navbar() {
       >
         {!threadsLoading && <NewThreadBtn handleClick={onNewThreadClick} disabled={!threadId} />}
         {!threadsLoading && Object.values(filteredThreads).every((value) => value.length === 0) && (
-          <div className="border border-2 flex flex-col items-center justify-center">
+          <div className="flex flex-col items-center justify-center w-64">
             <h1>No threads found.</h1>
           </div>
         )}
         <nav className="overflow-y-auto">
           {/* Threads loading */}
           {threadsLoading ? (
-            <div className="flex flex-col items-center justify-center h-full">
+            <div className="flex flex-col items-center justify-center h-full w-64">
               <Spinner />
               <p className="mt-3">Loading threads... </p>
             </div>
