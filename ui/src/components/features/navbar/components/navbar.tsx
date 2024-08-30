@@ -9,13 +9,16 @@ import { TGroupedThreads } from "@/data-provider/types";
 import { useSlugRoutes } from "@/hooks/useSlugParams";
 import NewThreadBtn from "./new-thread-btn";
 import { useRouter } from "next/navigation";
+import { useAtom } from "jotai";
+import { threadAtom } from "@/store";
 
 export default function Navbar() {
   const { data: threadsData, isLoading: threadsLoading } =
     useGetMyThreads(true);
 
   const [filteredThreads, setFilteredThreads] = useState(threadsData || {});
-  const [open, setOpen] = useState(false);
+  const [isNavbarOpen] = useAtom(threadAtom);
+  // const [open, setOpen] = useState(false);
 
   const router = useRouter()
 
@@ -48,10 +51,8 @@ export default function Navbar() {
     };
 
   return (
-    <div className="flex h-full border-2">
-      {/* Container */}
       <div
-        className={cn("flex flex-col m-3", open ? "w-72" : "w-0 collapse m-0")}
+        className={cn("flex h-full border-2 flex-col p-4 items-center gap-y-2", !isNavbarOpen && "w-0 collapse")}
       >
         {!threadsLoading && <NewThreadBtn handleClick={onNewThreadClick} disabled={!threadId} />}
         {!threadsLoading && Object.values(filteredThreads).every((value) => value.length === 0) && (
@@ -71,7 +72,7 @@ export default function Navbar() {
               // @ts-ignore
               if (threads && threads.length > 0) {
                 return (
-                  <div key={groupName}>
+                  <div key={groupName} className="w-64">
                     <h2 className="m-3 text-gray-400">{groupName}</h2>
                     {/* @ts-ignore */}
                     {threads?.map((thread) => (
@@ -85,15 +86,5 @@ export default function Navbar() {
           )}
         </nav>
       </div>
-
-      {/* Toggle Sidebar */}
-      <div className="self-center hover:cursor-pointer p-1">
-        {open ? (
-          <ChevronLeft onClick={() => setOpen(false)} color="#000" />
-        ) : (
-          <ChevronRight onClick={() => setOpen(true)} color="#000" />
-        )}
-      </div>
-    </div>
   );
 }
