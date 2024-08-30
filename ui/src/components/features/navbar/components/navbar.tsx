@@ -52,7 +52,7 @@ export default function Navbar() {
 
   return (
       <div
-        className={cn("flex h-full border-2 flex-col p-4 items-center gap-y-2", !isNavbarOpen && "w-0 collapse")}
+        className={cn(isNavbarOpen ? "flex h-full border-2 flex-col items-center gap-y-2 p-4" : "w-0 collapse")}
       >
         {!threadsLoading && <NewThreadBtn handleClick={onNewThreadClick} disabled={!threadId} />}
         {!threadsLoading && Object.values(filteredThreads).every((value) => value.length === 0) && (

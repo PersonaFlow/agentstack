@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import BuildPanel from "@/components/features/build-panel/components/build-panel";
 import Navbar from "@/components/features/navbar/components/navbar";
 import Header from "@/components/features/header/components/header";
+import { useState } from "react";
 
 const inter = Inter({ subsets: ["latin"] });
 
