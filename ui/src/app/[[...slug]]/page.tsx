@@ -12,7 +12,7 @@ export default function ConversationPage({
   if (!isValidParam(params.slug)) return notFound();
 
   return (
-    <div className="border-solid border-2 w-full gap-4 flex flex-col">
+    <div className="border-solid border-2 w-full gap-4 flex flex-col rounded">
       <ChatPanel />
     </div>
   );
