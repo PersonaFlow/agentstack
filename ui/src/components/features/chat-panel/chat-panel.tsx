@@ -7,8 +7,6 @@ import { useEffect, useState } from "react";
 import { MessageType, TStreamState } from "@/data-provider/types";
 import { useSlugRoutes } from "@/hooks/useSlugParams";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { PanelLeftOpen } from "lucide-react";
 import { ThreadBtn } from "./components/thread-btn";
 
 export default function ChatPanel() {
@@ -61,7 +59,9 @@ export default function ChatPanel() {
             stream={stream as TStreamState}
           />
         ) : (
-          <h1>Welcome!</h1>
+            <div className="self-center h-full items-center flex">
+              <h1 className="border-2 p-4 rounded">{'<> Send a message to create a thread. </>'}</h1>
+            </div>
         )}
 
         <Composer
