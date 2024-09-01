@@ -12,6 +12,9 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "PersonaFlow",
   description: "Where AI meets individuality for unmatched personalization",
+  icons: {
+    icon: '/icon.ico'
+  }
 };
 
 export default function RootLayout({
