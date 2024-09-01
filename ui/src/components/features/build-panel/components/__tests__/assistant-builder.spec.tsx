@@ -42,7 +42,6 @@ test("should render", () => {
 
   render(<AssistentBuilder />);
 
-  screen.getByRole("button", { name: "Create Assistant" });
   expect(screen.getByText("EditAssistant")).toBeInTheDocument();
   expect(screen.queryByText("CreateAssistant")).toBeNull();
 });

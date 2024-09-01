@@ -12,7 +12,7 @@ export default function BuildPanel() {
   };
 
   return (
-    <div className="flex items-center border-solid border-2">
+    <div className="flex items-center border-solid border-2 rounded">
       <div className=" p-1">
         {isOpen ? (
           <ChevronRight
