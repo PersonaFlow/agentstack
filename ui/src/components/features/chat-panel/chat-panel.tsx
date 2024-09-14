@@ -7,7 +7,6 @@ import { useEffect, useState } from "react";
 import { MessageType, TStreamState } from "@/data-provider/types";
 import { useSlugRoutes } from "@/hooks/useSlugParams";
 import { useRouter } from "next/navigation";
-import { ThreadBtn } from "./components/thread-btn";
 
 export default function ChatPanel() {
   const [userMessage, setUserMessage] = useState("");
@@ -52,7 +51,6 @@ export default function ChatPanel() {
   return (
     <div className="h-full w-full gap-4 flex flex-col">
       <div className="h-full flex flex-col">
-        <ThreadBtn />
         {threadId || isNewThread ? (
           <MessagesContainer
             threadId={threadId as string}
