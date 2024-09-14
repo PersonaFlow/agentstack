@@ -11,7 +11,9 @@
   </a>
 </p>
 
-**The PersonaFlow platform aims to provide highly personalized user experiences fueled by Generative AI. With a focus on scalability and efficiency, PersonaFlow offers a suite of tools and APIs to create complex agents and high-performing retrieval augmented generation (RAG) systems.**
+**WARNING: This project is currently in development and is undergoing significant updates and refactoring.**
+
+The PersonaFlow platform aims to provide highly personalized user experiences fueled by Generative AI. With a focus on scalability and efficiency, PersonaFlow offers a suite of tools and APIs to create complex agents backed by an API.
 
 Key features include:
 - Context optimization: Intelligent partitioning of ingested data based on the semantic similarity of surrounding content (see: [Document Processing](/docs/rag.md)).
