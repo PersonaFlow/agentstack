@@ -8,9 +8,8 @@ type TMessageItemProps = {
 export default function MessageItem({ message }: TMessageItemProps) {
   if (message.type === MessageType.HUMAN) {
     return (
-      <div className="flex w-full flex-col gap-1 items-end">
-        <div className="relative max-w-[70%] rounded-3xl border-2 px-5 py-2.5">
-          
+      <div className="flex w-full flex-col gap-1 items-end m-2">
+        <div className="relative max-w-[70%] rounded-2xl border-2 px-5">
           <Markdown text={ message.content as string} />
         </div>
       </div>
