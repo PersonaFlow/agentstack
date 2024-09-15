@@ -34,7 +34,6 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {EndIcon && (
           <div className="absolute right-0 top-1/2 transform -translate-y-1/2">
             {EndIcon}
-            {/* <EndIcon className="text-muted-foreground" size={18} /> */}
           </div>
         )}
       </div>
