@@ -45,8 +45,9 @@ export default function Navbar() {
     };
 
   return (
+    <div className="flex gap-2">
       <div
-        className="flex h-full border-2 flex-col items-center gap-y-2 p-4"
+        className="flex h-full rounded flex-col items-center gap-y-2 p-4 bg-transparent"
       >
         {!threadsLoading && <NewThreadBtn handleClick={onNewThreadClick} disabled={!threadId} />}
         {!threadsLoading && Object.values(filteredThreads).every((value) => value.length === 0) && (
@@ -79,6 +80,8 @@ export default function Navbar() {
             })
           )}
         </nav>
+    </div>
+      <div className="h-5 w-[1px] bg-black rounded self-center"></div>
       </div>
   );
 }

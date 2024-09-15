@@ -78,7 +78,9 @@ export default function ThreadItem({ thread }: TThreadItemProps) {
         "fade-in flex m-3 gap-2 items-center cursor-pointer",
       )}
     >
-      <Brain />
+      <div className="text-green-300">
+        <Brain />
+      </div>
       {!isEditing ? (
         <span className="truncate">{thread.name}</span>
       ) : (

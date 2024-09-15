@@ -4,7 +4,7 @@ import { EditAssistant } from "./edit-assistant";
 import { CreateAssistant } from "./create-assistant";
 import { useSlugRoutes } from "@/hooks/useSlugParams";
 
-export function AssistentBuilder() {
+export function AssistantBuilder() {
   const {assistantId} = useSlugRoutes();
 
   return (

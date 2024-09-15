@@ -8,7 +8,7 @@ type TNewThreadBtnProps = {
 
 export default function NewThreadBtn({ handleClick, disabled }: TNewThreadBtnProps) {
   return (
-    <Button onClick={handleClick} className="p-6 w-[calc(100%-20px)]" disabled={disabled}>
+    <Button variant="outline" onClick={handleClick} className="p-6 w-[calc(100%-20px)] text-black" disabled={disabled}>
       <a className="flex gap-x-2 items-center">
         <PlusSquareIcon />
         <span>New thread</span>

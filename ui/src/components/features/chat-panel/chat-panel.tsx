@@ -50,7 +50,7 @@ export default function ChatPanel() {
 
   return (
     <div className="h-full w-full gap-4 flex flex-col">
-      <div className="h-full flex flex-col">
+      <div className="h-full flex flex-col rounded">
         {threadId || isNewThread ? (
           <MessagesContainer
             threadId={threadId as string}

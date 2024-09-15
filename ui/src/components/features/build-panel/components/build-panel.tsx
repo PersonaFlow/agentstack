@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { AssistentBuilder } from "./assistant-builder";
+import { AssistantBuilder } from "./assistant-builder";
 
 export default function BuildPanel() {
   const [isOpen, setIsOpen] = useState(true);
@@ -12,7 +12,7 @@ export default function BuildPanel() {
   };
 
   return (
-    <div className="flex items-center border-solid border-2 rounded">
+    <div className="flex items-center bg-green-100 text-black rounded">
       <div className=" p-1">
         {isOpen ? (
           <ChevronRight
@@ -27,7 +27,7 @@ export default function BuildPanel() {
         )}
       </div>
       <div className={isOpen ? drawerStyles["open"] : drawerStyles["closed"]}>
-        <AssistentBuilder />
+        <AssistantBuilder />
       </div>
     </div>
   );

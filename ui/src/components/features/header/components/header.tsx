@@ -12,7 +12,7 @@ export default function Header() {
     <div className="flex gap-2 m-2 justify-between">
       <div className="flex gap-4 items-center">
       <Image className="rounded" src={PersonaFlowIcon} alt="PersonaFlow logo" width={40} height={40}/>
-        <h1>[ personaflow ]</h1>
+        <h1>AgentStack</h1>
         </div>
       <div className="flex gap-2">
        <AssistantSelector />

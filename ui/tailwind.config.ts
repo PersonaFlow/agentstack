@@ -17,6 +17,17 @@ const config = {
         "2xl": "1400px",
       },
     },
+    white: '#fff',
+    green: {
+      950: "#022c22",
+      
+    },
+    gray: {
+      200: "#ffedd5"
+    },
+    zinc: {
+      800: '#78716c'
+    },
     extend: {
       colors: {
         border: "hsl(var(--border))",
