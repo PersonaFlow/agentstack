@@ -57,7 +57,7 @@ export function AssistantSelector() {
       value={selectedAssistant?.id}
       defaultValue={selectedAssistant?.name}
     >
-      <SelectTrigger className="w-[180px]">
+      <SelectTrigger className="w-[180px] border-accent">
         <SelectValue placeholder="Select assistant.." />
       </SelectTrigger>
       <SelectContent>

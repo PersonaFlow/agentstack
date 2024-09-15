@@ -78,7 +78,7 @@ export default function ThreadItem({ thread }: TThreadItemProps) {
         "fade-in flex m-3 gap-2 items-center cursor-pointer",
       )}
     >
-      <div className="text-green-300">
+      <div className="text-accent">
         <Brain />
       </div>
       {!isEditing ? (
