@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { PlusSquareIcon } from "lucide-react";
+import { Plus, PlusSquareIcon } from "lucide-react";
 
 type TNewThreadBtnProps = {
   handleClick: () => void;
@@ -10,7 +10,7 @@ export default function NewThreadBtn({ handleClick, disabled }: TNewThreadBtnPro
   return (
     <Button variant="secondary" onClick={handleClick} className="p-6 w-[calc(100%-20px)]" disabled={disabled}>
       <a className="flex gap-x-2 items-center">
-        <PlusSquareIcon />
+        <Plus />
         <span>New thread</span>
       </a>
     </Button>
