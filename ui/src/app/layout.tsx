@@ -26,7 +26,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <div
-          className={`${inter.className} h-screen w-screen flex flex-col p-2 gap-2`}
+          className={`${inter.className} h-screen w-screen flex flex-col p-2 gap-2 bg-background text-white`}
         >
           <Providers>
             <Header />

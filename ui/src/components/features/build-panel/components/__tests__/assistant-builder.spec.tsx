@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { AssistentBuilder } from "../assistant-builder";
+import { AssistantBuilder } from "../assistant-builder";
 import { useRouter } from "next/navigation";
 import {
   useAssistants,
@@ -40,7 +40,7 @@ test("should render", () => {
   (useRouter as jest.Mock).mockReturnValue([]);
   (useSlugRoutes as jest.Mock).mockReturnValue({ assistantId: "1"})
 
-  render(<AssistentBuilder />);
+  render(<AssistantBuilder />);
 
   expect(screen.getByText("EditAssistant")).toBeInTheDocument();
   expect(screen.queryByText("CreateAssistant")).toBeNull();
