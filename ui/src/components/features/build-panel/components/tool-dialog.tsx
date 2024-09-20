@@ -35,7 +35,8 @@ export function ToolDialog({ form }: TToolDialog) {
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Tools</DialogTitle>
+          <DialogTitle className="text-slate-300">Tools</DialogTitle>
+          <hr className="border-slate-400 pb-2" />
           <DialogDescription>
             {availableTools?.map((tool) => (
               <FormField
@@ -44,7 +45,7 @@ export function ToolDialog({ form }: TToolDialog) {
                 name={`config.configurable.tools`}
                 render={({ field }) => {
                   return (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormItem className="flex flex-row items-start py-1 space-x-3 space-y-0">
                       <FormControl>
                         <Checkbox
                           checked={field.value?.some(
@@ -62,7 +63,7 @@ export function ToolDialog({ form }: TToolDialog) {
                           }}
                         />
                       </FormControl>
-                      <FormLabel className="text-sm font-normal">
+                      <FormLabel className="text-sm font-normal text-slate-200">
                         {tool.name}
                       </FormLabel>
                     </FormItem>

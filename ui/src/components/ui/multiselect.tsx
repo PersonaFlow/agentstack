@@ -71,7 +71,7 @@ export default function MultiSelect({
       onKeyDown={handleKeyDown}
       className="overflow-visible bg-transparent"
     >
-      <div className="group rounded-md border border-input px-3 py-2 text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+      <div className="group rounded-md border border-slate-400 border-input px-3 py-2 text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
         <div className="flex flex-wrap gap-1">
           {selected.map((option) => {
             return (
@@ -90,7 +90,7 @@ export default function MultiSelect({
                   }}
                   onClick={() => handleUnselect(option)}
                 >
-                  <X className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                  <X className="h-3 w-3 text-foreground hover:text-foreground" />
                 </button>
               </Badge>
             );
@@ -103,7 +103,7 @@ export default function MultiSelect({
             onBlur={() => setOpen(false)}
             onFocus={() => setOpen(true)}
             placeholder={placecholder}
-            className="ml-2 flex-1 bg-transparent outline-none placeholder:text-muted-foreground"
+            className="ml-2 flex-1 bg-transparent outline-none placeholder:text-slate-200"
           />
         </div>
       </div>

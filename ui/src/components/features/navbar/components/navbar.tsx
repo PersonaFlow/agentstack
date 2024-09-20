@@ -47,7 +47,7 @@ export default function Navbar() {
   return (
     <div className="flex gap-2">
       <div
-        className="flex h-full rounded flex-col items-center gap-y-2 p-4 bg-transparent"
+        className="flex h-full rounded flex-col items-center gap-y-2 p-2 bg-transparent"
       >
         {!threadsLoading && <NewThreadBtn handleClick={onNewThreadClick} disabled={!threadId} />}
         {!threadsLoading && Object.values(filteredThreads).every((value) => value.length === 0) && (

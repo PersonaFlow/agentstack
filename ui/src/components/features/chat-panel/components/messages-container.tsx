@@ -6,6 +6,7 @@ import {
   TToolCall,
   TToolResult,
 } from "@/data-provider/types";
+import { useAssistant } from "@/data-provider/query-service";
 import MessageItem from "./message-item";
 import { useParams } from "next/navigation";
 import { ReactNode, useEffect, useRef, useState } from "react";
@@ -13,6 +14,8 @@ import Spinner from "@/components/ui/spinner";
 import { useChatMessages } from "@/hooks/useChat";
 import ToolContainer from "../../tools/tool-container";
 import { ToolResult } from "../../tools/tool-result";
+import { useSlugRoutes } from "@/hooks/useSlugParams";
+
 
 type Props = {
   streamingMessage?: TMessage | null;
@@ -37,6 +40,12 @@ export default function MessagesContainer({
 }: Props) {
   const { messages } = useChatMessages(threadId, stream);
   const prevMessages = usePrevious(messages);
+  const {assistantId} = useSlugRoutes();
+
+  const {data: selectedAssistant, isLoading: isLoadingAssistant} = useAssistant(assistantId as string, {
+    enabled: !!assistantId
+  })
+
 
   const divRef = useRef<HTMLDivElement>(null);
 
@@ -77,7 +86,7 @@ export default function MessagesContainer({
           }
 
           return (
-            <MessageItem message={message} key={`${message.id}-${index}`} />
+            <MessageItem message={message} assistant={selectedAssistant} key={`${message.id}-${index}`} />
           );
         })}
       </div>

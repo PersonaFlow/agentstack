@@ -12,20 +12,24 @@ export default function ChatPanel() {
   const [userMessage, setUserMessage] = useState("");
   const [isNewThread, setIsNewThread] = useState(false);
 
-  const { stream, startStream, stopStream: handleStop, isStreaming } = useStream();
-  
+  const {
+    stream,
+    startStream,
+    stopStream: handleStop,
+    isStreaming,
+  } = useStream();
+
   const { assistantId, threadId } = useSlugRoutes();
 
   const router = useRouter();
 
   useEffect(() => {
-    const isStreamDone = stream?.status === 'done';
+    const isStreamDone = stream?.status === "done";
 
     if (isNewThread && isStreamDone) {
       router.push(`/a/${assistantId}/c/${stream?.thread_id}`);
     }
-
-  }, [stream?.status])
+  }, [stream?.status]);
 
   const handleSend = async () => {
     const input = [
@@ -38,14 +42,13 @@ export default function ChatPanel() {
 
     setUserMessage("");
 
-    if (!threadId) setIsNewThread(true)
-    
+    if (!threadId) setIsNewThread(true);
+
     await startStream({
       input,
       thread_id: threadId as string,
       assistant_id: assistantId as string,
     });
-
   };
 
   return (
@@ -57,9 +60,11 @@ export default function ChatPanel() {
             stream={stream as TStreamState}
           />
         ) : (
-            <div className="self-center h-full items-center flex">
-              <h1 className="border-2 p-4 rounded">{'<> Send a message to create a thread. </>'}</h1>
-            </div>
+          <div className="self-center h-full items-center flex">
+            <h1 className="bg-sky-100 border border-blue-400 text-blue-700 px-4 py-3 rounded relative">
+              {"Select an assistant to begin a conversation."}
+            </h1>
+          </div>
         )}
 
         <Composer
