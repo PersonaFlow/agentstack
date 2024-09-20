@@ -241,8 +241,8 @@ async def title_endpoint(
 
     thread = await thread_repository.retrieve_thread(request.thread_id)
     assistant = await assistant_repo.retrieve_assistant(thread.assistant_id)
-    llm_type = assistant.config["configurable"]["type==chatbot/llm_type"]
-    agent_type = assistant.config["configurable"]["type==agent/agent_type"]
+    llm_type = assistant.config["configurable"]["llm_type"]
+    agent_type = assistant.config["configurable"]["agent_type"]
     type = assistant.config["configurable"]["type"]
     model = agent_type if type == "agent" else llm_type
     llm = get_llm(model)

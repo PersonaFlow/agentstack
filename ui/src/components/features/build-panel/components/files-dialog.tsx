@@ -94,7 +94,8 @@ export default function FilesDialog({ form }: TFilesDialog) {
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle className="mb-3">Add Files</DialogTitle>
+          <DialogTitle className="mb-3 text-slate-300">Add Files</DialogTitle>
+          <hr className="border-slate-400 pb-2" />
           <DialogDescription>
             <FormField
               control={form.control}
@@ -102,7 +103,6 @@ export default function FilesDialog({ form }: TFilesDialog) {
               render={({ field }) => {
                 return (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Add assistant files</FormLabel>
                     <FormControl>
                       <MultiSelect
                         values={values}
@@ -119,9 +119,9 @@ export default function FilesDialog({ form }: TFilesDialog) {
                 );
               }}
             />
-            <Card>
+            <Card className="bg-slate-200">
               <CardContent className="p-6 space-y-4">
-                <div className="border-2 border-dashed border-gray-200 rounded-lg flex flex-col gap-1 p-6 items-center">
+                <div className="border-2 border-dashed border-gray-700 rounded-lg flex flex-col gap-1 p-6 items-center">
                   <FileIcon className="w-12 h-12" />
                   <span className="text-sm font-medium text-gray-500">
                     Drag and drop a file or click to browse

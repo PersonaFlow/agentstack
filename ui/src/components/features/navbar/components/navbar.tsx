@@ -1,24 +1,18 @@
 "use client";
 import Spinner from "@/components/ui/spinner";
 import { useGetMyThreads } from "@/data-provider/query-service";
-import { cn } from "@/utils/utils";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import ThreadItem from "./thread-item";
 import { TGroupedThreads } from "@/data-provider/types";
 import { useSlugRoutes } from "@/hooks/useSlugParams";
 import NewThreadBtn from "./new-thread-btn";
 import { useRouter } from "next/navigation";
-import { useAtom } from "jotai";
-import { threadAtom } from "@/store";
 
 export default function Navbar() {
   const { data: threadsData, isLoading: threadsLoading } =
     useGetMyThreads(true);
 
   const [filteredThreads, setFilteredThreads] = useState(threadsData || {});
-  const [isNavbarOpen] = useAtom(threadAtom);
-  // const [open, setOpen] = useState(false);
 
   const router = useRouter()
 
@@ -51,8 +45,9 @@ export default function Navbar() {
     };
 
   return (
+    <div className="flex gap-2">
       <div
-        className={cn(isNavbarOpen ? "flex h-full border-2 flex-col items-center gap-y-2 p-4" : "w-0 collapse")}
+        className="flex h-full rounded flex-col items-center gap-y-2 p-2 bg-transparent"
       >
         {!threadsLoading && <NewThreadBtn handleClick={onNewThreadClick} disabled={!threadId} />}
         {!threadsLoading && Object.values(filteredThreads).every((value) => value.length === 0) && (
@@ -85,6 +80,8 @@ export default function Navbar() {
             })
           )}
         </nav>
+    </div>
+      <div className="h-5 w-[1px] bg-black rounded self-center"></div>
       </div>
   );
 }
