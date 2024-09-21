@@ -1,7 +1,7 @@
 <p align="center">
   <img src="assets/PersonaFlowIcon-512.png" height="256">
-  <h1 align="center">PersonaFlow</h1>
-  <h2 align="center"><b><i>Where AI Meets Individuality for Unmatched Personalization</i></b></h2>
+  <h1 align="center">AgentStack</h1>
+  <h2 align="center"><b><i>Build, deploy, and scale AI agents with ease.</i></b></h2>
 </p>
 
 <p align="center">
@@ -11,27 +11,29 @@
   </a>
 </p>
 
-**WARNING: This project is currently in development and is undergoing significant updates and refactoring.**
+**WARNING: This project is currently undergoing development that may introduce breaking changes.**
 
-The PersonaFlow platform aims to provide highly personalized user experiences fueled by Generative AI. With a focus on scalability and efficiency, PersonaFlow offers a suite of tools and APIs to create complex agents backed by an API.
+The PersonaFlow platform aims to provide highly personalized user experiences fueled by Generative AI. With a focus on scalability and efficiency, AgentStack offers a suite of tools and APIs to create complex, database-backed configurable agents backed by an API.
 
 Key features include:
 - Context optimization: Intelligent partitioning of ingested data based on the semantic similarity of surrounding content (see: [Document Processing](/docs/rag.md)).
 - Enterprise feasibility: focus on scalability, cost efficiency, and privacy
-- Agent development: Quickly build and evaluate custom assistants (see: [Assistants](/docs/assistants.md))
+- Agentic assistants: Quickly build and evaluate custom assistants from complex agent architectures (see: [Assistants](/docs/assistants.md))
 - Evaluation: Deep integration with evaluation tools to score and optimize agents and RAG configurations
 - Build and deploy: Easily deploy agents and RAG configurations to production environments
 - Multiple built-in auth options (see: [Auth Guide](/docs/auth.md))
 
 Upcoming features:
-- Client SDKS: Easy integration of generative AI features into applications via the PersonaFlow client SDKs (Python, TypeScript, C#)
-- Personalization features: user-specific RAG based on up to 100 different dimenensions.
-- Evaluation and scoring of assistants and RAG configurations (Currently done through [Arize Phoenix](https://arize.com/phoenix/) and [LangFuse](https://langfuse.com/) integrations.)
+- New agent-backed assistant architectures including [adaptive RAG](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/rag/langgraph_adaptive_rag.ipynb) and multi-agent collaboration.
+- New RAG performance optimization features: hybrid search support and knowledge graph generation based on [GraphRAG](https://microsoft.github.io/graphrag/)
+- Evaluation and scoring of assistants and RAG configurations with batch runs (Currently done through [Arize Phoenix](https://arize.com/phoenix/) and [LangFuse](https://langfuse.com/) integrations.)
+- Client SDKS: Easy integration of generative AI features into applications via the AgentStack client SDK 
+
   
 
 # Overview
 
-Much of the API and business language is modeled after the OpenAI Assistants API and uses LangGraph under the hood for the agent functionality along with a [highly configurable]() RAG system, and a suite of agent-based features. It will be further expanded with personalization features, additional RAG optimization techniques, and more.
+Much of the API and business language is modeled after the OpenAI Assistants API and uses LangGraph under the hood for complex agent architectures that can be accessed via the assistants API along with a modular RAG system, and a suite of agent-based retrieval and tool use features. It is currently being expanded with additional RAG optimization techniques and new agent architectures.
 
  <p align="center" style="color:green"><b><i>Note: This project is in the very early stages of development and testing. Breaking changes should therefore be expected until the first stable release.</i></b></p>
 
@@ -45,23 +47,20 @@ Much of the API and business language is modeled after the OpenAI Assistants API
 - [x] Advanced RAG assistants integration
 - [x] More LLMs, embedding options
 - [x] Local LLMs and embeddings (Ollama, Huggingface)
-- [ ] Auth
-- [ ] Admin client (in progress)
+- [x] Auth
+- [x] Assistant builder UI 
 - [ ] More agent types (self-reflection, etc.)
-- [ ] Persona generation
-- [ ] PersonaGen integration
 - [ ] Evaluation and scoring of assistants and RAG configurations
-- [ ] TypeScript SDK
-- [ ] Python SDK -->
+- [ ] Python and TypeScript SDKs
 
 ## Technology Stack
 
 - Programming Language
   - Server and backend libraries: Python
-  - Admin UI: Next.js (TypeScript)
+  - Admin UI: TypeScript/Next.js 
 - Relational Database: PostgreSQL
-- Vector Database: Qdrant (more will be supported - easily added by extending the base class)
-- Agent Framework: LangGraph
+- Vector Database: Qdrant (more will be supported) - Easily add new database integrations by extending the base class
+- Low-level Agentic Framework: LangGraph
 - Document Processing: Semantic-Router, Unstructured, LlamaIndex, LangChain
 - Mono-repo manager: Pants
 - ORM: SQLAlchemy
@@ -123,7 +122,6 @@ _Dependencies are managed by [NPM](https://www.npmjs.com/)_
 - Custom architectures and tools: Coming soon
 - Admin Client: Coming soon
 - SDKs: Coming soon
-- Personalization: Coming soon
 - [Troubleshooting](/docs/troubleshooting.md)
 
 # Contributing
