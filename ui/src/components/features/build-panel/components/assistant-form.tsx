@@ -47,82 +47,90 @@ export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
         onSubmit={form.handleSubmit(onSubmit)}
         className="overflow-y-scroll hide-scrollbar"
       >
-        <div className="flex flex-col gap-6">
-          <div className="flex gap-6">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Input
-                      placeholder="Assistant Name"
-                      type="text"
-                      {...field}
-                      className="w-[400px]"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+        <div className="rounded-md bg-gray-50 p-4 md:p-6">
+          <div className="flex flex-col gap-6">
+            <div className="flex gap-6">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input
+                        placeholder="Assistant Name"
+                        type="text"
+                        {...field}
+                        className="w-[400px]"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <PublicSwitch form={form} />
+            </div>
+            <FormSelect
+              form={form}
+              options={
+                (config?.definitions.Bot_Type as TSchemaField).enum ?? []
+              }
+              formName="config.configurable.type"
+              title="Select architecture"
+              placeholder="Select architecture"
             />
-            <PublicSwitch form={form} />
-          </div>
-          <FormSelect
-            form={form}
-            options={(config?.definitions.Bot_Type as TSchemaField).enum ?? []}
-            formName="config.configurable.type"
-            title="Select architecture"
-            placeholder="Select architecture"
-          />
-          {architectureType && (
-            <>
-              {architectureType === "agent" ? (
-                <FormSelect
-                form={form}
-                options={(config?.definitions.AgentType as TSchemaField).enum ?? []}
-                formName="config.configurable.agent_type"
-                title="Agent type"
-                placeholder="Select agent type"
-              />
-              ) : (
-                <FormSelect
-                form={form}
-                options={(config?.definitions.LLMType as TSchemaField).enum ?? []}
-                formName="config.configurable.llm_type"
-                title="LLM type"
-                placeholder="Select LLM type"
-              />
-              )}
-              <SystemPrompt form={form} />
-              {architectureType !== "chatbot" && (
-                <>
-                  <SelectCapabilities form={form} />
-                  <RetrievalInstructions form={form} />
-                  <div className="flex gap-6 flex-col">
-                    <SelectFiles form={form} />
-                    <div className="w-50">
-                      <FilesDialog form={form} />
+            {architectureType && (
+              <>
+                {architectureType === "agent" ? (
+                  <FormSelect
+                    form={form}
+                    options={
+                      (config?.definitions.AgentType as TSchemaField).enum ?? []
+                    }
+                    formName="config.configurable.agent_type"
+                    title="Agent type"
+                    placeholder="Select agent type"
+                  />
+                ) : (
+                  <FormSelect
+                    form={form}
+                    options={
+                      (config?.definitions.LLMType as TSchemaField).enum ?? []
+                    }
+                    formName="config.configurable.llm_type"
+                    title="LLM type"
+                    placeholder="Select LLM type"
+                  />
+                )}
+                <SystemPrompt form={form} />
+                {architectureType !== "chatbot" && (
+                  <>
+                    <SelectCapabilities form={form} />
+                    <RetrievalInstructions form={form} />
+                    <div className="flex gap-6 flex-col">
+                      <SelectFiles form={form} />
+                      <div className="w-50">
+                        <FilesDialog form={form} />
+                      </div>
                     </div>
-                  </div>
-                  {architectureType !== "chat_retrieval" && (
-                    <SelectTools form={form} />
-                  )}
-                  <SelectOptions form={form} />
-                  {architectureType !== "chat_retrieval" && (
-                    <SelectActions form={form} />
-                  )}
-                </>
-              )}
-              <Button
-                type="submit"
-                className="w-1/4 self-center"
-                disabled={!isDirty}
-              >
-                Save
-              </Button>
-            </>
-          )}
+                    {architectureType !== "chat_retrieval" && (
+                      <SelectTools form={form} />
+                    )}
+                    <SelectOptions form={form} />
+                    {architectureType !== "chat_retrieval" && (
+                      <SelectActions form={form} />
+                    )}
+                  </>
+                )}
+                <Button
+                  type="submit"
+                  className="w-1/4 self-center"
+                  disabled={!isDirty}
+                >
+                  Save
+                </Button>
+              </>
+            )}
+          </div>
         </div>
       </form>
     </Form>
