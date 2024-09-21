@@ -1,8 +1,6 @@
 "use client";
 
-import {
-  useCreateAssistant,
-} from "@/data-provider/query-service";
+import { useCreateAssistant } from "@/data-provider/query-service";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -36,7 +34,7 @@ const RetrievalType = "retrieval";
 export function CreateAssistant() {
   const createAssistant = useCreateAssistant();
 
-  const router = useRouter()
+  const router = useRouter();
 
   const { toast } = useToast();
 
@@ -109,5 +107,10 @@ export function CreateAssistant() {
     });
   }
 
-  return <AssistantForm form={form} onSubmit={onSubmit} />;
+  return (
+    <>
+      <h1 className="text-2xl font-bold">Create Assistant</h1>
+      <AssistantForm form={form} onSubmit={onSubmit} />
+    </>
+  );
 }

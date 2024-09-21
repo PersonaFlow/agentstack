@@ -19,11 +19,12 @@ import Spinner from "@/components/ui/spinner";
 const RetrievalType = "retrieval";
 
 export function EditAssistant() {
-  const {assistantId} = useSlugRoutes();
+  const { assistantId } = useSlugRoutes();
 
-  const {data: selectedAssistant, isLoading: isLoadingAssistant} = useAssistant(assistantId as string, {
-    enabled: !!assistantId
-  })
+  const { data: selectedAssistant, isLoading: isLoadingAssistant } =
+    useAssistant(assistantId as string, {
+      enabled: !!assistantId,
+    });
 
   const updateAssistant = useUpdateAssistant(selectedAssistant?.id as string);
 
@@ -97,13 +98,18 @@ export function EditAssistant() {
       onError: () => {
         toast({
           variant: "destructive",
-          title: "Failed to update assistant."
-        })
-      }
+          title: "Failed to update assistant.",
+        });
+      },
     });
   }
 
-  if (isLoadingAssistant) return <Spinner />
+  if (isLoadingAssistant) return <Spinner />;
 
-  return <AssistantForm form={form} onSubmit={onSubmit} />;
+  return (
+    <>
+      <h1 className="text-2xl font-bold">Edit Assistant</h1>
+      <AssistantForm form={form} onSubmit={onSubmit} />
+    </>
+  );
 }
