@@ -9,53 +9,27 @@ import {
 } from "@/components/ui/select";
 import Spinner from "@/components/ui/spinner";
 import { useAssistants } from "@/data-provider/query-service";
-import { TAssistant } from "@/data-provider/types";
 import { useSlugRoutes } from "@/hooks/useSlugParams";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 
 export function AssistantSelector() {
-  const [selectedAssistant, setSelectedAssistant] = useState<TAssistant>();
-
-  const {assistantId} = useSlugRoutes();
+  const { assistantId } = useSlugRoutes();
   const { data: assistantsData, isLoading } = useAssistants();
   const router = useRouter();
 
-  useEffect(() => {
-    if (isLoading) return;
-
-    if (!selectedAssistant || assistantId !== selectedAssistant?.id) {
-      updateSelectedAssistant(assistantId as string)
-    }
-  },[assistantId, assistantsData])
+  if (isLoading || !assistantsData) return <Spinner />;
 
   const handleValueChange = (selectedAssistantId: string) => {
-    router.push(`/a/${selectedAssistantId}`)
-
-    const _selectedAssistant = assistantsData?.find(
-      (assistant) => assistant.id === selectedAssistantId,
-    );
-
-    if (_selectedAssistant) {
-      setSelectedAssistant(_selectedAssistant);
-    }
+    router.push(`/a/${selectedAssistantId}`);
   };
-
-  const updateSelectedAssistant = (selectedId: string) => {
-    const _selectedAssistant = assistantsData?.find(
-      (assistant) => assistant.id === selectedId,
-    );
-
-    setSelectedAssistant(_selectedAssistant);
-  }
-
-  if (isLoading || !assistantsData) return <Spinner />;
+  const selectedAssistant = assistantsData.find(
+    (assistant) => assistant.id === assistantId,
+  );
 
   return (
     <Select
       onValueChange={handleValueChange}
-      value={selectedAssistant?.id}
-      defaultValue={selectedAssistant?.name}
+      value={selectedAssistant?.id ?? ""}
     >
       <SelectTrigger className="w-[180px] border-accent">
         <SelectValue placeholder="Select assistant.." />
