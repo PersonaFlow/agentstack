@@ -39,7 +39,7 @@ Much of the API and business language is modeled after the OpenAI Assistants API
 
 > Web site and documentation are in the works, but in the meantime you can find the API documentation [on SwaggerHub](https://app.swaggerhub.com/apis-docs/DanOrlando/personaflow/0.1.0).
 
-<!-- # Roadmap
+# Roadmap
 
 - [x] Assistants API
 - [x] File management
@@ -111,7 +111,7 @@ _Dependencies are managed by [NPM](https://www.npmjs.com/)_
 2. Navigate to `ui` folder.
 3. Run `npm install` to install dependencies.
 4. copy `.env.local.example` into `.env.local` file (e.g., `cp .env.local.example .env.local`).
-5. Update `.env.local` and comment out the line where `NEXT_PUBLIC_BASE_API_URL` is defined. Make sure that the key value is correct and you have backend running under the same address.
+5. Update `.env.local` and uncomment the line where `NEXT_PUBLIC_BASE_API_URL` is defined. Make sure that the key value is correct and you have backend running under the same address.
 6. Run `npm run dev` and open the link from the console in a browser.
 
 # Documentation
