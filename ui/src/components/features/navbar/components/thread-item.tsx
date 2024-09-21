@@ -22,7 +22,7 @@ export default function ThreadItem({ thread }: TThreadItemProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
 
-  const updateThread = useUpdateThread(thread.id!);
+  const {mutate: updateThread, variables: optimisticThread, isPending} = useUpdateThread(thread.id!);
   const deleteThread = useDeleteThread(thread.id!);
 
   const router = useRouter();
@@ -40,7 +40,7 @@ export default function ThreadItem({ thread }: TThreadItemProps) {
   };
 
   const submitUpdatedName = () => {
-    updateThread.mutate(
+    updateThread(
       {
         assistant_id: thread.assistant_id!,
         name: editedName,
@@ -78,6 +78,10 @@ export default function ThreadItem({ thread }: TThreadItemProps) {
 
   const iconStyles = "cursor-pointer transition-all duration-200 stroke-1 hover:stroke-2";
 
+  useEffect(() => {
+    console.log(optimisticThread);
+  },[optimisticThread])
+
   return (
     <a
       onClick={handleItemClick}
@@ -90,15 +94,15 @@ export default function ThreadItem({ thread }: TThreadItemProps) {
       )}
     >
       {!isEditing ? (
-        <span className="truncate">{thread.name}</span>
+        <span className="truncate">{isPending ? optimisticThread.name : thread.name}</span>
       ) : (
           <Input
             className="bg-transparent text-md p-0 m-0 h-full"
-          value={editedName}
-          onChange={handleUpdateName}
-          onBlur={submitUpdatedName}
-          autoFocus
-        />
+            value={editedName}
+            onChange={handleUpdateName}
+            onBlur={submitUpdatedName}
+            autoFocus
+          />
       )}
       <div className={cn(isHovering || isEditing ? "flex ml-auto gap-2 items-center" : "hidden")}>
           <EditIcon

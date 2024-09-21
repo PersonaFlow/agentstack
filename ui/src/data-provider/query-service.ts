@@ -192,6 +192,11 @@ export const useUpdateThread = (threadId: string) => {
       queryClient.invalidateQueries({ queryKey: [QueryKeys.userThreads] });
       queryClient.invalidateQueries({ queryKey: [threadId] });
     },
+    onSettled: async () => {
+      return await Promise.all([queryClient.invalidateQueries({ queryKey: [QueryKeys.threads] }),
+      queryClient.invalidateQueries({ queryKey: [QueryKeys.userThreads] }),
+      queryClient.invalidateQueries({ queryKey: [threadId] })])
+    },
   });
 };
 
