@@ -40,17 +40,8 @@ export default function ChatPanel() {
       generateTitle.mutate({
         thread_id: stream?.thread_id as string,
         history: messages
-      }, {
-        onSuccess: () => {
-          // DOESNT WORK HERE???
-          queryClient.invalidateQueries({queryKey: [QueryKeys.userThreads]})
-          return console.log('successs!!!!')
-        }
       });
-
-      // WORKS HERE??
-      queryClient.invalidateQueries({queryKey: [QueryKeys.userThreads]})
-
+      
       router.push(`/a/${assistantId}/c/${stream?.thread_id}`);
     }
   }, [stream?.status]);

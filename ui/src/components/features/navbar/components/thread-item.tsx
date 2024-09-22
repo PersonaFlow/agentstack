@@ -90,7 +90,7 @@ export default function ThreadItem({ thread }: TThreadItemProps) {
       )}
     >
       {!isEditing ? (
-        <span className="truncate">{isPending ? optimisticThread.name : thread.name || "New thread"}</span>
+        <span className="truncate">{isPending ? optimisticThread.name : thread.name}</span>
       ) : (
           <Input
             className="bg-transparent text-md p-0 m-0 h-full"
