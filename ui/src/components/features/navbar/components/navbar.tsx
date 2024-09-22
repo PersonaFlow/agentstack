@@ -9,12 +9,15 @@ import NewThreadBtn from "./new-thread-btn";
 import { useRouter } from "next/navigation";
 
 export default function Navbar() {
-  const { data: threadsData, isLoading: threadsLoading, isFetching } =
-    useGetMyThreads(true);
+  const {
+    data: threadsData,
+    isLoading: threadsLoading,
+    isFetching,
+  } = useGetMyThreads(true);
 
   const [filteredThreads, setFilteredThreads] = useState(threadsData || {});
 
-  const router = useRouter()
+  const router = useRouter();
 
   const { assistantId, threadId } = useSlugRoutes();
 
@@ -28,15 +31,9 @@ export default function Navbar() {
   }, [assistantId, threadsData]);
 
   useEffect(() => {
-    console.log(isFetching)
-    console.log(threadsData)
-  },[threadsData, isFetching])
-
-  // useEffect(() => {
-  //   if (!threadId && assistantId) {
-
-  //   }
-  // },[threadId])
+    console.log(isFetching);
+    console.log(threadsData);
+  }, [threadsData, isFetching]);
 
   const filterThreads = (groupedThreads: TGroupedThreads) =>
     Object.entries(groupedThreads).reduce(
@@ -50,22 +47,25 @@ export default function Navbar() {
       },
       {},
     );
-  
-    const onNewThreadClick = () => {
-      router.push(`/a/${assistantId}`)
-    };
+
+  const onNewThreadClick = () => {
+    router.push(`/a/${assistantId}`);
+  };
 
   return (
     <div className="flex">
-      <div
-        className="flex h-full rounded flex-col items-center bg-transparent"
-      >
-        {!threadsLoading && <NewThreadBtn handleClick={onNewThreadClick} disabled={!threadId} />}
-        {!threadsLoading && Object.values(filteredThreads).every((value) => value.length === 0) && (
-          <div className="flex flex-col items-center justify-center w-64">
-            <h1>No threads found.</h1>
-          </div>
+      <div className="flex h-full rounded flex-col items-center bg-transparent">
+        {!threadsLoading && (
+          <NewThreadBtn handleClick={onNewThreadClick} disabled={!threadId} />
         )}
+        {!threadsLoading &&
+          Object.values(filteredThreads).every(
+            (value) => value.length === 0,
+          ) && (
+            <div className="flex flex-col items-center justify-center w-64">
+              <h1>No threads found.</h1>
+            </div>
+          )}
         <nav className="overflow-y-auto">
           {/* Threads loading */}
           {threadsLoading ? (
@@ -91,8 +91,8 @@ export default function Navbar() {
             })
           )}
         </nav>
-    </div>
-      <div className="h-5 w-[1px] bg-black rounded self-center"></div>
       </div>
+      <div className="h-5 w-[1px] bg-black rounded self-center"></div>
+    </div>
   );
 }

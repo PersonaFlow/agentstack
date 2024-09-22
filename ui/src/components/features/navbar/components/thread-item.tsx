@@ -76,7 +76,7 @@ export default function ThreadItem({ thread }: TThreadItemProps) {
     setIsEditing((prev) => !prev)
   }
 
-  const iconStyles = "cursor-pointer transition-all duration-200 stroke-1 hover:stroke-2";
+  const iconStyles = "cursor-pointer transition-all duration-200 stroke-1 hover:stroke-2 text-slate-400";
 
   return (
     <a
