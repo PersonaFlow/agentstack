@@ -4,7 +4,7 @@ import { Composer } from "./components/composer";
 import MessagesContainer from "./components/messages-container";
 import { useStream } from "@/hooks/useStream";
 import { useEffect, useState } from "react";
-import { MessageType, THistory, TStreamState } from "@/data-provider/types";
+import { MessageType, TStreamState } from "@/data-provider/types";
 import { useSlugRoutes } from "@/hooks/useSlugParams";
 import { useRouter } from "next/navigation";
 import { QueryClient, useQueryClient } from "@tanstack/react-query";
@@ -41,7 +41,7 @@ export default function ChatPanel() {
         thread_id: stream?.thread_id as string,
         history: messages
       });
-      
+
       router.push(`/a/${assistantId}/c/${stream?.thread_id}`);
     }
   }, [stream?.status]);
