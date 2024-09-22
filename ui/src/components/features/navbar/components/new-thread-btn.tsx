@@ -17,12 +17,4 @@ export default function NewThreadBtn({ handleClick, disabled }: TNewThreadBtnPro
       </a>
     </div>
   )
-    
-    // <Button onClick={handleClick} className="bg-slate-600 p-6 w-[calc(100%-20px)] outline text-white" disabled={disabled}>
-    //   <a className="flex gap-x-2 items-center">
-    //     <Plus />
-    //     <span>New thread</span>
-    //   </a>
-    // </Button>
-  // );
 }

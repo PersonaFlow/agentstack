@@ -10,7 +10,7 @@ import {
 import * as dataService from "./data-service";
 import * as t from "./types";
 
-enum QueryKeys {
+export enum QueryKeys {
   stream = "stream",
   run = "run",
   inputSchema = "inputSchema",

@@ -78,10 +78,6 @@ export default function ThreadItem({ thread }: TThreadItemProps) {
 
   const iconStyles = "cursor-pointer transition-all duration-200 stroke-1 hover:stroke-2";
 
-  useEffect(() => {
-    console.log(optimisticThread);
-  },[optimisticThread])
-
   return (
     <a
       onClick={handleItemClick}

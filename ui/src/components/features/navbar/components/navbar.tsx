@@ -9,7 +9,7 @@ import NewThreadBtn from "./new-thread-btn";
 import { useRouter } from "next/navigation";
 
 export default function Navbar() {
-  const { data: threadsData, isLoading: threadsLoading } =
+  const { data: threadsData, isLoading: threadsLoading, isFetching } =
     useGetMyThreads(true);
 
   const [filteredThreads, setFilteredThreads] = useState(threadsData || {});
@@ -26,6 +26,17 @@ export default function Navbar() {
       setFilteredThreads(_filteredThreads);
     }
   }, [assistantId, threadsData]);
+
+  useEffect(() => {
+    console.log(isFetching)
+    console.log(threadsData)
+  },[threadsData, isFetching])
+
+  // useEffect(() => {
+  //   if (!threadId && assistantId) {
+
+  //   }
+  // },[threadId])
 
   const filterThreads = (groupedThreads: TGroupedThreads) =>
     Object.entries(groupedThreads).reduce(
