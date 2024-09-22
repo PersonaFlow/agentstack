@@ -4,11 +4,12 @@ import { Composer } from "./components/composer";
 import MessagesContainer from "./components/messages-container";
 import { useStream } from "@/hooks/useStream";
 import { useEffect, useState } from "react";
-import { MessageType, TStreamState } from "@/data-provider/types";
+import { MessageType, THistory, TStreamState } from "@/data-provider/types";
 import { useSlugRoutes } from "@/hooks/useSlugParams";
 import { useRouter } from "next/navigation";
 import { QueryClient, useQueryClient } from "@tanstack/react-query";
-import { QueryKeys } from "@/data-provider/query-service";
+import { QueryKeys, useGenerateTitle } from "@/data-provider/query-service";
+import { useChatMessages } from "@/hooks/useChat";
 
 export default function ChatPanel() {
   const [userMessage, setUserMessage] = useState("");
@@ -22,16 +23,34 @@ export default function ChatPanel() {
     stopStream: handleStop,
     isStreaming,
   } = useStream();
+  
+  const generateTitle = useGenerateTitle();
 
   const { assistantId, threadId } = useSlugRoutes();
 
   const router = useRouter();
 
+  const { messages } = useChatMessages(threadId as string, stream);
+
   useEffect(() => {
     const isStreamDone = stream?.status === "done";
 
     if (isNewThread && isStreamDone) {
+
+      generateTitle.mutate({
+        thread_id: stream?.thread_id as string,
+        history: messages
+      }, {
+        onSuccess: () => {
+          // DOESNT WORK HERE???
+          queryClient.invalidateQueries({queryKey: [QueryKeys.userThreads]})
+          return console.log('successs!!!!')
+        }
+      });
+
+      // WORKS HERE??
       queryClient.invalidateQueries({queryKey: [QueryKeys.userThreads]})
+
       router.push(`/a/${assistantId}/c/${stream?.thread_id}`);
     }
   }, [stream?.status]);

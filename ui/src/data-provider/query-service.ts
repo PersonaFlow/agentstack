@@ -66,10 +66,12 @@ export const useRunnableConfigSchema = () => {
   });
 };
 
-export const useGenerateTitle = (payload: t.TGenerateTitle) => {
+export const useGenerateTitle = () => {
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (): Promise<t.TThread> =>
+    mutationFn: async (payload: t.TGenerateTitle): Promise<t.TThread> =>
       await dataService.generateTitle(payload),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QueryKeys.userThreads]})
   });
 };
 
