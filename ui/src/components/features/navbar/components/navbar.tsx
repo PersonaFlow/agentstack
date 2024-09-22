@@ -30,11 +30,6 @@ export default function Navbar() {
     }
   }, [assistantId, threadsData]);
 
-  useEffect(() => {
-    console.log(isFetching);
-    console.log(threadsData);
-  }, [threadsData, isFetching]);
-
   const filterThreads = (groupedThreads: TGroupedThreads) =>
     Object.entries(groupedThreads).reduce(
       (newGroupedThreads, [grouping, threads]) => {
