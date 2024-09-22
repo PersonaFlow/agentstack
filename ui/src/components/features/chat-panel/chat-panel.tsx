@@ -7,10 +7,15 @@ import { useEffect, useState } from "react";
 import { MessageType, TStreamState } from "@/data-provider/types";
 import { useSlugRoutes } from "@/hooks/useSlugParams";
 import { useRouter } from "next/navigation";
+import { QueryClient, useQueryClient } from "@tanstack/react-query";
+import { QueryKeys, useGenerateTitle } from "@/data-provider/query-service";
+import { useChatMessages } from "@/hooks/useChat";
 
 export default function ChatPanel() {
   const [userMessage, setUserMessage] = useState("");
   const [isNewThread, setIsNewThread] = useState(false);
+
+  const queryClient = useQueryClient();
 
   const {
     stream,
@@ -18,15 +23,25 @@ export default function ChatPanel() {
     stopStream: handleStop,
     isStreaming,
   } = useStream();
+  
+  const generateTitle = useGenerateTitle();
 
   const { assistantId, threadId } = useSlugRoutes();
 
   const router = useRouter();
 
+  const { messages } = useChatMessages(threadId as string, stream);
+
   useEffect(() => {
     const isStreamDone = stream?.status === "done";
 
     if (isNewThread && isStreamDone) {
+
+      generateTitle.mutate({
+        thread_id: stream?.thread_id as string,
+        history: messages
+      });
+
       router.push(`/a/${assistantId}/c/${stream?.thread_id}`);
     }
   }, [stream?.status]);
