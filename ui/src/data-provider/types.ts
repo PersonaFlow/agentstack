@@ -111,22 +111,9 @@ export type TRunResponse = {
   detail: TRunDetail;
 };
 
-export type THistory = {
-  id: string;
-  thread_id: string;
-  user_id: string;
-  assistant_id: string;
-  content: string;
-  type: string;
-  additional_kwargs: {};
-  example: boolean;
-  created_at: string;
-  updated_at: string;
-};
-
 export type TTitleRequest = {
   thread_id: string;
-  history: THistory[];
+  history: TMessage[];
 };
 
 export type TUser = {
@@ -375,7 +362,7 @@ export type TGetFiles = {
 
 export type TGenerateTitle = {
   thread_id: string;
-  history: THistory[];
+  history: TMessage[];
 };
 
 export type TUpdateThread = {

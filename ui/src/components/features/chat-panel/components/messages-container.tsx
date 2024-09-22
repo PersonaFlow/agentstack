@@ -4,13 +4,10 @@ import {
   TMessage,
   TStreamState,
   TToolCall,
-  TToolResult,
 } from "@/data-provider/types";
 import { useAssistant } from "@/data-provider/query-service";
 import MessageItem from "./message-item";
-import { useParams } from "next/navigation";
-import { ReactNode, useEffect, useRef, useState } from "react";
-import Spinner from "@/components/ui/spinner";
+import { ReactNode, useEffect, useRef } from "react";
 import { useChatMessages } from "@/hooks/useChat";
 import ToolContainer from "../../tools/tool-container";
 import { ToolResult } from "../../tools/tool-result";

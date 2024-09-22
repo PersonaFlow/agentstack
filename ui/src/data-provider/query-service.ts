@@ -10,7 +10,7 @@ import {
 import * as dataService from "./data-service";
 import * as t from "./types";
 
-enum QueryKeys {
+export enum QueryKeys {
   stream = "stream",
   run = "run",
   inputSchema = "inputSchema",
@@ -66,10 +66,12 @@ export const useRunnableConfigSchema = () => {
   });
 };
 
-export const useGenerateTitle = (payload: t.TGenerateTitle) => {
+export const useGenerateTitle = () => {
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (): Promise<t.TThread> =>
+    mutationFn: async (payload: t.TGenerateTitle): Promise<t.TThread> =>
       await dataService.generateTitle(payload),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QueryKeys.userThreads]})
   });
 };
 
@@ -191,6 +193,11 @@ export const useUpdateThread = (threadId: string) => {
       queryClient.invalidateQueries({ queryKey: [QueryKeys.threads] });
       queryClient.invalidateQueries({ queryKey: [QueryKeys.userThreads] });
       queryClient.invalidateQueries({ queryKey: [threadId] });
+    },
+    onSettled: async () => {
+      return await Promise.all([queryClient.invalidateQueries({ queryKey: [QueryKeys.threads] }),
+      queryClient.invalidateQueries({ queryKey: [QueryKeys.userThreads] }),
+      queryClient.invalidateQueries({ queryKey: [threadId] })])
     },
   });
 };

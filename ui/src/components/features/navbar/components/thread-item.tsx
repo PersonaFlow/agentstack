@@ -7,7 +7,7 @@ import {
 import { TThread } from "@/data-provider/types";
 import { useSlugRoutes } from "@/hooks/useSlugParams";
 import { cn } from "@/utils/utils";
-import { Brain, EditIcon, Trash } from "lucide-react";
+import { EditIcon, Trash } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { ChangeEvent, useEffect, useState } from "react";
 
@@ -20,8 +20,9 @@ export default function ThreadItem({ thread }: TThreadItemProps) {
   const [editedName, setEditedname] = useState(thread.name || "New thread");
   const [isSelected, setIsSelected] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isHovering, setIsHovering] = useState(false);
 
-  const updateThread = useUpdateThread(thread.id!);
+  const {mutate: updateThread, variables: optimisticThread, isPending} = useUpdateThread(thread.id!);
   const deleteThread = useDeleteThread(thread.id!);
 
   const router = useRouter();
@@ -39,7 +40,7 @@ export default function ThreadItem({ thread }: TThreadItemProps) {
   };
 
   const submitUpdatedName = () => {
-    updateThread.mutate(
+    updateThread(
       {
         assistant_id: thread.assistant_id!,
         name: editedName,
@@ -70,33 +71,41 @@ export default function ThreadItem({ thread }: TThreadItemProps) {
     });
   };
 
+  const handleEditing = () => {
+    if (isEditing) return;
+    setIsEditing((prev) => !prev)
+  }
+
+  const iconStyles = "cursor-pointer transition-all duration-200 stroke-1 hover:stroke-2 text-slate-400";
+
   return (
     <a
       onClick={handleItemClick}
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
       className={cn(
         isDeleting ? "fade-out" : "",
-        "fade-in flex m-3 gap-2 items-center cursor-pointer",
+        isEditing ? "bg-black" : "",
+        "fade-in flex p-3 gap-2 rounded items-center cursor-pointer transition-all duration-200 hover:bg-black",
       )}
     >
-      {/* <div className="text-accent">
-        <Brain />
-      </div> */}
       {!isEditing ? (
-        <span className="truncate">{thread.name}</span>
+        <span className="truncate">{isPending ? optimisticThread.name : thread.name}</span>
       ) : (
-        <Input
-          value={editedName}
-          onChange={handleUpdateName}
-          onBlur={submitUpdatedName}
-          autoFocus
-        />
+          <Input
+            className="bg-transparent text-md p-0 m-0 h-full"
+            value={editedName}
+            onChange={handleUpdateName}
+            onBlur={submitUpdatedName}
+            autoFocus
+          />
       )}
-      <div className="flex ml-auto gap-2">
-        <EditIcon
-          onClick={() => setIsEditing((prev) => !prev)}
-          className="cursor-pointer"
-        />
-        <Trash className="cursor-pointer" onClick={handleDeleteThread} />
+      <div className={cn(isHovering || isEditing ? "flex ml-auto gap-2 items-center" : "hidden")}>
+          <EditIcon
+            onClick={handleEditing}
+            className={cn(iconStyles, isEditing && "stroke-2")}
+          />
+          <Trash className={iconStyles} onClick={handleDeleteThread} />
       </div>
     </a>
   );
