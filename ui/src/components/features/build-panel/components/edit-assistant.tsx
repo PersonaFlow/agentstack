@@ -20,13 +20,30 @@ const RetrievalType = "retrieval";
 
 export function EditAssistant() {
   const { assistantId } = useSlugRoutes();
-
   const { data: selectedAssistant, isLoading: isLoadingAssistant } =
     useAssistant(assistantId as string, {
       enabled: !!assistantId,
     });
 
-  const updateAssistant = useUpdateAssistant(selectedAssistant?.id as string);
+  return isLoadingAssistant ? (
+    <Spinner />
+  ) : (
+    <>
+      {selectedAssistant ? (
+        <EditAssistantForm selectedAssistant={selectedAssistant} />
+      ) : (
+        <div>Assistant not found</div>
+      )}
+    </>
+  );
+}
+
+function EditAssistantForm({
+  selectedAssistant,
+}: {
+  selectedAssistant: TAssistant;
+}) {
+  const updateAssistant = useUpdateAssistant(selectedAssistant.id as string);
 
   const form = useForm<TAssistant>({
     resolver: zodResolver(formSchema),
@@ -103,8 +120,6 @@ export function EditAssistant() {
       },
     });
   }
-
-  if (isLoadingAssistant) return <Spinner />;
 
   return (
     <>
