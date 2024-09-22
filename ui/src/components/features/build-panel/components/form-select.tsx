@@ -23,7 +23,13 @@ type TFormSelectProps = {
   placeholder: string;
 };
 
-export function FormSelect({ form, title ,options, formName, placeholder }: TFormSelectProps) {
+export function FormSelect({
+  form,
+  title,
+  options,
+  formName,
+  placeholder,
+}: TFormSelectProps) {
   return (
     <FormField
       control={form.control}
@@ -32,7 +38,7 @@ export function FormSelect({ form, title ,options, formName, placeholder }: TFor
         <FormItem className="flex flex-col">
           <FormLabel>{title}</FormLabel>
           <FormControl>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <Select onValueChange={field.onChange} value={field.value}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder={placeholder} />
               </SelectTrigger>

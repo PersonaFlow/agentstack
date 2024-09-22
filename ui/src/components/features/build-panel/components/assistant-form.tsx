@@ -67,6 +67,8 @@ export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
                   </FormItem>
                 )}
               />
+            </div>
+            <div className="flex gap-6">
               <PublicSwitch form={form} />
             </div>
             <FormSelect
