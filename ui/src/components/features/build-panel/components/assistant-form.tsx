@@ -124,6 +124,7 @@ export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
                   </>
                 )}
                 <Button
+                  variant="outline"
                   type="submit"
                   className="w-1/4 self-center"
                   disabled={!isDirty}
