@@ -23,7 +23,6 @@ import { useRunnableConfigSchema } from "@/data-provider/query-service";
 import type { TSchemaField } from "@/data-provider/types";
 import Spinner from "@/components/ui/spinner";
 import { FormSelect } from "./form-select";
-import { useEffect } from "react";
 
 type TAssistantFormProps = {
   form: UseFormReturn<any>;
@@ -33,10 +32,6 @@ type TAssistantFormProps = {
 export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
   const { type: architectureType } = form.getValues().config.configurable;
   const { data: config, isLoading, isError } = useRunnableConfigSchema();
-
-  useEffect(() => {
-    console.log(config)
-  },[config])
 
   const {
     formState: { isDirty },

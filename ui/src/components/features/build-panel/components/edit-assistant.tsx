@@ -24,6 +24,11 @@ export function EditAssistant() {
     useAssistant(assistantId as string, {
       enabled: !!assistantId,
     });
+  
+  
+  useEffect(() => {
+    console.log(selectedAssistant)
+  },[selectedAssistant])
 
   return isLoadingAssistant ? (
     <Spinner />
@@ -62,6 +67,8 @@ function EditAssistantForm({
   );
 
   const { availableTools } = useAvailableTools();
+
+  useEffect(() => console.log(selectedAssistant),[selectedAssistant])
 
   useEffect(() => {
     if (selectedAssistant) {

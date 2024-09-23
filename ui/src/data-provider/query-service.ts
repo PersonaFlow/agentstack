@@ -298,7 +298,7 @@ export const useUpdateAssistant = (assistantId: string) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKeys.configSchema] });
       queryClient.invalidateQueries({ queryKey: [QueryKeys.assistants] });
-      queryClient.invalidateQueries({ queryKey: [assistantId] });
+      queryClient.invalidateQueries({ queryKey: [QueryKeys.assistant, assistantId] });
     },
   });
 };
