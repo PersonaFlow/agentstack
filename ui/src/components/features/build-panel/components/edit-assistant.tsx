@@ -68,8 +68,6 @@ function EditAssistantForm({
 
   const { availableTools } = useAvailableTools();
 
-  useEffect(() => console.log(selectedAssistant),[selectedAssistant])
-
   useEffect(() => {
     if (selectedAssistant) {
       form.reset(selectedAssistant);
