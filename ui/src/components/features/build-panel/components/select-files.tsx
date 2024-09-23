@@ -53,11 +53,14 @@ export default function SelectFiles({ form }: TSelectFilesProps) {
                 <FormItem>
                   <FormControl>
                     <Badge
-                      className="rounded-full flex cursor-pointer text-xs gap-2"
+                      variant="outline"
+                      className="rounded-full flex cursor-pointer text-xs gap-1 w-1/2 py-1"
                       onClick={() => remove(index)}
                     >
-                      <p>{badgeValue.label}</p>
-                      <CircleX className="w-4" />
+                      <span className="truncate">{badgeValue.label}</span>
+                      <div>
+                        <CircleX size={16} />
+                      </div>
                     </Badge>
                   </FormControl>
                 </FormItem>
