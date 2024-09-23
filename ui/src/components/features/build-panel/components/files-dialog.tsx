@@ -143,6 +143,7 @@ export default function FilesDialog({ form }: TFilesDialog) {
               </CardContent>
               <CardFooter>
                 <Button
+                  variant="default"
                   disabled={!fileUpload}
                   size="lg"
                   type="button"
