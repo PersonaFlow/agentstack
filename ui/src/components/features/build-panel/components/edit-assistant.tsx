@@ -15,6 +15,7 @@ import { useAvailableTools } from "@/hooks/useAvailableTools";
 import { useToast } from "@/components/ui/use-toast";
 import { useSlugRoutes } from "@/hooks/useSlugParams";
 import Spinner from "@/components/ui/spinner";
+import { LucidePencil } from "lucide-react";
 
 const RetrievalType = "retrieval";
 
@@ -128,7 +129,10 @@ function EditAssistantForm({
 
   return (
     <>
-      <h1 className="text-2xl font-bold">Edit Assistant</h1>
+      <div className="flex gap-2 items-center">
+        <LucidePencil />
+        <h1 className="text-2xl">Edit</h1>
+      </div>
       <AssistantForm form={form} onSubmit={onSubmit} />
     </>
   );

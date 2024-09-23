@@ -11,6 +11,7 @@ import { formSchema } from "@/data-provider/types";
 import { useAvailableTools } from "@/hooks/useAvailableTools";
 import { useToast } from "@/components/ui/use-toast";
 import { useRouter } from "next/navigation";
+import { SquarePlus } from "lucide-react";
 
 const defaultValues = {
   public: false,
@@ -109,7 +110,10 @@ export function CreateAssistant() {
 
   return (
     <>
-      <h1 className="text-2xl font-bold">Create Assistant</h1>
+      <div className="flex gap-2 items-center">
+        <SquarePlus />
+        <h1 className="text-2xl">Create</h1>
+      </div>
       <AssistantForm form={form} onSubmit={onSubmit} />
     </>
   );
