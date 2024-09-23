@@ -296,6 +296,7 @@ export const useUpdateAssistant = (assistantId: string) => {
     mutationFn: async (payload: t.TAssistant): Promise<t.TAssistant> =>
       await dataService.updateAssistant(assistantId, payload),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QueryKeys.configSchema] });
       queryClient.invalidateQueries({ queryKey: [QueryKeys.assistants] });
       queryClient.invalidateQueries({ queryKey: [assistantId] });
     },
