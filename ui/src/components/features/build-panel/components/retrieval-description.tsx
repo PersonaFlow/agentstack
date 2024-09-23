@@ -17,7 +17,7 @@ export function RetrievalInstructions({ form }: TRetrievalInstructionsProps) {
         return (
           <FormItem className="flex flex-col gap-2">
             <FormLabel>Retrieval Instructions</FormLabel>
-            <Textarea {...field} />
+            <Textarea className="h-[125px]" {...field} />
           </FormItem>
         );
       }}
