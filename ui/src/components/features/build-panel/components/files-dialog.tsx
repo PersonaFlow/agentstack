@@ -25,6 +25,7 @@ import {
   FormItem,
   FormLabel,
 } from "@/components/ui/form";
+import { useToast } from "@/components/ui/use-toast";
 
 type TFilesDialog = {
   form: UseFormReturn<any>;
@@ -43,6 +44,8 @@ export default function FilesDialog({ form }: TFilesDialog) {
   const uploadFile = useUploadFile();
 
   const { file_ids } = form.getValues();
+
+  const {toast} = useToast();
 
   const formattedAssistantFiles = files?.reduce((files, file) => {
     if (file_ids.includes(file.id)) {
@@ -76,6 +79,16 @@ export default function FilesDialog({ form }: TFilesDialog) {
       uploadFile.mutate(formData, {
         onSuccess: () => {
           setFileUpload(null);
+          toast({
+            variant: "default",
+            title: "New file saved.",
+          });
+        },
+        onError: () => {
+          toast({
+            variant: "destructive",
+            title: "Something went wrong while saving file.",
+          });
         },
       });
     }
