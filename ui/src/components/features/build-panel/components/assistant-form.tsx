@@ -77,8 +77,8 @@ export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
                 (config?.definitions.Bot_Type as TSchemaField).enum ?? []
               }
               formName="config.configurable.type"
-              title="Select architecture"
-              placeholder="Select architecture"
+              title="Architecture"
+              placeholder="Architecture"
             />
             {architectureType && (
               <>

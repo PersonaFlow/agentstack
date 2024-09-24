@@ -20,13 +20,13 @@ The setup is unique in that it is meant to be easily modified as new agent archi
     "type": "agent",
     "type==agent/tools": [],
     "type==agent/interupt_before_action": true,
-    "type==agent/agent_type": "GPT 3.5 Turbo",
+    "type==agent/agent_type": "GPT 4o Mini",
     "type==agent/system_message": "You are a helpful assistant.",
     "type==agent/retrieval_description": "Can be used to look up information.",
     "type==chat_retrieval/system_message": "You are a helpful assistant.",
-    "type==chatbot/llm_type": "GPT 3.5 Turbo",
+    "type==chatbot/llm_type": "GPT 4o Mini",
     "type==chatbot/system_message": "You are a helpful assistant.",
-    "type==chat_retrieval/llm_type": "GPT 3.5 Turbo"
+    "type==chat_retrieval/llm_type": "GPT 4o Mini"
   }
 }
 ```
@@ -39,7 +39,7 @@ In this example, there are three assistant architectures: agent, chatbot, and ch
     "type": "agent",
     "type==agent/tools": [],
     "type==agent/interupt_before_action": true,
-    "type==agent/agent_type": "GPT 3.5 Turbo",
+    "type==agent/agent_type": "GPT 4o Mini",
     "type==agent/system_message": "You are a helpful assistant.",
     "type==agent/retrieval_description": "Can be used to look up information."
   }
