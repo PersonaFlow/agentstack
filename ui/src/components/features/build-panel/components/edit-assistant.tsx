@@ -25,11 +25,6 @@ export function EditAssistant() {
     useAssistant(assistantId as string, {
       enabled: !!assistantId,
     });
-  
-  
-  useEffect(() => {
-    console.log(selectedAssistant)
-  },[selectedAssistant])
 
   return isLoadingAssistant ? (
     <Spinner />
