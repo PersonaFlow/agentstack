@@ -47,7 +47,7 @@ export type TConfigurable = {
   interrupt_before_action: boolean;
   retrieval_description: string;
   system_message: string;
-  tools: string[];
+  tools: TTool[];
   llm_type: string;
 };
 
