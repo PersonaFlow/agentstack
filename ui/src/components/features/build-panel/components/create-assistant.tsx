@@ -81,7 +81,7 @@ export function CreateAssistant() {
         (tool) => tool.type === RetrievalType,
       );
       const retrievalTools = [retrievalTool];
-      const containsCodeInterpreter = tools.includes("Code interpretor");
+      // const containsCodeInterpreter = tools.includes("Code interpretor");
       // if (containsCodeInterpreter) retrievalTools.push("Code interpreter");
       form.setValue("config.configurable.tools", retrievalTools);
     }

@@ -96,10 +96,10 @@ function EditAssistantForm({
       const retrievalTool = availableTools?.find(
         (tool) => tool.type === RetrievalType,
       );
-      const containsCodeInterpreter = tools.includes("Code interpretor");
+      // const containsCodeInterpreter = tools.includes("Code interpretor");
       // if (containsCodeInterpreter) retrievalTools.push("Code interpreter");
       if (retrievalTool) {
-        form.setValue("config.configurable.tools", [retrievalTool.toString()]);
+        form.setValue("config.configurable.tools", [retrievalTool]);
       }
     }
   }, [architectureType]);
