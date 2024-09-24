@@ -149,6 +149,20 @@ export default function FilesDialog({ form, classNames }: TFilesDialog) {
                     accept="image/*, application/pdf"
                     onChange={(event) => {
                       if (event.target.files) {
+                        const selectedFiles = Array.from(event.target.files);
+                        const duplicateFiles = selectedFiles.filter((file) =>
+                          files?.some(
+                            (uploadedFile) =>
+                              uploadedFile.filename === file.name &&
+                              uploadedFile.bytes === file.size,
+                          ),
+                        );
+                        if (duplicateFiles.length > 0) {
+                          return toast({
+                            variant: "destructive",
+                            title: "Cannot add duplicate files."
+                          })
+                        }
                         setFileUpload(event.target.files[0]);
                       }
                     }}
