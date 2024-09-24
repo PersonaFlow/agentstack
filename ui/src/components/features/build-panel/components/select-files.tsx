@@ -54,7 +54,7 @@ export default function SelectFiles({ form }: TSelectFilesProps) {
                   <FormControl>
                     <Badge
                       variant="outline"
-                      className="rounded-full flex cursor-pointer text-xs gap-1 w-1/2 py-1"
+                      className="rounded-full flex cursor-pointer text-xs gap-1 py-1 max-w-40"
                       onClick={() => remove(index)}
                     >
                       <span className="truncate">{badgeValue.label}</span>
