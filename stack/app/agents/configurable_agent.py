@@ -66,7 +66,7 @@ CHECKPOINTER = get_pg_checkpoint_saver()
 
 
 def get_llm(llm_type: LLMType):
-    if llm_type == LLMType.GPT_35_TURBO:
+    if llm_type == LLMType.GPT_4O_MINI:
         llm = get_openai_llm()
     elif llm_type == LLMType.GPT_4:
         llm = get_openai_llm(model="gpt-4-turbo")
@@ -74,9 +74,9 @@ def get_llm(llm_type: LLMType):
         llm = get_openai_llm(model="gpt-4o")
     elif llm_type == LLMType.AZURE_OPENAI:
         llm = get_openai_llm(azure=True)
-    elif llm_type == LLMType.CLAUDE2:
+    elif llm_type == LLMType.ANTHROPIC_CLAUDE:
         llm = get_anthropic_llm()
-    elif llm_type == LLMType.BEDROCK_CLAUDE2:
+    elif llm_type == LLMType.BEDROCK_ANTHROPIC_CLAUDE:
         llm = get_anthropic_llm(bedrock=True)
     elif llm_type == LLMType.GEMINI:
         llm = get_google_llm()
@@ -95,7 +95,7 @@ def get_agent_executor(
     system_message: str,
     interrupt_before_action: bool,
 ):
-    if agent == AgentType.GPT_35_TURBO:
+    if agent == AgentType.GPT_4O_MINI:
         llm = get_openai_llm()
         return get_tools_agent_executor(
             tools, llm, system_message, interrupt_before_action, CHECKPOINTER
@@ -115,12 +115,12 @@ def get_agent_executor(
         return get_tools_agent_executor(
             tools, llm, system_message, interrupt_before_action, CHECKPOINTER
         )
-    elif agent == AgentType.CLAUDE2:
+    elif agent == AgentType.ANTHROPIC_CLAUDE:
         llm = get_anthropic_llm()
         return get_tools_agent_executor(
             tools, llm, system_message, interrupt_before_action, CHECKPOINTER
         )
-    elif agent == AgentType.BEDROCK_CLAUDE2:
+    elif agent == AgentType.BEDROCK_ANTHROPIC_CLAUDE:
         llm = get_anthropic_llm(bedrock=True)
         return get_xml_agent_executor(
             tools, llm, system_message, interrupt_before_action, CHECKPOINTER
@@ -154,7 +154,7 @@ class ConfigurableAgent(RunnableBinding):
         self,
         *,
         tools: Sequence[Tool],
-        agent: AgentType = AgentType.GPT_35_TURBO,
+        agent: AgentType = AgentType.GPT_4O_MINI,
         system_message: str = DEFAULT_SYSTEM_MESSAGE,
         assistant_id: Optional[str] = None,
         thread_id: Optional[str] = None,
@@ -216,7 +216,7 @@ class ConfigurableChatBot(RunnableBinding):
     def __init__(
         self,
         *,
-        llm: LLMType = LLMType.GPT_35_TURBO,
+        llm: LLMType = LLMType.GPT_4O_MINI,
         system_message: str = DEFAULT_SYSTEM_MESSAGE,
         kwargs: Optional[Mapping[str, Any]] = None,
         config: Optional[Mapping[str, Any]] = None,
@@ -235,7 +235,7 @@ class ConfigurableChatBot(RunnableBinding):
 
 
 chatbot = (
-    ConfigurableChatBot(llm=LLMType.GPT_35_TURBO, checkpoint=CHECKPOINTER)
+    ConfigurableChatBot(llm=LLMType.GPT_4O_MINI, checkpoint=CHECKPOINTER)
     .configurable_fields(
         llm=ConfigurableField(id="llm_type", name="LLM Type"),
         system_message=ConfigurableField(id="system_message", name="Instructions"),
@@ -257,7 +257,7 @@ class ConfigurableRetrieval(RunnableBinding):
     def __init__(
         self,
         *,
-        llm_type: LLMType = LLMType.GPT_35_TURBO,
+        llm_type: LLMType = LLMType.GPT_4O_MINI,
         system_message: str = DEFAULT_SYSTEM_MESSAGE,
         assistant_id: Optional[str] = None,
         thread_id: Optional[str] = None,
@@ -279,7 +279,7 @@ class ConfigurableRetrieval(RunnableBinding):
 
 
 chat_retrieval = (
-    ConfigurableRetrieval(llm_type=LLMType.GPT_35_TURBO, checkpoint=CHECKPOINTER)
+    ConfigurableRetrieval(llm_type=LLMType.GPT_4O_MINI, checkpoint=CHECKPOINTER)
     .configurable_fields(
         llm_type=ConfigurableField(id="llm_type", name="LLM Type"),
         system_message=ConfigurableField(id="system_message", name="Instructions"),
@@ -297,7 +297,7 @@ chat_retrieval = (
 
 agent: Pregel = (
     ConfigurableAgent(
-        agent=AgentType.GPT_35_TURBO,
+        agent=AgentType.GPT_4O_MINI,
         tools=[],
         system_message=DEFAULT_SYSTEM_MESSAGE,
         retrieval_description=RETRIEVAL_DESCRIPTION,

@@ -13,23 +13,23 @@ class BotType(str, Enum):
 
 
 class AgentType(str, Enum):
-    GPT_35_TURBO = "GPT 3.5 Turbo"
+    GPT_4O_MINI = "GPT 4o Mini"
     GPT_4 = "GPT 4 Turbo"
     GPT_4O = "GPT 4o"
     AZURE_OPENAI = "GPT 4 (Azure OpenAI)"
-    CLAUDE2 = "Claude 2"
-    BEDROCK_CLAUDE2 = "Claude 2 (Amazon Bedrock)"
+    ANTHROPIC_CLAUDE = "Anthropic Claude"
+    BEDROCK_ANTHROPIC_CLAUDE = "Anthropic Claude (Amazon Bedrock)"
     GEMINI = "GEMINI"
     OLLAMA = "Ollama"
 
 
 class LLMType(str, Enum):
-    GPT_35_TURBO = "GPT 3.5 Turbo"
+    GPT_4O_MINI = "GPT 4o Mini"
     GPT_4 = "GPT 4"
     GPT_4O = "GPT 4o"
     AZURE_OPENAI = "GPT 4 (Azure OpenAI)"
-    CLAUDE2 = "Claude 2"
-    BEDROCK_CLAUDE2 = "Claude 2 (Amazon Bedrock)"
+    ANTHROPIC_CLAUDE = "Anthropic Claude"
+    BEDROCK_ANTHROPIC_CLAUDE = "Anthropic Claude (Amazon Bedrock)"
     GEMINI = "GEMINI"
     MIXTRAL = "Mixtral"
     OLLAMA = "Ollama"
@@ -63,7 +63,7 @@ class Configurable(BaseModel):
         default="agent", title="Bot Type", description="The type of bot."
     )
     agent_type: AgentType = Field(
-        default="GPT 3.5 Turbo",
+        default="GPT 4o Mini",
         title="Agent Type",
         description="The type of agent, applicable if the bot type is 'agent'.",
     )
@@ -86,7 +86,7 @@ class Configurable(BaseModel):
         default=[], title="Tools", description="List of tools available for the agent."
     )
     llm_type: Optional[LLMType] = Field(
-        default="GPT 3.5 Turbo",
+        default="GPT 4o Mini",
         title="LLM Type",
         description="The type of language model, applicable if the bot type is 'chat_retrieval' or 'chatbot'.",
     )
