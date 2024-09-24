@@ -11,9 +11,7 @@
   "paths": {
     "/api/v1/runs/stream": {
       "post": {
-        "tags": [
-          "Runs"
-        ],
+        "tags": ["Runs"],
         "summary": "Stream an LLM run.",
         "description": "Endpoint to stream an LLM response. If the thread_id is not provided, a new thread will be created as long as the assistant_id is included. \u003Cbr\u003E\n                Note that the input should be a list of messages in the format: \u003Cbr\u003E\n                content: string \u003Cbr\u003E\n                role: string \u003Cbr\u003E\n                additional_kwargs: dict \u003Cbr\u003E\n                example: bool \u003Cbr\u003E",
         "operationId": "stream_run",
@@ -51,9 +49,7 @@
     },
     "/api/v1/runs": {
       "post": {
-        "tags": [
-          "Runs"
-        ],
+        "tags": ["Runs"],
         "summary": "Create a run",
         "description": "Create a run to be processed by the LLM.",
         "operationId": "create_run",
@@ -99,9 +95,7 @@
     },
     "/api/v1/runs/input_schema": {
       "get": {
-        "tags": [
-          "Runs"
-        ],
+        "tags": ["Runs"],
         "summary": "Return the input schema of the runnable.",
         "description": "Return the input schema of the runnable.",
         "operationId": "get_input_schema",
@@ -127,9 +121,7 @@
     },
     "/api/v1/runs/output_schema": {
       "get": {
-        "tags": [
-          "Runs"
-        ],
+        "tags": ["Runs"],
         "summary": "Return the output schema of the runnable.",
         "description": "Return the output schema of the runnable.",
         "operationId": "get_output_schema",
@@ -155,9 +147,7 @@
     },
     "/api/v1/runs/config_schema": {
       "get": {
-        "tags": [
-          "Runs"
-        ],
+        "tags": ["Runs"],
         "summary": "Return the config schema of the runnable.",
         "description": "Return the config schema of the runnable.",
         "operationId": "get_config_schema",
@@ -183,9 +173,7 @@
     },
     "/api/v1/runs/title": {
       "post": {
-        "tags": [
-          "Runs"
-        ],
+        "tags": ["Runs"],
         "summary": "Generate a title to name the thread.",
         "description": "Generates a title for the conversation by sending a list of interactions to the model.",
         "operationId": "generate_title",
@@ -230,9 +218,7 @@
     },
     "/api/v1/users/me": {
       "get": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "Retrieve a specific user ",
         "description": "GET endpoint to fetch details of the logged-in user.\n        USAGE: Admins can use this endpoint to retrieve details of a specific user.\n        TODO: Add RBAC for this endpoint.",
         "operationId": "retrieve_me",
@@ -255,9 +241,7 @@
         ]
       },
       "delete": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "Delete a specific user ",
         "description": "DELETE endpoint for removing the logged-in user from the system.\n                This will do a cascade delete on all threads and messages, but will not\n                effect assistants created by the user.",
         "operationId": "delete_me",
@@ -273,9 +257,7 @@
         ]
       },
       "patch": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "Update a specific user ",
         "description": "PATCH endpoint for updating the details of the logged-in user.",
         "operationId": "update_me",
@@ -320,9 +302,7 @@
     },
     "/api/v1/users/me/threads": {
       "get": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "Retrieve threads by user ",
         "description": "GET endpoint for fetching all threads associated with the logged-in user.",
         "operationId": "retrieve_threads",
@@ -406,9 +386,7 @@
     },
     "/api/v1/threads": {
       "post": {
-        "tags": [
-          "Threads"
-        ],
+        "tags": ["Threads"],
         "summary": "Create a new thread",
         "description": "Creates a new thread with the provided information. This can optionally be obtained from the api_key. If it is not set in the request, it will attempt to get it from the api_key.",
         "operationId": "create_thread",
@@ -453,9 +431,7 @@
     },
     "/api/v1/threads/{thread_id}": {
       "get": {
-        "tags": [
-          "Threads"
-        ],
+        "tags": ["Threads"],
         "summary": "Retrieve a specific thread",
         "description": "Retrieves detailed information about a thread identified by its ID.",
         "operationId": "retrieve_thread",
@@ -499,9 +475,7 @@
         ]
       },
       "patch": {
-        "tags": [
-          "Threads"
-        ],
+        "tags": ["Threads"],
         "summary": "Update a specific thread",
         "description": "Updates the information of a thread identified by its ID.",
         "operationId": "update_thread",
@@ -555,9 +529,7 @@
         ]
       },
       "delete": {
-        "tags": [
-          "Threads"
-        ],
+        "tags": ["Threads"],
         "summary": "Delete a specific thread",
         "description": "Deletes a thread identified by its ID from the database.",
         "operationId": "delete_thread",
@@ -596,9 +568,7 @@
     },
     "/api/v1/threads/{thread_id}/state": {
       "get": {
-        "tags": [
-          "Threads"
-        ],
+        "tags": ["Threads"],
         "summary": "Retrieve thread state",
         "description": "Retrieves the state of a thread identified by its ID.",
         "operationId": "retrieve_thread_state",
@@ -618,9 +588,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -642,9 +610,7 @@
         ]
       },
       "post": {
-        "tags": [
-          "Threads"
-        ],
+        "tags": ["Threads"],
         "summary": "Add thread state",
         "description": "Adds the state of a thread identified by its ID.",
         "operationId": "add_thread_state",
@@ -674,9 +640,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -700,9 +664,7 @@
     },
     "/api/v1/threads/{thread_id}/history": {
       "get": {
-        "tags": [
-          "Threads"
-        ],
+        "tags": ["Threads"],
         "summary": "Get thread history",
         "description": "Gets the history of the thread identified by its ID.",
         "operationId": "get_thread_history",
@@ -722,9 +684,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -748,9 +708,7 @@
     },
     "/api/v1/assistants": {
       "get": {
-        "tags": [
-          "Assistants"
-        ],
+        "tags": ["Assistants"],
         "summary": "Retrieve user assistants",
         "description": "Retrieves a list of the user's assistants.",
         "operationId": "retrieve_user_assistants",
@@ -777,9 +735,7 @@
         ]
       },
       "post": {
-        "tags": [
-          "Assistants"
-        ],
+        "tags": ["Assistants"],
         "summary": "Create a new assistant",
         "description": "Creates a new assistant with the specified details.",
         "operationId": "create_assistant",
@@ -824,9 +780,7 @@
     },
     "/api/v1/assistants/{assistant_id}": {
       "get": {
-        "tags": [
-          "Assistants"
-        ],
+        "tags": ["Assistants"],
         "summary": "Retrieve a specific assistant",
         "description": "Retrieves detailed information about a specific assistant by its ID.",
         "operationId": "retrieve_assistant",
@@ -871,9 +825,7 @@
         ]
       },
       "patch": {
-        "tags": [
-          "Assistants"
-        ],
+        "tags": ["Assistants"],
         "summary": "Update a specific assistant",
         "description": "Updates the details of a specific assistant by its ID.",
         "operationId": "update_assistant",
@@ -928,9 +880,7 @@
         ]
       },
       "delete": {
-        "tags": [
-          "Assistants"
-        ],
+        "tags": ["Assistants"],
         "summary": "Delete a specific assistant",
         "description": "Deletes a specific assistant by its ID from the database.",
         "operationId": "delete_assistant",
@@ -970,9 +920,7 @@
     },
     "/api/v1/assistants/{assistant_id}/files": {
       "post": {
-        "tags": [
-          "Assistants"
-        ],
+        "tags": ["Assistants"],
         "summary": "Add an uploaded file to an assistant for RAG.",
         "description": "Convenience method to add an uploaded file to an assistant for RAG ingestion and retrieval",
         "operationId": "create_assistant_file",
@@ -1027,9 +975,7 @@
         ]
       },
       "get": {
-        "tags": [
-          "Assistants"
-        ],
+        "tags": ["Assistants"],
         "summary": "Retrieve file information for all files associated with an assistant",
         "description": "Returns a list of file objects for all files associated with an assistant.",
         "operationId": "retrieve_assistant_files",
@@ -1134,9 +1080,7 @@
     },
     "/api/v1/assistants/{assistant_id}/files/{file_id}": {
       "delete": {
-        "tags": [
-          "Assistants"
-        ],
+        "tags": ["Assistants"],
         "summary": "Remove a file from an assistant",
         "description": "Removes a file from an assistant by its ID. This also deletes the corresponding documents from the vector store.",
         "operationId": "delete_assistant_file",
@@ -1193,9 +1137,7 @@
     },
     "/api/v1/rag/ingest": {
       "post": {
-        "tags": [
-          "RAG"
-        ],
+        "tags": ["RAG"],
         "summary": "Ingest files to be indexed and queried.",
         "description": "Upload files for ingesting using the advanced RAG system.",
         "operationId": "ingest_data_from_files",
@@ -1241,9 +1183,7 @@
     },
     "/api/v1/rag/query": {
       "post": {
-        "tags": [
-          "RAG"
-        ],
+        "tags": ["RAG"],
         "summary": "Query documents",
         "description": "Query ingested documents using advanced RAG system with unstructured library. \u003Cbr\u003E",
         "operationId": "query_documents",
@@ -1288,9 +1228,7 @@
     },
     "/api/v1/rag/query-lc-retriever": {
       "post": {
-        "tags": [
-          "RAG"
-        ],
+        "tags": ["RAG"],
         "summary": "Query Lc Retriever",
         "operationId": "query_lc_retriever_api_v1_rag_query_lc_retriever_post",
         "requestBody": {
@@ -1308,9 +1246,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -1334,9 +1270,7 @@
     },
     "/api/v1/files": {
       "post": {
-        "tags": [
-          "Files"
-        ],
+        "tags": ["Files"],
         "summary": "Upload a file",
         "description": "Uploads a file that can be used across various endpoints. \u003Cbr\u003E NOTE: MUST INCLUDE `user_id`",
         "operationId": "upload_file",
@@ -1379,9 +1313,7 @@
         ]
       },
       "get": {
-        "tags": [
-          "Files"
-        ],
+        "tags": ["Files"],
         "summary": "Retrieve files",
         "description": "Retrieves a list of files.",
         "operationId": "retrieve_files_for_user",
@@ -1438,9 +1370,7 @@
     },
     "/api/v1/files/{file_id}": {
       "get": {
-        "tags": [
-          "Files"
-        ],
+        "tags": ["Files"],
         "summary": "Retrieve file information",
         "description": "Retrieves information about a specific file by its ID.",
         "operationId": "retrieve_file",
@@ -1485,9 +1415,7 @@
         ]
       },
       "delete": {
-        "tags": [
-          "Files"
-        ],
+        "tags": ["Files"],
         "summary": "Delete a specific file",
         "description": "Deletes a specific file by its ID from the database and file system. When a file is deleted, it is also removed from any assistants that may be using it and all associated embeddings are deleted from the vector store.",
         "operationId": "delete_file",
@@ -1534,9 +1462,7 @@
     },
     "/api/v1/files/{file_id}/content": {
       "get": {
-        "tags": [
-          "Files"
-        ],
+        "tags": ["Files"],
         "summary": "Retrieve the content of a specific file",
         "description": "Retrieves the content of a specific file by its ID. Returns a downloadable file.",
         "operationId": "retrieve_file_content",
@@ -1557,9 +1483,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           },
@@ -1583,9 +1507,7 @@
     },
     "/api/v1/auth/auth_strategies": {
       "get": {
-        "tags": [
-          "Authentication"
-        ],
+        "tags": ["Authentication"],
         "summary": "Get enabled authentication strategies",
         "description": "Returns a list of enabled authentication strategies.",
         "operationId": "get_auth_strategies",
@@ -1614,9 +1536,7 @@
     },
     "/api/v1/auth/login": {
       "post": {
-        "tags": [
-          "Authentication"
-        ],
+        "tags": ["Authentication"],
         "summary": "Login",
         "description": "Logs user in, performing auth according to auth strategy.",
         "operationId": "login",
@@ -1669,9 +1589,7 @@
     },
     "/api/v1/auth/{strategy}/auth": {
       "post": {
-        "tags": [
-          "Authentication"
-        ],
+        "tags": ["Authentication"],
         "summary": "Authorize",
         "description": "Callback authorization endpoint used for OAuth providers after authenticating on the provider's login screen.",
         "operationId": "authorize",
@@ -1728,9 +1646,7 @@
     },
     "/api/v1/auth/logout": {
       "get": {
-        "tags": [
-          "Authentication"
-        ],
+        "tags": ["Authentication"],
         "summary": "Logout",
         "description": "Logs user out, adding the given JWT token to the blacklist.",
         "operationId": "logout",
@@ -1755,9 +1671,7 @@
     },
     "/api/v1/admin/users": {
       "get": {
-        "tags": [
-          "Users (Admin)"
-        ],
+        "tags": ["Users (Admin)"],
         "summary": "List all users ",
         "description": "GET endpoint at `/users` for listing all users.\n                TODO: Add access control for this endpoint.",
         "operationId": "retrieve_all_users",
@@ -1784,9 +1698,7 @@
         ]
       },
       "post": {
-        "tags": [
-          "Users (Admin)"
-        ],
+        "tags": ["Users (Admin)"],
         "summary": "Create a new user",
         "description": "POST endpoint at `/users` for creating a new user.\n                If `user_id` is not present, the database will auto-generate a new UUID for the field.\n                This is intended to allow for internal users to be correlated with external systems while not exposing the internal database record id for the user.\n                TODO: Add access control for this endpoint.",
         "operationId": "create_user",
@@ -1831,9 +1743,7 @@
     },
     "/api/v1/admin/users/{user_id}": {
       "get": {
-        "tags": [
-          "Users (Admin)"
-        ],
+        "tags": ["Users (Admin)"],
         "summary": "Retrieve a specific user",
         "description": "GET endpoint at `/users/{user_id}` for fetching details of a specific user using its user_id.\n        USAGE: Admins can use this endpoint to retrieve details of a specific user.\n        TODO: Add access control for this endpoint.",
         "operationId": "retrieve_user",
@@ -1884,9 +1794,7 @@
         ]
       },
       "patch": {
-        "tags": [
-          "Users (Admin)"
-        ],
+        "tags": ["Users (Admin)"],
         "summary": "Update a specific user ",
         "description": "PATCH endpoint at `/{user_id}` for updating the details of a specific user.\n        USAGE: Admins can use this endpoint to update the details of a specific user.\n        TODO: Add access control for this endpoint.",
         "operationId": "update_user",
@@ -1940,9 +1848,7 @@
         ]
       },
       "delete": {
-        "tags": [
-          "Users (Admin)"
-        ],
+        "tags": ["Users (Admin)"],
         "summary": "Delete a specific user ",
         "description": "DELETE endpoint at `/users/{user_id}` for removing a specific user using its `user_id`.\n                USAGE: Admins can use this endpoint to delete a specific user.\n                TODO: Add access control for this endpoint.",
         "operationId": "delete_user",
@@ -1981,9 +1887,7 @@
     },
     "/api/v1/admin/users/{user_id}/threads": {
       "get": {
-        "tags": [
-          "Users (Admin)"
-        ],
+        "tags": ["Users (Admin)"],
         "summary": "Retrieve threads by user ",
         "description": "GET endpoint at `/users/{user_id}/threads` for fetching all threads associated with a specific user using its id. \u003Cbr\u003E\n                USAGE: Admins can use this endpoint to retrieve all threads associated with a specific user.\n                TODO: Add access control for this endpoint.",
         "operationId": "retrieve_user_threads",
@@ -2072,9 +1976,7 @@
     },
     "/api/v1/admin/users/threads": {
       "get": {
-        "tags": [
-          "Users (Admin)"
-        ],
+        "tags": ["Users (Admin)"],
         "summary": "Retrieve all threads",
         "description": "Retrieves a list of all threads in the database.\n                Should be used as an admin operation. \u003Cbr\u003E\n                TODO: Add access control for this endpoint.",
         "operationId": "retrieve_all_threads",
@@ -2103,9 +2005,7 @@
     },
     "/api/v1/admin/users/{user_id}/assistants": {
       "get": {
-        "tags": [
-          "Users (Admin)"
-        ],
+        "tags": ["Users (Admin)"],
         "summary": "Retrieve user assistants",
         "description": "Retrieves a list of the user's assistants.",
         "operationId": "retrieve_user_assistants",
@@ -2155,9 +2055,7 @@
     },
     "/api/v1/health_check": {
       "get": {
-        "tags": [
-          "Health Check"
-        ],
+        "tags": ["Health Check"],
         "summary": "Health Check",
         "operationId": "health_check_api_v1_health_check_get",
         "responses": {
@@ -2165,9 +2063,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": {}
               }
             }
           }
@@ -2185,12 +2081,12 @@
       "AgentType": {
         "type": "string",
         "enum": [
-          "GPT 3.5 Turbo",
+          "GPT 4o Mini",
           "GPT 4 Turbo",
           "GPT 4o",
           "GPT 4 (Azure OpenAI)",
-          "Claude 2",
-          "Claude 2 (Amazon Bedrock)",
+          "Anthropic Claude",
+          "Anthropic Claude (Amazon Bedrock)",
           "GEMINI",
           "Ollama"
         ],
@@ -2284,13 +2180,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "id",
-          "name",
-          "config",
-          "created_at",
-          "updated_at"
-        ],
+        "required": ["id", "name", "config", "created_at", "updated_at"],
         "title": "Assistant"
       },
       "BaseDocumentChunk": {
@@ -2432,11 +2322,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "id",
-          "document_id",
-          "page_content"
-        ],
+        "required": ["id", "document_id", "page_content"],
         "title": "BaseDocumentChunk"
       },
       "Body_upload_file": {
@@ -2478,19 +2364,12 @@
           }
         },
         "type": "object",
-        "required": [
-          "file",
-          "purpose"
-        ],
+        "required": ["file", "purpose"],
         "title": "Body_upload_file"
       },
       "BotType": {
         "type": "string",
-        "enum": [
-          "chatbot",
-          "chat_retrieval",
-          "agent"
-        ],
+        "enum": ["chatbot", "chat_retrieval", "agent"],
         "title": "BotType"
       },
       "ChatMessage": {
@@ -2505,10 +2384,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "content",
-          "type"
-        ],
+        "required": ["content", "type"],
         "title": "ChatMessage"
       },
       "Configurable": {
@@ -2531,7 +2407,7 @@
             ],
             "title": "Agent Type",
             "description": "The type of agent, applicable if the bot type is 'agent'.",
-            "default": "GPT 3.5 Turbo"
+            "default": "GPT 4o Mini"
           },
           "interrupt_before_action": {
             "anyOf": [
@@ -2599,7 +2475,7 @@
             ],
             "title": "LLM Type",
             "description": "The type of language model, applicable if the bot type is 'chat_retrieval' or 'chatbot'.",
-            "default": "GPT 3.5 Turbo"
+            "default": "GPT 4o Mini"
           }
         },
         "type": "object",
@@ -2607,12 +2483,7 @@
       },
       "ContextType": {
         "type": "string",
-        "enum": [
-          "assistants",
-          "threads",
-          "rag",
-          "personas"
-        ],
+        "enum": ["assistants", "threads", "rag", "personas"],
         "title": "ContextType",
         "description": "Context where files or generated embeddings are used."
       },
@@ -2625,9 +2496,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "file_id"
-        ],
+        "required": ["file_id"],
         "title": "CreateAssistantFileSchema"
       },
       "CreateAssistantFileSchemaResponse": {
@@ -2644,10 +2513,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "file_id",
-          "assistant_id"
-        ],
+        "required": ["file_id", "assistant_id"],
         "title": "CreateAssistantFileSchemaResponse"
       },
       "CreateAssistantSchema": {
@@ -2705,10 +2571,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "name",
-          "config"
-        ],
+        "required": ["name", "config"],
         "title": "CreateAssistantSchema"
       },
       "CreateRunPayload": {
@@ -2754,9 +2617,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "input"
-        ],
+        "required": ["input"],
         "title": "CreateRunPayload",
         "description": "Payload for creating a run."
       },
@@ -2794,9 +2655,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "assistant_id"
-        ],
+        "required": ["assistant_id"],
         "title": "CreateThreadSchema"
       },
       "CreateUpdateUserSchema": {
@@ -2924,11 +2783,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "file_id",
-          "num_of_assistants",
-          "assistants"
-        ],
+        "required": ["file_id", "num_of_assistants", "assistants"],
         "title": "DeleteFileResponse"
       },
       "DocumentProcessorConfig": {
@@ -3314,9 +3169,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "files"
-        ],
+        "required": ["files"],
         "title": "IngestRequestPayload"
       },
       "JWTResponse": {
@@ -3327,20 +3180,18 @@
           }
         },
         "type": "object",
-        "required": [
-          "token"
-        ],
+        "required": ["token"],
         "title": "JWTResponse"
       },
       "LLMType": {
         "type": "string",
         "enum": [
-          "GPT 3.5 Turbo",
+          "GPT 4o Mini",
           "GPT 4",
           "GPT 4o",
           "GPT 4 (Azure OpenAI)",
-          "Claude 2",
-          "Claude 2 (Amazon Bedrock)",
+          "Anthropic Claude",
+          "Anthropic Claude (Amazon Bedrock)",
           "GEMINI",
           "Mixtral",
           "Ollama"
@@ -3411,15 +3262,11 @@
           }
         },
         "type": "object",
-        "required": [
-          "strategy"
-        ],
+        "required": ["strategy"],
         "title": "Login"
       },
       "Logout": {
-        "properties": {
-
-        },
+        "properties": {},
         "type": "object",
         "title": "Logout"
       },
@@ -3544,9 +3391,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "input"
-        ],
+        "required": ["input"],
         "title": "QueryRequestPayload"
       },
       "QueryResponsePayload": {
@@ -3564,10 +3409,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "success",
-          "data"
-        ],
+        "required": ["success", "data"],
         "title": "QueryResponsePayload"
       },
       "RunnableConfig": {
@@ -3586,14 +3428,10 @@
           "callbacks": {
             "anyOf": [
               {
-                "items": {
-
-                },
+                "items": {},
                 "type": "array"
               },
-              {
-
-              },
+              {},
               {
                 "type": "null"
               }
@@ -3647,19 +3485,14 @@
           }
         },
         "type": "object",
-        "required": [
-          "configurable"
-        ],
+        "required": ["configurable"],
         "title": "RunnableConfigurableAlternativesConfig"
       },
       "SplitterConfig": {
         "properties": {
           "name": {
             "type": "string",
-            "enum": [
-              "semantic",
-              "by_title"
-            ],
+            "enum": ["semantic", "by_title"],
             "title": "Name",
             "description": "Splitter method",
             "default": "semantic"
@@ -3762,12 +3595,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "id",
-          "user_id",
-          "created_at",
-          "updated_at"
-        ],
+        "required": ["id", "user_id", "created_at", "updated_at"],
         "title": "Thread"
       },
       "ThreadPostRequest": {
@@ -3801,9 +3629,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "values"
-        ],
+        "required": ["values"],
         "title": "ThreadPostRequest",
         "description": "Payload for adding state to a thread."
       },
@@ -3831,9 +3657,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "thread_id"
-        ],
+        "required": ["thread_id"],
         "title": "TitleRequest"
       },
       "Tools": {
@@ -3853,19 +3677,13 @@
         "properties": {
           "partition_strategy": {
             "type": "string",
-            "enum": [
-              "auto",
-              "hi_res"
-            ],
+            "enum": ["auto", "hi_res"],
             "title": "Partition Strategy",
             "default": "auto"
           },
           "hi_res_model_name": {
             "type": "string",
-            "enum": [
-              "detectron2_onnx",
-              "chipper"
-            ],
+            "enum": ["detectron2_onnx", "chipper"],
             "title": "Hi Res Model Name",
             "description": "Only for `hi_res` strategy",
             "default": "detectron2_onnx"
@@ -4074,11 +3892,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "user_id",
-          "created_at",
-          "updated_at"
-        ],
+        "required": ["user_id", "created_at", "updated_at"],
         "title": "User",
         "description": "Model representing a registered user in the application."
       },
@@ -4108,11 +3922,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "loc",
-          "msg",
-          "type"
-        ],
+        "required": ["loc", "msg", "type"],
         "title": "ValidationError"
       },
       "VectorDatabase": {
@@ -4141,9 +3951,7 @@
       },
       "VectorDatabaseType": {
         "type": "string",
-        "enum": [
-          "qdrant"
-        ],
+        "enum": ["qdrant"],
         "const": "qdrant",
         "title": "VectorDatabaseType"
       }

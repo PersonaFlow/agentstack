@@ -20,8 +20,8 @@ const defaultValues = {
     configurable: {
       interrupt_before_action: false,
       type: "",
-      agent_type: "GPT 3.5 Turbo",
-      llm_type: "GPT 3.5 Turbo",
+      agent_type: "GPT 4o Mini",
+      llm_type: "GPT 4o Mini",
       retrieval_description: "",
       system_message: "",
       tools: [],
