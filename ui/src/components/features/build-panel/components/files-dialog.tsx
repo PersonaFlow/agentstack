@@ -18,7 +18,7 @@ import { Plus, SquarePlus } from "lucide-react";
 import MultiSelect from "@/components/ui/multiselect";
 import { useFiles, useUploadFile } from "@/data-provider/query-service";
 import Spinner from "@/components/ui/spinner";
-import { useEffect, useState } from "react";
+import { ChangeEvent, ReactEventHandler, useEffect, useState } from "react";
 import {
   FormControl,
   FormField,
@@ -96,6 +96,26 @@ export default function FilesDialog({ form, classNames }: TFilesDialog) {
     }
   };
 
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files) {
+      const selectedFiles = Array.from(event.target.files);
+      const duplicateFiles = selectedFiles.filter((file) =>
+        files?.some(
+          (uploadedFile) =>
+            uploadedFile.filename === file.name &&
+            uploadedFile.bytes === file.size,
+        ),
+      );
+      if (duplicateFiles.length > 0) {
+        return toast({
+          variant: "destructive",
+          title: "Cannot add duplicate files.",
+        });
+      }
+      setFileUpload(event.target.files[0]);
+    }
+  };
+
   if (isLoading) return <Spinner />;
 
   return (
@@ -148,23 +168,7 @@ export default function FilesDialog({ form, classNames }: TFilesDialog) {
                     type="file"
                     accept="image/*, application/pdf"
                     onChange={(event) => {
-                      if (event.target.files) {
-                        const selectedFiles = Array.from(event.target.files);
-                        const duplicateFiles = selectedFiles.filter((file) =>
-                          files?.some(
-                            (uploadedFile) =>
-                              uploadedFile.filename === file.name &&
-                              uploadedFile.bytes === file.size,
-                          ),
-                        );
-                        if (duplicateFiles.length > 0) {
-                          return toast({
-                            variant: "destructive",
-                            title: "Cannot add duplicate files."
-                          })
-                        }
-                        setFileUpload(event.target.files[0]);
-                      }
+                      handleFileChange(event)
                     }}
                   />
                 </div>
