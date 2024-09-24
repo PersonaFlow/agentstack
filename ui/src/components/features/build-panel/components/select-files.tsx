@@ -57,7 +57,9 @@ export default function SelectFiles({ form }: TSelectFilesProps) {
                       className="rounded-full flex cursor-pointer text-xs gap-1 py-1 max-w-40"
                       onClick={() => remove(index)}
                     >
-                      <span className="truncate">{badgeValue.label}</span>
+                      <span className="truncate">
+                        <p>{badgeValue.label}</p>
+                      </span>
                       <div>
                         <CircleX size={16} />
                       </div>
