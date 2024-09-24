@@ -1,7 +1,7 @@
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { FileIcon } from "@radix-ui/react-icons";
 import {
   Dialog,
@@ -14,7 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { UseFormReturn } from "react-hook-form";
-import { SquarePlus } from "lucide-react";
+import { Plus, SquarePlus } from "lucide-react";
 import MultiSelect from "@/components/ui/multiselect";
 import { useFiles, useUploadFile } from "@/data-provider/query-service";
 import Spinner from "@/components/ui/spinner";
@@ -26,9 +26,11 @@ import {
   FormLabel,
 } from "@/components/ui/form";
 import { useToast } from "@/components/ui/use-toast";
+import { cn } from "@/utils/utils";
 
 type TFilesDialog = {
   form: UseFormReturn<any>;
+  classNames: string;
 };
 
 type TOption = {
@@ -36,7 +38,7 @@ type TOption = {
   value: string;
 };
 
-export default function FilesDialog({ form }: TFilesDialog) {
+export default function FilesDialog({ form, classNames }: TFilesDialog) {
   const [fileUpload, setFileUpload] = useState<File | null>();
   const [values, setValues] = useState<TOption[]>([]);
   const { data: files, isLoading } = useFiles("assistants");
@@ -99,11 +101,11 @@ export default function FilesDialog({ form }: TFilesDialog) {
   return (
     <Dialog>
       <DialogTrigger
-        className="flex gap-2 border-2 rounded-md p-2 border-black"
+        className={cn(buttonVariants({ variant: "outline" }), "gap-2", classNames)}
         type="button"
       >
-        <SquarePlus />
-        Add Files
+        <Plus />
+        Manage Files
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
