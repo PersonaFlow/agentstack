@@ -26,6 +26,7 @@ class AgentType(str, Enum):
 class LLMType(str, Enum):
     GPT_4O_MINI = "GPT 4o Mini"
     GPT_4 = "GPT 4"
+    GPT_4_TURBO = "GPT 4 Turbo"
     GPT_4O = "GPT 4o"
     AZURE_OPENAI = "GPT 4 (Azure OpenAI)"
     ANTHROPIC_CLAUDE = "Anthropic Claude"
