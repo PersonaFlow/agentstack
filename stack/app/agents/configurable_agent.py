@@ -68,7 +68,7 @@ CHECKPOINTER = get_pg_checkpoint_saver()
 def get_llm(llm_type: LLMType):
     if llm_type == LLMType.GPT_4O_MINI:
         llm = get_openai_llm()
-    elif llm_type == LLMType.GPT_4:
+    elif llm_type == LLMType.GPT_4 or llm_type == LLMType.GPT_4_TURBO:
         llm = get_openai_llm(model="gpt-4-turbo")
     elif llm_type == LLMType.GPT_4O:
         llm = get_openai_llm(model="gpt-4o")
@@ -85,7 +85,7 @@ def get_llm(llm_type: LLMType):
     elif llm_type == LLMType.OLLAMA:
         llm = get_ollama_llm()
     else:
-        raise ValueError("Unexpected llm type")
+        raise ValueError(f"Unexpected llm type: {llm_type}")
     return llm
 
 
