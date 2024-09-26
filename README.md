@@ -14,8 +14,6 @@
   <img src="assets/screenshot.png" height="512">
 </p>
 
-**WARNING: This project is currently undergoing development that may introduce breaking changes.**
-
 The PersonaFlow platform aims to provide highly personalized user experiences fueled by Generative AI. With a focus on scalability and efficiency, AgentStack offers a suite of tools and APIs to create complex, database-backed configurable agents backed by an API.
 
 Key features include:
