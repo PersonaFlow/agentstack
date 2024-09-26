@@ -1,5 +1,4 @@
 <p align="center">
-  <img src="assets/PersonaFlowIcon-512.png" height="256">
   <h1 align="center">AgentStack</h1>
   <h2 align="center"><b><i>Build, deploy, and scale AI agents with ease.</i></b></h2>
 </p>
@@ -9,6 +8,10 @@
     <img
       src="https://img.shields.io/discord/1086345563026489514?label=&logo=discord&style=for-the-badge&logoWidth=20&logoColor=white&labelColor=000000&color=blueviolet">
   </a>
+</p>
+
+<p align="center">
+  <img src="assets/screenshot.png" height="512">
 </p>
 
 **WARNING: This project is currently undergoing development that may introduce breaking changes.**
@@ -37,7 +40,7 @@ Much of the API and business language is modeled after the OpenAI Assistants API
 
  <p align="center" style="color:green"><b><i>Note: This project is in the very early stages of development and testing. Breaking changes should therefore be expected until the first stable release.</i></b></p>
 
-> Web site and documentation are in the works, but in the meantime you can find the API documentation [on SwaggerHub](https://app.swaggerhub.com/apis-docs/DanOrlando/personaflow/0.1.0).
+>OpenAPI spec can be found [on SwaggerHub](https://app.swaggerhub.com/apis-docs/DanOrlando/personaflow/0.1.0).
 
 # Roadmap
 
