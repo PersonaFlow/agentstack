@@ -67,6 +67,7 @@ async def ingest(
     file_repository: FileRepository = Depends(get_file_repository),
     assistant_repository: AssistantRepository = Depends(get_assistant_repository),
 ) -> dict:
+    logger.info("Starting Ingest")
     files_to_ingest = []
     try:
         is_assistant = payload.purpose == ContextType.assistants
@@ -83,6 +84,7 @@ async def ingest(
             file = FileSchema.model_validate(file_model)
             files_to_ingest.append(file)
 
+        print("Getting ingest tasks")
         tasks = await get_ingest_tasks_from_config(files_to_ingest, payload)
 
         await asyncio.gather(*tasks)
