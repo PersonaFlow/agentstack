@@ -129,20 +129,7 @@ function EditAssistantForm({
         <LucidePencil />
         <h1 className="text-2xl">Edit</h1>
       </div>
-      {/* <Tabs defaultValue="builder-tab">
-        <TabsList>
-          <TabsTrigger value="builder-tab" className="gap-2">
-            Assistant Builder <Wrench size={16} />
-          </TabsTrigger>
-          <TabsTrigger value="files-tab" className="gap-2">
-            File Ingestion <File size={16} />
-          </TabsTrigger>
-        </TabsList>
-        <TabsContent value="builder-tab"> */}
-          <AssistantForm form={form} onSubmit={onSubmit} />
-        {/* </TabsContent>
-        <TabsContent value="files-tab">Files...</TabsContent>
-      </Tabs> */}
+      <AssistantForm form={form} onSubmit={onSubmit} />
     </>
   );
 }
