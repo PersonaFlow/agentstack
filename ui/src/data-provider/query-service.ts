@@ -367,7 +367,7 @@ export const useDeleteAssistantFile = () => {
 // todo: update return type
 export const useIngestFileData = (payload: t.TIngestFileDataRequest) => {
   return useMutation<{}, Error>({
-    mutationFn: async (): Promise<{}> =>
+    mutationFn: async (): Promise<any> =>
       await dataService.ingestFileData(payload),
   });
 };
