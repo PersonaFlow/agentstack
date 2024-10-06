@@ -15,7 +15,7 @@ import { useAvailableTools } from "@/hooks/useAvailableTools";
 import { useToast } from "@/components/ui/use-toast";
 import { useSlugRoutes } from "@/hooks/useSlugParams";
 import Spinner from "@/components/ui/spinner";
-import { LucidePencil } from "lucide-react";
+import { File, LucidePencil, Wrench } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const RetrievalType = "retrieval";
@@ -131,8 +131,12 @@ function EditAssistantForm({
       </div>
       <Tabs defaultValue="builder-tab">
         <TabsList>
-          <TabsTrigger value="builder-tab">Assistant Builder</TabsTrigger>
-          <TabsTrigger value="files-tab">File Ingestion</TabsTrigger>
+          <TabsTrigger value="builder-tab" className="gap-2">
+            Assistant Builder <Wrench size={16} />
+          </TabsTrigger>
+          <TabsTrigger value="files-tab" className="gap-2">
+            File Ingestion <File size={16} />
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="builder-tab">
           <AssistantForm form={form} onSubmit={onSubmit} />
