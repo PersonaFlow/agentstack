@@ -44,21 +44,25 @@ export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
   if (isError) return <div>There was an issue fetching config schema.</div>;
 
   return (
-    <Tabs defaultValue="builder-tab">
-      <TabsList>
-        <TabsTrigger value="builder-tab" className="gap-2">
-          Assistant Builder <Wrench size={16} />
-        </TabsTrigger>
-        <TabsTrigger value="files-tab" className="gap-2" disabled={architectureType === 'chatbot'}>
-          File Ingestion <File size={16} />
-        </TabsTrigger>
-      </TabsList>
-      <TabsContent value="builder-tab">
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="overflow-y-scroll hide-scrollbar"
-          >
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="overflow-y-scroll hide-scrollbar"
+      >
+        <Tabs defaultValue="builder-tab">
+          <TabsList>
+            <TabsTrigger value="builder-tab" className="gap-2">
+              Assistant Builder <Wrench size={16} />
+            </TabsTrigger>
+            <TabsTrigger
+              value="files-tab"
+              className="gap-2"
+              disabled={architectureType === "chatbot"}
+            >
+              File Ingestion <File size={16} />
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="builder-tab">
             <div className="rounded-md bg-gray-50 p-4 md:p-6">
               <div className="flex flex-col gap-6">
                 <div className="flex gap-6">
@@ -122,10 +126,6 @@ export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
                       <>
                         <SelectCapabilities form={form} />
                         <RetrievalInstructions form={form} />
-                        <div className="flex flex-col">
-                          <FilesDialog classNames="mb-4" form={form} />
-                          <SelectFiles form={form} />
-                        </div>
                         {architectureType !== "chat_retrieval" && (
                           <SelectTools form={form} />
                         )}
@@ -147,10 +147,15 @@ export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
                 )}
               </div>
             </div>
-          </form>
-        </Form>
-      </TabsContent>
-      <TabsContent value="files-tab">Files...</TabsContent>
-    </Tabs>
+          </TabsContent>
+          <TabsContent value="files-tab">
+            <div className="flex flex-col">
+              <FilesDialog classNames="mb-4" form={form} />
+              <SelectFiles form={form} />
+            </div>
+          </TabsContent>
+        </Tabs>
+      </form>
+    </Form>
   );
 }
