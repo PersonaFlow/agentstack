@@ -16,6 +16,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useSlugRoutes } from "@/hooks/useSlugParams";
 import Spinner from "@/components/ui/spinner";
 import { LucidePencil } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const RetrievalType = "retrieval";
 
@@ -128,7 +129,16 @@ function EditAssistantForm({
         <LucidePencil />
         <h1 className="text-2xl">Edit</h1>
       </div>
-      <AssistantForm form={form} onSubmit={onSubmit} />
+      <Tabs defaultValue="builder-tab">
+        <TabsList>
+          <TabsTrigger value="builder-tab">Assistant Builder</TabsTrigger>
+          <TabsTrigger value="files-tab">File Ingestion</TabsTrigger>
+        </TabsList>
+        <TabsContent value="builder-tab">
+          <AssistantForm form={form} onSubmit={onSubmit} />
+        </TabsContent>
+        <TabsContent value="files-tab">Files...</TabsContent>
+      </Tabs>
     </>
   );
 }
