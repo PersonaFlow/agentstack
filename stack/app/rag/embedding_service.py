@@ -102,11 +102,6 @@ class EmbeddingService:
             list[Any]: A list of partitioned file elements.
         """
 
-        # file_content = await self.file_repository.retrieve_file_content(str(file.id))
-        # if file_content is None:
-        #     logger.exception(f"File content not found for file {file.id}", exc_info=True)
-        #     raise FileNotFoundError
-
         try:
             file_path = file.source
             logger.info(
@@ -142,6 +137,7 @@ class EmbeddingService:
         except Exception as e:
             logger.exception(f"Error partitioning file: {e}")
             raise
+        return []
 
     def _create_base_document(
         self, document_id: str, file: FileSchema, document_content: str
@@ -219,21 +215,21 @@ class EmbeddingService:
                     [
                         BaseDocumentChunk(
                             id=str(uuid.uuid4()),
-                            document_id=document_id,
-                            file_id=str(file.id),
-                            namespace=str(self.namespace),
-                            purpose=self.purpose,
                             page_content=f"{chunk.get('title', '')}\n{chunk.get('page_content', '')}"
                             if config.splitter.prefix_titles
                             else chunk.get("page_content", ""),
-                            source=file.source,
-                            source_type=file.mime_type,
-                            chunk_index=chunk.get("chunk_index", None),
-                            title=chunk.get("title", None),
-                            token_count=get_tiktoken_length(
-                                chunk.get("page_content", "")
-                            ),
-                            metadata=sanitize_metadata(chunk.get("metadata", {})),
+                            namespace=str(self.namespace),
+                            metadata={
+                                "document_id": document_id,
+                                "file_id": str(file.id),
+                                "purpose": self.purpose,
+                                "source": file.source,
+                                "source_type": file.mime_type,
+                                "chunk_index": chunk.get("chunk_index", None),
+                                "title": chunk.get("title", None),
+                                "token_count": get_tiktoken_length(chunk.get("page_content", "")),
+                                **sanitize_metadata(chunk.get("metadata", {}))
+                            }
                         )
                         for chunk in chunks
                     ]

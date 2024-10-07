@@ -236,69 +236,137 @@ class BaseDocument(BaseModel):
     metadata: dict | None = None
 
 
+# class BaseDocumentChunk(BaseModel):
+#     id: str
+#     document_id: str
+#     page_content: str
+#     file_id: str | None = None
+#     namespace: str | None = None
+#     source: str | None = None
+#     source_type: str | None = None
+#     chunk_index: int | None = None
+#     title: str | None = None
+#     purpose: ContextType | None = None
+#     token_count: int | None = None
+#     page_number: int | None = None
+#     metadata: dict | None = None
+#     dense_embedding: Optional[list[float]] = None
+
+#     @classmethod
+#     def from_metadata(cls, metadata: dict):
+#         exclude_keys = {
+#             "chunk_id",
+#             "chunk_index",
+#             "document_id",
+#             "file_id",
+#             "namespace",
+#             "page_content",
+#             "source",
+#             "source_type",
+#             "purpose",
+#             "title",
+#             "token_count",
+#             "page_number",
+#         }
+#         # Prepare metadata for the constructor and for embedding into the object
+#         constructor_metadata = {
+#             k: v for k, v in metadata.items() if k not in exclude_keys
+#         }
+#         filtered_metadata = {
+#             k: v for k, v in metadata.items() if k in exclude_keys and k != "chunk_id"
+#         }
+
+#         def to_int(value):
+#             try:
+#                 return int(value) if str(value).isdigit() else None
+#             except (TypeError, ValueError):
+#                 return None
+
+#         chunk_index = to_int(metadata.get("chunk_index"))
+#         token_count = to_int(metadata.get("token_count"))
+
+#         # Remove explicitly passed keys from filtered_metadata to avoid duplication
+#         for key in ["chunk_index", "token_count"]:
+#             filtered_metadata.pop(key, None)
+
+#         return cls(
+#             id=metadata.get("chunk_id", ""),
+#             chunk_index=chunk_index,
+#             token_count=token_count,
+#             **filtered_metadata,  # Pass filtered metadata for constructor
+#             metadata=constructor_metadata,  # Pass the rest as part of the metadata
+#             dense_embedding=metadata.get("values"),
+#         )
+
+#     @validator("id")
+#     def id_must_be_valid_uuid(cls, v):
+#         try:
+#             uuid_obj = uuid.UUID(v, version=4)
+#             return str(uuid_obj)
+#         except ValueError:
+#             raise ValueError(f"id must be a valid UUID, got {v}")
+
+#     @validator("dense_embedding")
+#     def embeddings_must_be_list_of_floats(cls, v):
+#         if v is None:
+#             return v  # Allow None to pass through
+#         if not all(isinstance(item, float) for item in v):
+#             raise ValueError(f"embeddings must be a list of floats, got {v}")
+#         return v
+
+#     def to_vector_db(self):
+#         metadata = {
+#             "chunk_id": self.id,
+#             "chunk_index": self.chunk_index or "",
+#             "document_id": self.document_id,
+#             "file_id": self.file_id,
+#             "namespace": self.namespace,
+#             "page_content": self.page_content,
+#             "source": self.source,
+#             "source_type": self.source_type,
+#             "title": self.title or "",
+#             "purpose": self.purpose,
+#             "token_count": self.token_count,
+#             **(self.metadata or {}),
+#         }
+#         result = {
+#             "id": self.id,
+#             "values": self.dense_embedding,
+#             "metadata": metadata,
+#         }
+#         return result
+
+
 class BaseDocumentChunk(BaseModel):
     id: str
-    document_id: str
     page_content: str
-    file_id: str | None = None
-    namespace: str | None = None
-    source: str | None = None
-    source_type: str | None = None
-    chunk_index: int | None = None
-    title: str | None = None
-    purpose: ContextType | None = None
-    token_count: int | None = None
-    page_number: int | None = None
-    metadata: dict | None = None
+    namespace: Optional[str] = None
+    metadata: dict = Field(default_factory=dict)
     dense_embedding: Optional[list[float]] = None
 
     @classmethod
     def from_metadata(cls, metadata: dict):
-        exclude_keys = {
-            "chunk_id",
-            "chunk_index",
-            "document_id",
-            "file_id",
-            "namespace",
-            "page_content",
-            "source",
-            "source_type",
-            "purpose",
-            "title",
-            "token_count",
-            "page_number",
-        }
-        # Prepare metadata for the constructor and for embedding into the object
-        constructor_metadata = {
-            k: v for k, v in metadata.items() if k not in exclude_keys
-        }
-        filtered_metadata = {
-            k: v for k, v in metadata.items() if k in exclude_keys and k != "chunk_id"
-        }
-
-        def to_int(value):
-            try:
-                return int(value) if str(value).isdigit() else None
-            except (TypeError, ValueError):
-                return None
-
-        chunk_index = to_int(metadata.get("chunk_index"))
-        token_count = to_int(metadata.get("token_count"))
-
-        # Remove explicitly passed keys from filtered_metadata to avoid duplication
-        for key in ["chunk_index", "token_count"]:
-            filtered_metadata.pop(key, None)
-
+        # Extract the core fields
+        chunk_id = metadata.pop("chunk_id", "")
+        page_content = metadata.pop("page_content", "")
+        namespace = metadata.pop("namespace", None)
+        
+        # Everything else goes into metadata
         return cls(
-            id=metadata.get("chunk_id", ""),
-            chunk_index=chunk_index,
-            token_count=token_count,
-            **filtered_metadata,  # Pass filtered metadata for constructor
-            metadata=constructor_metadata,  # Pass the rest as part of the metadata
-            dense_embedding=metadata.get("values"),
+            id=chunk_id,
+            page_content=page_content,
+            namespace=namespace,
+            metadata=metadata,
+            dense_embedding=metadata.pop("values", None)
         )
 
-    @validator("id")
+    @classmethod
+    def validate(cls, v):
+        if isinstance(v, dict):
+            return cls(**v)
+        return v
+
+    @classmethod
     def id_must_be_valid_uuid(cls, v):
         try:
             uuid_obj = uuid.UUID(v, version=4)
@@ -306,7 +374,7 @@ class BaseDocumentChunk(BaseModel):
         except ValueError:
             raise ValueError(f"id must be a valid UUID, got {v}")
 
-    @validator("dense_embedding")
+    @classmethod
     def embeddings_must_be_list_of_floats(cls, v):
         if v is None:
             return v  # Allow None to pass through
@@ -315,26 +383,24 @@ class BaseDocumentChunk(BaseModel):
         return v
 
     def to_vector_db(self):
-        metadata = {
-            "chunk_id": self.id,
-            "chunk_index": self.chunk_index or "",
-            "document_id": self.document_id,
-            "file_id": self.file_id,
-            "namespace": self.namespace,
-            "page_content": self.page_content,
-            "source": self.source,
-            "source_type": self.source_type,
-            "title": self.title or "",
-            "purpose": self.purpose,
-            "token_count": self.token_count,
-            **(self.metadata or {}),
-        }
-        result = {
+        return {
             "id": self.id,
             "values": self.dense_embedding,
-            "metadata": metadata,
+            "metadata": {
+                "page_content": self.page_content,
+                "namespace": self.namespace,
+                **self.metadata
+            },
         }
-        return result
+
+    def model_dump(self, exclude: set = None):
+        return {
+            "id": self.id,
+            "page_content": self.page_content,
+            "namespace": self.namespace,
+            "metadata": self.metadata,
+            "dense_embedding": self.dense_embedding
+        }
 
 
 class QueryResponsePayload(BaseModel):

@@ -56,24 +56,14 @@ class QdrantService(BaseVectorDatabase):
     async def upsert(self, chunks: List[BaseDocumentChunk]) -> None:
         points = []
         for chunk in tqdm(chunks, desc="Upserting to Qdrant"):
-            metadata = {
-                "file_id": chunk.file_id,
-                "namespace": chunk.namespace,
-                "source": chunk.source,
-            }
             points.append(
                 rest.PointStruct(
                     id=chunk.id,
                     vector={"page_content": chunk.dense_embedding},
                     payload={
-                        "document_id": chunk.document_id,
                         "page_content": chunk.page_content,
-                        "source": chunk.source,
                         "namespace": chunk.namespace,
-                        "file_id": chunk.file_id,
-                        "chunk_index": chunk.chunk_index,
-                        "metadata": metadata,
-                        **(chunk.metadata if chunk.metadata else {}),
+                        "metadata": chunk.metadata
                     },
                 )
             )
@@ -106,28 +96,12 @@ class QdrantService(BaseVectorDatabase):
                 ]
             ),
         )
-        # return [
-        #     BaseDocumentChunk.from_metadata({**result.payload, "chunk_id": result.id})
-        #     for result in search_result
-        # ]
         return [
             BaseDocumentChunk(
                 id=result.id,
-                document_id=result.payload.get("document_id", ""),
                 page_content=result.payload.get("page_content", ""),
-                file_id=result.payload.get("file_id"),
                 namespace=result.payload.get("namespace"),
-                source=result.payload.get("source"),
-                source_type=result.payload.get("filetype"),
-                chunk_index=result.payload.get("chunk_index"),
-                title=result.payload.get("title"),
-                token_count=result.payload.get("token_count"),
-                page_number=result.payload.get("page_number"),
-                metadata=result.payload.get("metadata", {}),
-                # metadata={
-                #     k: v for k, v in result.payload.items()
-                #     if k not in ["document_id", "page_content", "source_type", "chunk_index", "title", "token_count", "page_number"]
-                # },
+                metadata={k: v for k, v in result.payload.items() if k not in ["page_content", "namespace"]}
             )
             for result in search_result
         ]

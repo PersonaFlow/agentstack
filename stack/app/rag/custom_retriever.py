@@ -42,9 +42,8 @@ class Retriever(BaseRetriever):
 
     def _chunk_to_document(self, chunk: BaseDocumentChunk) -> Document:
         metadata = {
-            "source": chunk.source,
-            "file_id": chunk.file_id,
-            "chunk_index": chunk.chunk_index,
             "namespace": chunk.namespace,
+            **chunk.metadata
         }
         return Document(page_content=chunk.page_content, metadata=metadata)
+
