@@ -4,6 +4,9 @@ from langchain.document_loaders.parsers import BS4HTMLParser, PDFMinerParser
 from langchain.document_loaders.parsers.generic import MimeTypeBasedParser
 from langchain.document_loaders.parsers.msword import MsWordParser
 from langchain.document_loaders.parsers.txt import TextParser
+import structlog
+
+logger = structlog.get_logger()
 
 HANDLERS = {
     "application/pdf": PDFMinerParser(),
@@ -23,8 +26,6 @@ MIMETYPE_BASED_PARSER = MimeTypeBasedParser(
     handlers=HANDLERS,
     fallback_parser=None,
 )
-
-
 def guess_mime_type(file_name: str, file_bytes: bytes) -> str:
     """Guess the mime-type of a file based on its name or bytes."""
     # Guess based on the file extension
@@ -45,6 +46,16 @@ def guess_mime_type(file_name: str, file_bytes: bytes) -> str:
         return "application/msword"
     elif file_bytes.startswith(b"\x09\x00\xff\x00\x06\x00"):
         return "application/vnd.ms-excel"
+
+    # Check for JSON-like content
+    try:
+        decoded = file_bytes[:1024].decode("utf-8", errors="ignore")
+        stripped = decoded.strip()
+        if (stripped.startswith('{') and stripped.endswith('}')) or \
+           (stripped.startswith('[') and stripped.endswith(']')):
+            return "application/json"
+    except UnicodeDecodeError:
+        pass
 
     # Check for CSV-like plain text content (commas, tabs, newlines)
     try:
