@@ -94,10 +94,6 @@ class UploadFileSchema(BaseModel):
         default=ContextType.assistants,
         description="The context for file: eg. 'assistants', 'rag', 'threads', or 'personas'.",
     )
-    filename: Optional[str] = Field(
-        None,
-        description="The preferred name for the file. If not provided, the name of the uploaded file will be used.",
-    )
     kwargs: Optional[str] = Field(
         None,
         description="The file kwargs, containing any additional information about the file. This is a string sent in JSON format.",
