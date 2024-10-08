@@ -28,6 +28,7 @@ from stack.app.vectordbs import get_vector_service
 from stack.app.schema.file import FileSchema
 from stack.app.core.configuration import get_settings
 from stack.app.model.file import File
+from stack.app.utils.file_helpers import parse_json_file
 
 # TODO: Add similarity score to the BaseDocumentChunk
 # TODO: Add relevance score to the BaseDocumentChunk
@@ -67,7 +68,7 @@ class EmbeddingService:
         encoder: BaseEncoder,
         vector_credentials: dict,
         dimensions: Optional[int],
-        files: Optional[list[File]] = None,
+        files: Optional[list[tuple[FileSchema, bytes]]] = None,
         namespace: Optional[str] = None,
         purpose: Optional[str] = None,
     ):
@@ -86,6 +87,7 @@ class EmbeddingService:
     async def _partition_file(
         self,
         file: FileSchema,
+        file_content: bytes,
         strategy="auto",
         returned_elements_type: Literal["chunked", "original"] = "chunked",
     ) -> list[Any]:
@@ -103,39 +105,29 @@ class EmbeddingService:
         """
 
         try:
-            file_path = file.source
-            logger.info(
-                f"Reading content from local file system. File path: {file_path}"
+            files = shared.Files(
+                content=file_content,
+                file_name=file.source.split("/")[-1],
             )
-            with open(file_path, "rb") as f:
-                file_content = f.read()
-        except FileNotFoundError as e:
-            logger.exception(
-                f"Failed to retrieve file content from local file system.",
-                exc_info=True,
+            req = shared.PartitionParameters(
+                files=files,
+                include_page_breaks=True,
+                strategy=strategy,
+                max_characters=2500 if returned_elements_type == "chunked" else None,
+                new_after_n_chars=1000 if returned_elements_type == "chunked" else None,
+                chunking_strategy="by_title"
+                if returned_elements_type == "chunked"
+                else None,
             )
-            raise
-
-        files = shared.Files(
-            content=file_content,
-            file_name=file.source.split("/")[-1],
-        )
-        req = shared.PartitionParameters(
-            files=files,
-            include_page_breaks=True,
-            strategy=strategy,
-            max_characters=2500 if returned_elements_type == "chunked" else None,
-            new_after_n_chars=1000 if returned_elements_type == "chunked" else None,
-            chunking_strategy="by_title"
-            if returned_elements_type == "chunked"
-            else None,
-        )
-        try:
-            unstructured_response = self.unstructured_client.general.partition(req)
-            if unstructured_response.elements is not None:
-                return unstructured_response.elements
+            try:
+                unstructured_response = self.unstructured_client.general.partition(req)
+                if unstructured_response.elements is not None:
+                    return unstructured_response.elements
+            except Exception as e:
+                logger.exception(f"Error partitioning file: {e}")
+                raise
         except Exception as e:
-            logger.exception(f"Error partitioning file: {e}")
+            logger.exception(f"Error processing file: {e}")
             raise
         return []
 
@@ -161,86 +153,85 @@ class EmbeddingService:
     ) -> list[BaseDocumentChunk]:
         logger.info(f"Generating chunks using method: {config.splitter.name}")
         doc_chunks = []
-        for file in tqdm(self.files, desc="Generating chunks"):
+        for file, file_content in tqdm(self.files, desc="Generating chunks"):
             try:
-                chunks = []
-                if config.splitter.name == "by_title":
-                    chunked_elements = await self._partition_file(
-                        file, strategy=config.unstructured.partition_strategy
-                    )
-                    for element in chunked_elements:
-                        chunk_data = {
-                            "page_content": element.get("text"),
-                            "metadata": sanitize_metadata(element.get("metadata")),
-                        }
-                        chunks.append(chunk_data)
-                if config.splitter.name == "semantic":
-                    elements = await self._partition_file(
-                        file,
-                        strategy=config.unstructured.partition_strategy,
-                        returned_elements_type="original",
-                    )
-                    splitter_config = UnstructuredSemanticSplitter(
-                        encoder=self.encoder,
-                        window_size=config.splitter.rolling_window_size,
-                        min_split_tokens=config.splitter.min_tokens,
-                        max_split_tokens=config.splitter.max_tokens,
-                    )
-                    chunks = await splitter_config(elements=elements)
-
-                if not chunks:
-                    continue
-
-                document_id = f"doc_{uuid.uuid4()}"
-                document_content = ""
-                # Filter out useless chunks here
-                for chunk in chunks:
-                    chunk_content = deduplicate_chunk(chunk.get("page_content", ""))
-                    valid, reason = check_content_is_useful(
-                        chunk_content,
-                        min_word_count=self.MIN_WORD_COUNT,
-                        information_density_ratio=self.INFORMATION_DENSITY_RATIO,
-                        max_density_word_count=self.MAX_DENSITY_WORD_COUNT,
-                    )
-                    if not valid:
-                        logger.debug(f"Filtering out chunk, {reason}, {chunk}")
-                        continue
-                    logger.debug(f"Chunk is useful: {chunk}")
-                    document_content += chunk_content
-
-                if not document_content:
-                    continue
-
-                doc_chunks.extend(
-                    [
-                        BaseDocumentChunk(
-                            id=str(uuid.uuid4()),
-                            page_content=f"{chunk.get('title', '')}\n{chunk.get('page_content', '')}"
-                            if config.splitter.prefix_titles
-                            else chunk.get("page_content", ""),
-                            namespace=str(self.namespace),
-                            metadata={
-                                "document_id": document_id,
-                                "file_id": str(file.id),
-                                "purpose": self.purpose,
-                                "source": file.source,
-                                "source_type": file.mime_type,
-                                "chunk_index": chunk.get("chunk_index", None),
-                                "title": chunk.get("title", None),
-                                "token_count": get_tiktoken_length(chunk.get("page_content", "")),
-                                **sanitize_metadata(chunk.get("metadata", {}))
-                            }
+                if file.mime_type == "application/json":
+                    chunks = await self.process_json_file(file, file_content)
+                else:
+                    chunks = []
+                    if config.splitter.name == "by_title":
+                        chunked_elements = await self._partition_file(
+                            file,
+                            file_content, 
+                            strategy=config.unstructured.partition_strategy
                         )
-                        for chunk in chunks
-                    ]
-                )
+                        for element in chunked_elements:
+                            chunk_data = {
+                                "page_content": element.get("text"),
+                                "metadata": sanitize_metadata(element.get("metadata")),
+                            }
+                            chunks.append(chunk_data)
+                    if config.splitter.name == "semantic":
+                        elements = await self._partition_file(
+                            file,
+                            file_content,
+                            strategy=config.unstructured.partition_strategy,
+                            returned_elements_type="original",
+                        )
+                        splitter_config = UnstructuredSemanticSplitter(
+                            encoder=self.encoder,
+                            window_size=config.splitter.rolling_window_size,
+                            min_split_tokens=config.splitter.min_tokens,
+                            max_split_tokens=config.splitter.max_tokens,
+                        )
+                        chunks = await splitter_config(elements=elements)
+            
+                for chunk in chunks:
+                    document_id = f"doc_{uuid.uuid4()}"
 
-                self._create_base_document(document_id, file, document_content)
+                    doc_chunk = BaseDocumentChunk(
+                        id=str(uuid.uuid4()),
+                        # document_id: document_id,
+                        page_content=f"{chunk.get('title', '')}\n{chunk.get('page_content', '')}"
+                        if config.splitter.prefix_titles
+                        else chunk.get("page_content", ""),                        
+                        namespace=str(self.namespace),
+                        metadata={
+                            "document_id": document_id,
+                            "file_id": str(file.id),
+                            "purpose": self.purpose,
+                            "source": file.source,
+                            "source_type": file.mime_type,
+                            "chunk_index": chunk.get("chunk_index", None),
+                            "title": chunk.get("title", None),
+                            "token_count": get_tiktoken_length(chunk["page_content"]),
+                            **chunk.get("metadata", {})
+                        }
+                    )
+                    doc_chunks.append(doc_chunk)
 
             except Exception as e:
                 logger.error(f"Error loading chunks: {e}")
                 raise
         return doc_chunks
+    
+    # def _create_base_document_chunks(self, file: FileSchema, chunks: list[dict]) -> list[BaseDocumentChunk]:
+    #     return [
+    #         BaseDocumentChunk(
+    #             id=str(uuid.uuid4()),
+    #             page_content=chunk['page_content'],
+    #             namespace=str(self.namespace),
+    #             metadata={
+    #                 "file_id": str(file.id),
+    #                 "purpose": self.purpose,
+    #                 "source": file.source,
+    #                 "source_type": file.mime_type,
+    #                 "token_count": get_tiktoken_length(chunk['page_content']),
+    #                 **chunk.get('metadata', {}),
+    #             }
+    #         )
+    #         for chunk in chunks
+    #     ]
 
     async def embed_and_upsert(
         self,
@@ -352,3 +343,39 @@ class EmbeddingService:
         pbar.close()
 
         return summary_documents
+    
+    # async def process_json_file(self, file: FileSchema, file_content: bytes) -> list[BaseDocumentChunk]:
+    #     json_data = parse_json_file(file_content)
+    #     chunks = []
+    #     for index, obj in enumerate(json_data):
+    #         if 'page_content' not in obj:
+    #             raise ValueError(f"Object at index {index} is missing 'page_content' field")
+            
+    #         chunk = BaseDocumentChunk(
+    #             id=str(uuid.uuid4()),
+    #             page_content=obj['page_content'],
+    #             metadata={
+    #                 **{k: v for k, v in obj.items() if k != 'page_content'},
+    #                 "file_id": str(file.id),
+    #                 "source": file.source,
+    #                 "source_type": file.mime_type,
+    #                 "namespace": self.namespace,
+    #                 "purpose": self.purpose,
+    #             }
+    #         )
+    #         chunks.append(chunk)
+    #     return chunks
+
+    async def process_json_file(self, file: FileSchema, file_content: bytes) -> list[dict]:
+        json_data = parse_json_file(file_content)
+        chunks = []
+        for obj in json_data:
+            if 'page_content' not in obj:
+                raise ValueError(f"Object is missing 'page_content' field")
+            
+            chunk = {
+                "page_content": obj['page_content'],
+                "metadata": {k: v for k, v in obj.items() if k != 'page_content'},
+            }
+            chunks.append(chunk)
+        return chunks
