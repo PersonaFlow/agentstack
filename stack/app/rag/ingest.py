@@ -11,7 +11,7 @@ settings = get_settings()
 
 
 async def get_ingest_tasks_from_config(
-    files_to_ingest: list[FileSchema],
+    files_to_ingest: list[tuple[FileSchema, bytes]],
     config: IngestRequestPayload,
 ) -> list:
     vector_db_creds = config.vector_database
