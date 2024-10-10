@@ -55,24 +55,23 @@ async def upload_file(
         None,
         description="The purpose of the file: 'assistants', 'threads', or 'personas'.",
     ),
-    filename: Optional[str] = Form(
-        None, description="The preferred name for the file."
-    ),
     kwargs: Optional[str] = Form(
         None,
-        description="Any additonal metadata to include for this file. This should be a JSON string.",
+        description="Any additional metadata to include for this file. This should be a JSON string.",
     ),
     files_repository: FileRepository = Depends(get_file_repository),
 ) -> FileSchema:
     try:
-        if not file or not file.file:
+        if not file or not file.filename:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="File is required."
+                status_code=status.HTTP_400_BAD_REQUEST, detail="File is required and must have a filename."
             )
         user_id = get_header_user_id(request)
 
         file_content = await file.read()
-        mime_type = guess_mime_type(file.filename, file_content)
+        original_filename = file.filename
+        
+        mime_type = guess_mime_type(original_filename, file_content)
         if not is_mime_type_supported(mime_type):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, detail="Unsupported file type."
@@ -83,14 +82,14 @@ async def upload_file(
                 detail="File size exceeds the maximum allowed size.",
             )
 
-        data = UploadFileSchema(
-            purpose=purpose, user_id=user_id, filename=filename, kwargs=kwargs
-        )
-        file_data = data.model_dump()
-        file_data["bytes"] = len(file_content)
-        kwargs_dict = orjson.loads(kwargs) if kwargs else {}
-        file_data["kwargs"] = kwargs_dict
-        file_data["mime_type"] = mime_type
+        file_data = {
+            "user_id": user_id,
+            "purpose": purpose,
+            "filename": original_filename,
+            "bytes": len(file_content),
+            "mime_type": mime_type,
+            "kwargs": orjson.loads(kwargs) if kwargs else {},
+        }
 
         file_obj = await files_repository.create_file(
             data=file_data, file_content=file_content
@@ -104,8 +103,7 @@ async def upload_file(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while uploading the file.",
         )
-
-
+    
 @router.get(
     "",
     tags=[DEFAULT_TAG],
