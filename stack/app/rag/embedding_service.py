@@ -16,6 +16,7 @@ from stack.app.schema.rag import (
     BaseDocument,
     BaseDocumentChunk,
     DocumentProcessorConfig,
+    ParserConfig
 )
 from stack.app.rag.util import (
     get_tiktoken_length,
@@ -28,7 +29,8 @@ from stack.app.vectordbs import get_vector_service
 from stack.app.schema.file import FileSchema
 from stack.app.core.configuration import get_settings
 from stack.app.model.file import File
-from stack.app.utils.file_helpers import parse_json_file
+from stack.app.utils.file_helpers import parse_json_file, parse_csv_file
+
 
 # TODO: Add similarity score to the BaseDocumentChunk
 # TODO: Add relevance score to the BaseDocumentChunk
@@ -71,6 +73,7 @@ class EmbeddingService:
         files: Optional[list[tuple[FileSchema, bytes]]] = None,
         namespace: Optional[str] = None,
         purpose: Optional[str] = None,
+        parser_config: Optional[ParserConfig] = None,
     ):
         self.encoder = encoder
         self.files = files
@@ -83,6 +86,7 @@ class EmbeddingService:
             api_key_auth=settings.UNSTRUCTURED_API_KEY,
             server_url=settings.UNSTRUCTURED_BASE_URL,
         )
+        self.parser_config = parser_config or ParserConfig()
 
     async def generate_chunks(self, config: DocumentProcessorConfig) -> list[BaseDocumentChunk]:
         logger.info(f"Generating chunks using method: {config.splitter.name}")
@@ -98,30 +102,36 @@ class EmbeddingService:
 
     async def _process_file(self, file: FileSchema, file_content: bytes, config: DocumentProcessorConfig) -> list[BaseDocumentChunk]:
         if file.mime_type == "application/json":
-            return await self._process_json_file(file, file_content, config)
+            json_data = parse_json_file(file_content)
+            return await self._process_structured_data(file, json_data, config)
+        elif file.mime_type == "text/csv":
+            csv_data = parse_csv_file(file_content)
+            return await self._process_structured_data(file, csv_data, config)
         else:
-            return await self._process_regular_file(file, file_content, config)
-
-    async def _process_json_file(self, file: FileSchema, file_content: bytes, config: DocumentProcessorConfig) -> list[BaseDocumentChunk]:
-        json_data = parse_json_file(file_content)
+            return await self._process_unstructured_file(file, file_content, config)
+    
+    async def _process_structured_data(self, file: FileSchema, data: list[dict], config: DocumentProcessorConfig) -> list[BaseDocumentChunk]:
+        content_field = self.parser_config.structured_data_content_field
         all_chunks = []
-        for article in json_data:
-            if 'page_content' not in article:
-                logger.warn(f"Object in JSON file {file.filename} is missing 'page_content' field. Skipping.")
+        
+        for item in data:
+            if content_field not in item:
+                logger.warn(f"Item in file {file.filename} is missing '{content_field}' field. Skipping.")
                 continue
-            article_chunks = await self._process_article(file, article, config)
-            all_chunks.extend(article_chunks)
+            
+            item_content = item[content_field]
+            item_metadata = {k: v for k, v in item.items() if k != content_field}
+            
+            chunks = await self._partition_and_chunk(item_content, config)
+            item_chunks = [self._create_document_chunk(chunk, file, item_metadata) for chunk in chunks]
+            all_chunks.extend(item_chunks)
+        
         return all_chunks
 
-    async def _process_regular_file(self, file: FileSchema, file_content: bytes, config: DocumentProcessorConfig) -> list[BaseDocumentChunk]:
+    async def _process_unstructured_file(self, file: FileSchema, file_content: bytes, config: DocumentProcessorConfig) -> list[BaseDocumentChunk]:
         chunks = await self._partition_and_chunk(file_content, config, file=file)
         return [self._create_document_chunk(chunk, file) for chunk in chunks]
 
-    async def _process_article(self, file: FileSchema, article: dict, config: DocumentProcessorConfig) -> list[BaseDocumentChunk]:
-        article_content = article['page_content']
-        article_metadata = {k: v for k, v in article.items() if k != 'page_content'}
-        chunks = await self._partition_and_chunk(article_content, config)
-        return [self._create_document_chunk(chunk, file, article_metadata) for chunk in chunks]
 
     async def _partition_and_chunk(self, content: Any, config: DocumentProcessorConfig, file: Optional[FileSchema] = None) -> list[dict]:
         if config.splitter.name == "by_title":

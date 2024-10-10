@@ -1,5 +1,7 @@
 import mimetypes
 import json
+import csv
+import io
 from langchain.document_loaders.parsers import BS4HTMLParser, PDFMinerParser
 from langchain.document_loaders.parsers.generic import MimeTypeBasedParser
 from langchain.document_loaders.parsers.msword import MsWordParser
@@ -114,3 +116,11 @@ def parse_json_file(file_content: bytes) -> list:
             raise ValueError("JSON file must contain an array of objects")
     except json.JSONDecodeError:
         raise ValueError("Invalid JSON file")
+    
+def parse_csv_file(file_content: bytes) -> list:
+    try:
+        csv_content = file_content.decode('utf-8')
+        csv_reader = csv.DictReader(io.StringIO(csv_content))
+        return list(csv_reader)
+    except csv.Error:
+        raise ValueError("Invalid CSV file")
