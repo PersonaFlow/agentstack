@@ -29,6 +29,8 @@ async def get_ingest_tasks_from_config(
         dimensions=document_processor_config.encoder.dimensions,
         files=files_to_ingest,
         namespace=namespace,
+        purpose=config.purpose,
+        parser_config=config.parser_config,
     )
 
     chunks = await embedding_service.generate_chunks(config=document_processor_config)
