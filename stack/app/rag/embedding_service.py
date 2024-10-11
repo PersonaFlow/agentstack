@@ -94,12 +94,33 @@ class EmbeddingService:
         for file, file_content in tqdm(self.files, desc="Generating chunks"):
             try:
                 chunks = await self._process_file(file, file_content, config)
-                doc_chunks.extend(chunks)
+                filtered_chunks = self._filter_chunks(chunks)
+                doc_chunks.extend(filtered_chunks)
             except Exception as e:
                 logger.error(f"Error loading chunks for file {file.filename}: {e}")
                 raise
         return doc_chunks
 
+    def _filter_chunks(self, chunks: list[BaseDocumentChunk]) -> list[BaseDocumentChunk]:
+        filtered_chunks = []
+        document_content = ""
+        for chunk in chunks:
+            chunk_content = deduplicate_chunk(chunk.page_content)
+            valid, reason = check_content_is_useful(
+                chunk_content,
+                min_word_count=self.MIN_WORD_COUNT,
+                information_density_ratio=self.INFORMATION_DENSITY_RATIO,
+                max_density_word_count=self.MAX_DENSITY_WORD_COUNT,
+            )
+            if not valid:
+                logger.debug(f"Filtering out chunk, {reason}, {chunk}")
+                continue
+            logger.debug(f"Chunk is useful: {chunk}")
+            document_content += chunk_content
+            filtered_chunks.append(chunk)
+        
+        return filtered_chunks if document_content else []
+    
     async def _process_file(self, file: FileSchema, file_content: bytes, config: DocumentProcessorConfig) -> list[BaseDocumentChunk]:
         if file.mime_type == "application/json":
             json_data = parse_json_file(file_content)
