@@ -1,7 +1,7 @@
 import asyncio
 import copy
 import uuid
-from typing import Any, Literal, Optional
+from typing import Any, Literal, Optional, Tuple
 
 import numpy as np
 import structlog
@@ -17,7 +17,11 @@ from stack.app.schema.rag import (
     BaseDocumentChunk,
     DocumentProcessorConfig,
 )
-from stack.app.rag.util import get_tiktoken_length
+from stack.app.rag.util import (
+    get_tiktoken_length,
+    check_content_is_useful,
+    deduplicate_chunk,
+)
 from stack.app.rag.splitter import UnstructuredSemanticSplitter
 from stack.app.rag.summarizer import completion
 from stack.app.vectordbs import get_vector_service
@@ -52,6 +56,11 @@ def sanitize_metadata(metadata: dict) -> dict:
 
 
 class EmbeddingService:
+    # Extract out to configuration
+    MIN_WORD_COUNT = 10
+    MAX_DENSITY_WORD_COUNT = 200
+    INFORMATION_DENSITY_RATIO = 0.5
+
     def __init__(
         self,
         index_name: str,
@@ -187,9 +196,24 @@ class EmbeddingService:
                     continue
 
                 document_id = f"doc_{uuid.uuid4()}"
-                document_content = "".join(
-                    chunk.get("page_content", "") for chunk in chunks
-                )
+                document_content = ""
+                # Filter out useless chunks here
+                for chunk in chunks:
+                    chunk_content = deduplicate_chunk(chunk.get("page_content", ""))
+                    valid, reason = check_content_is_useful(
+                        chunk_content,
+                        min_word_count=self.MIN_WORD_COUNT,
+                        information_density_ratio=self.INFORMATION_DENSITY_RATIO,
+                        max_density_word_count=self.MAX_DENSITY_WORD_COUNT,
+                    )
+                    if not valid:
+                        logger.debug(f"Filtering out chunk, {reason}, {chunk}")
+                        continue
+                    logger.debug(f"Chunk is useful: {chunk}")
+                    document_content += chunk_content
+
+                if not document_content:
+                    continue
 
                 doc_chunks.extend(
                     [
