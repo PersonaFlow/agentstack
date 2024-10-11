@@ -22,7 +22,6 @@ async def get_ingest_tasks_from_config(
         config.namespace if config.namespace else settings.VECTOR_DB_DEFAULT_NAMESPACE
     )
 
-    print("Getting embed service")
     embedding_service = EmbeddingService(
         encoder=encoder,
         index_name=collection_name,
@@ -32,7 +31,6 @@ async def get_ingest_tasks_from_config(
         namespace=namespace,
     )
 
-    print("Getting chunks")
     chunks = await embedding_service.generate_chunks(config=document_processor_config)
 
     summary_documents = None

@@ -1,9 +1,0 @@
-[
-  '4 Results In this section we discuss our main results, primarily focusing on the relationship between evaluations by various judge models and human evaluations (§ 4.1), and how that impacts their usability (§ 4.2).',
-  'To do so, we evaluate their alignment with human judgment and assess how differently they rank the nine exam-taker models compared to humans.',
-  'In Section 5, we further analyse their precision and recall to further investigate the types of errors that can be made by various judge models.',
-  'Details about compute requirements and others costs for experiments are given in Appendix G. 4 Results In this section we discuss our main results, primarily focusing on the relationship between evaluations by various judge models and human evaluations (§ 4.1), and how that impacts their usability (§ 4.2).',
-  'To do so, we evaluate their alignment with human judgment and assess how differently they rank the nine exam-taker models compared to humans.',
-  'In Section 5, we further analyse their precision and recall to further investigate the types of errors that can be made by various judge models.',
-  'Details about compute requirements and others costs for experiments are given in Appendix G.'
-]
