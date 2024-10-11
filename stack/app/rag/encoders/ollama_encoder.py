@@ -8,7 +8,7 @@ settings = get_settings()
 
 class OllamaEncoder(BaseEncoder):
     name: str = Field(default="all-minilm")
-    score_threshold: float = Field(default=0.75)
+    score_threshold: float = Field(default=0.5)
     type: str = Field(default="ollama")
     dimensions: int = Field(default=384)
     embeddings: OllamaEmbeddings = Field(default=None)

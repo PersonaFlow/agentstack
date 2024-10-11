@@ -63,6 +63,10 @@ class EncoderConfig(BaseModel):
         default=settings.VECTOR_DB_ENCODER_DIMENSIONS,
         description="Dimension of the encoder output",
     )
+    score_threshold: float = Field(
+        default=0.5,
+        description="Score threshold for the encoder",
+    )
 
     @classmethod
     def get_encoder_config(cls, encoder_provider: EncoderProvider):
@@ -71,26 +75,31 @@ class EncoderConfig(BaseModel):
                 "class": CohereEncoder,
                 "default_model_name": "embed-multilingual-light-v3.0",
                 "default_dimensions": 384,
+                "default_score_threshold": 0.3,
             },
             EncoderProvider.openai: {
                 "class": OpenAIEncoder,
                 "default_model_name": "text-embedding-3-small",
                 "default_dimensions": 1536,
+                "default_score_threshold": 0.82,
             },
             EncoderProvider.ollama: {
                 "class": OllamaEncoder,
                 "default_model_name": "all-minilm",
                 "default_dimensions": 384,
+                "default_score_threshold": 0.67,
             },
             EncoderProvider.azure_openai: {
                 "class": AzureOpenAIEncoder,
                 "default_model_name": "text-embedding-3-small",
                 "default_dimensions": 1536,
+                "default_score_threshold": 0.82,
             },
             EncoderProvider.mistral: {
                 "class": MistralEncoder,
                 "default_model_name": "mistral-embed",
                 "default_dimensions": 1024,
+                "default_score_threshold": 0.82,
             },
         }
         return encoder_configs.get(encoder_provider)
@@ -101,8 +110,9 @@ class EncoderConfig(BaseModel):
             raise ValueError(f"Encoder '{self.provider}' not found.")
         encoder_model = self.encoder_model or encoder_config["default_model_name"]
         dimensions = self.dimensions or encoder_config["default_dimensions"]
+        score_threshold=self.score_threshold or encoder_config["default_score_threshold"]
         encoder_class = encoder_config["class"]
-        return encoder_class(name=encoder_model, dimensions=dimensions)
+        return encoder_class(name=encoder_model, dimensions=dimensions, score_threshold=score_threshold)
 
 
 class UnstructuredConfig(BaseModel):
