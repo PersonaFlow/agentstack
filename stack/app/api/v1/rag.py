@@ -81,7 +81,6 @@ async def ingest(
         for file_id in payload.files: 
             file_model = await file_repository.retrieve_file(file_id)
             file = FileSchema.model_validate(file_model)
-            # files_to_ingest.append(file)
             file_content = await file_repository.retrieve_file_content(str(file_id))
             files_to_ingest.append((file, file_content))
 

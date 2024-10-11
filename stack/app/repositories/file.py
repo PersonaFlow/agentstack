@@ -33,30 +33,21 @@ class FileRepository(BaseRepository):
             original_filename = data.get("filename")
             if not original_filename:
                 raise ValueError("Filename is required")
-            
-            logger.info(f"Creating file: {original_filename}")
-            
+                        
             # Guess the mime type using the original filename
             mime_type = guess_mime_type(original_filename, file_content)
-            logger.info(f"Guessed mime type: {mime_type}")
             
             # Get the file extension from the original filename
             _, file_extension = os.path.splitext(original_filename)
             if not file_extension:
                 file_extension = f".{guess_file_extension(original_filename, file_content)}"
-            logger.info(f"File extension: {file_extension}")
 
-            # Update the data dictionary with the guessed mime type
             data["mime_type"] = mime_type
 
-            # Generate a new UUID for the file
             file_id = uuid.uuid4()
-
             # Create the new filename using the UUID and original extension
             new_filename = f"{file_id}{file_extension}"
             file_path = os.path.join(settings.FILE_DATA_DIRECTORY, new_filename)
-
-            # Update the data with the new file information
             data["id"] = file_id
             data["source"] = file_path
 
@@ -67,11 +58,11 @@ class FileRepository(BaseRepository):
             # Create the file data directory if it doesn't exist
             os.makedirs(settings.FILE_DATA_DIRECTORY, exist_ok=True)
 
-            # Save the file content to the local file system
             with open(file_path, "wb") as f:
                 f.write(file_content)
 
             return file
+        
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
             logger.exception(
