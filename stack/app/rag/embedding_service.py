@@ -16,7 +16,7 @@ from stack.app.schema.rag import (
     BaseDocument,
     BaseDocumentChunk,
     DocumentProcessorConfig,
-    ParserConfig
+    ParserConfig,
 )
 from stack.app.rag.util import (
     get_tiktoken_length,
@@ -88,7 +88,9 @@ class EmbeddingService:
         )
         self.parser_config = parser_config or ParserConfig()
 
-    async def generate_chunks(self, config: DocumentProcessorConfig) -> list[BaseDocumentChunk]:
+    async def generate_chunks(
+        self, config: DocumentProcessorConfig
+    ) -> list[BaseDocumentChunk]:
         logger.info(f"Generating chunks using method: {config.splitter.name}")
         doc_chunks = []
         for file, file_content in tqdm(self.files, desc="Generating chunks"):
@@ -101,7 +103,9 @@ class EmbeddingService:
                 raise
         return doc_chunks
 
-    def _filter_chunks(self, chunks: list[BaseDocumentChunk]) -> list[BaseDocumentChunk]:
+    def _filter_chunks(
+        self, chunks: list[BaseDocumentChunk]
+    ) -> list[BaseDocumentChunk]:
         filtered_chunks = []
         document_content = ""
         for chunk in chunks:
@@ -118,10 +122,12 @@ class EmbeddingService:
             logger.debug(f"Chunk is useful: {chunk}")
             document_content += chunk_content
             filtered_chunks.append(chunk)
-        
+
         return filtered_chunks if document_content else []
-    
-    async def _process_file(self, file: FileSchema, file_content: bytes, config: DocumentProcessorConfig) -> list[BaseDocumentChunk]:
+
+    async def _process_file(
+        self, file: FileSchema, file_content: bytes, config: DocumentProcessorConfig
+    ) -> list[BaseDocumentChunk]:
         if file.mime_type == "application/json":
             json_data = parse_json_file(file_content)
             return await self._process_structured_data(file, json_data, config)
@@ -130,31 +136,44 @@ class EmbeddingService:
             return await self._process_structured_data(file, csv_data, config)
         else:
             return await self._process_unstructured_file(file, file_content, config)
-    
-    async def _process_structured_data(self, file: FileSchema, data: list[dict], config: DocumentProcessorConfig) -> list[BaseDocumentChunk]:
+
+    async def _process_structured_data(
+        self, file: FileSchema, data: list[dict], config: DocumentProcessorConfig
+    ) -> list[BaseDocumentChunk]:
         content_field = self.parser_config.structured_data_content_field
         all_chunks = []
-        
+
         for item in data:
             if content_field not in item:
-                logger.warn(f"Item in file {file.filename} is missing '{content_field}' field. Skipping.")
+                logger.warn(
+                    f"Item in file {file.filename} is missing '{content_field}' field. Skipping."
+                )
                 continue
-            
+
             item_content = item[content_field]
             item_metadata = {k: v for k, v in item.items() if k != content_field}
-            
+
             chunks = await self._partition_and_chunk(item_content, config)
-            item_chunks = [self._create_document_chunk(chunk, file, item_metadata) for chunk in chunks]
+            item_chunks = [
+                self._create_document_chunk(chunk, file, item_metadata)
+                for chunk in chunks
+            ]
             all_chunks.extend(item_chunks)
-        
+
         return all_chunks
 
-    async def _process_unstructured_file(self, file: FileSchema, file_content: bytes, config: DocumentProcessorConfig) -> list[BaseDocumentChunk]:
+    async def _process_unstructured_file(
+        self, file: FileSchema, file_content: bytes, config: DocumentProcessorConfig
+    ) -> list[BaseDocumentChunk]:
         chunks = await self._partition_and_chunk(file_content, config, file=file)
         return [self._create_document_chunk(chunk, file) for chunk in chunks]
 
-
-    async def _partition_and_chunk(self, content: Any, config: DocumentProcessorConfig, file: Optional[FileSchema] = None) -> list[dict]:
+    async def _partition_and_chunk(
+        self,
+        content: Any,
+        config: DocumentProcessorConfig,
+        file: Optional[FileSchema] = None,
+    ) -> list[dict]:
         if config.splitter.name == "by_title":
             return await self._partition_by_title(content, config, file)
         elif config.splitter.name == "semantic":
@@ -162,11 +181,14 @@ class EmbeddingService:
         else:
             raise ValueError(f"Unsupported splitter method: {config.splitter.name}")
 
-    async def _partition_by_title(self, content: Any, config: DocumentProcessorConfig, file: Optional[FileSchema] = None) -> list[dict]:
+    async def _partition_by_title(
+        self,
+        content: Any,
+        config: DocumentProcessorConfig,
+        file: Optional[FileSchema] = None,
+    ) -> list[dict]:
         chunked_elements = await self._partition_content(
-            content, 
-            strategy=config.unstructured.partition_strategy,
-            file=file
+            content, strategy=config.unstructured.partition_strategy, file=file
         )
         return [
             {
@@ -176,12 +198,17 @@ class EmbeddingService:
             for element in chunked_elements
         ]
 
-    async def _partition_semantic(self, content: Any, config: DocumentProcessorConfig, file: Optional[FileSchema] = None) -> list[dict]:
+    async def _partition_semantic(
+        self,
+        content: Any,
+        config: DocumentProcessorConfig,
+        file: Optional[FileSchema] = None,
+    ) -> list[dict]:
         elements = await self._partition_content(
             content,
             strategy=config.unstructured.partition_strategy,
             returned_elements_type="original",
-            file=file
+            file=file,
         )
         splitter_config = UnstructuredSemanticSplitter(
             encoder=self.encoder,
@@ -200,7 +227,9 @@ class EmbeddingService:
     ) -> list[Any]:
         try:
             files = shared.Files(
-                content=content if isinstance(content, bytes) else content.encode('utf-8'),
+                content=content
+                if isinstance(content, bytes)
+                else content.encode("utf-8"),
                 file_name=file.source.split("/")[-1] if file else "content.txt",
             )
             req = shared.PartitionParameters(
@@ -209,9 +238,11 @@ class EmbeddingService:
                 strategy=strategy,
                 max_characters=2500 if returned_elements_type == "chunked" else None,
                 new_after_n_chars=1000 if returned_elements_type == "chunked" else None,
-                chunking_strategy="by_title" if returned_elements_type == "chunked" else None,
+                chunking_strategy="by_title"
+                if returned_elements_type == "chunked"
+                else None,
             )
-            
+
             unstructured_response = self.unstructured_client.general.partition(req)
             if unstructured_response.elements is not None:
                 return unstructured_response.elements
@@ -220,7 +251,9 @@ class EmbeddingService:
             raise
         return []
 
-    def _create_document_chunk(self, chunk: dict, file: FileSchema, additional_metadata: Optional[dict] = None) -> BaseDocumentChunk:
+    def _create_document_chunk(
+        self, chunk: dict, file: FileSchema, additional_metadata: Optional[dict] = None
+    ) -> BaseDocumentChunk:
         metadata = {
             "file_id": str(file.id),
             "purpose": self.purpose,
@@ -228,13 +261,13 @@ class EmbeddingService:
             "source_type": file.mime_type,
             "token_count": get_tiktoken_length(chunk["page_content"]),
             **(additional_metadata or {}),
-            **chunk.get("metadata", {})
+            **chunk.get("metadata", {}),
         }
         return BaseDocumentChunk(
             id=str(uuid.uuid4()),
             page_content=chunk["page_content"],
             namespace=str(self.namespace),
-            metadata=metadata
+            metadata=metadata,
         )
 
     async def embed_and_upsert(
@@ -347,6 +380,3 @@ class EmbeddingService:
         pbar.close()
 
         return summary_documents
-    
-
-    

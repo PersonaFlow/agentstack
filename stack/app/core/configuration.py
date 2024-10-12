@@ -55,7 +55,7 @@ class Settings(BaseSettings):
         if ENVIRONMENT != EnvironmentEnum.PRODUCTION
         else LogLevelEnum.ERROR
     )
-    
+
     BASE_DIR: Path = Path(__file__).parents[2]
     APP_DIR: Path = BASE_DIR.joinpath("stack")
     FILE_DATA_DIRECTORY: Path = BASE_DIR.parent.joinpath("file_data")
@@ -161,7 +161,9 @@ class Settings(BaseSettings):
     VECTOR_DB_HOST: str = os.getenv("VECTOR_DB_HOST", "localhost")
     VECTOR_DB_PORT: str | int = os.getenv("VECTOR_DB_PORT", 6333)
     VECTOR_DB_COLLECTION_NAME: str = os.getenv("VECTOR_DB_COLLECTION_NAME", "documents")
-    VECTOR_DB_ENCODER_DIMENSIONS: str | int = os.getenv("VECTOR_DB_ENCODER_DIMENSIONS", 1536)
+    VECTOR_DB_ENCODER_DIMENSIONS: str | int = os.getenv(
+        "VECTOR_DB_ENCODER_DIMENSIONS", 1536
+    )
     VECTOR_DB_ENCODER_MODEL: str = os.getenv(
         "VECTOR_DB_ENCODER_MODEL", "text-embedding-3-small"
     )

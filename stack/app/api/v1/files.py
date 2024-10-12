@@ -64,13 +64,14 @@ async def upload_file(
     try:
         if not file or not file.filename:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="File is required and must have a filename."
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="File is required and must have a filename.",
             )
         user_id = get_header_user_id(request)
 
         file_content = await file.read()
         original_filename = file.filename
-        
+
         mime_type = guess_mime_type(original_filename, file_content)
         if not is_mime_type_supported(mime_type):
             raise HTTPException(
@@ -103,7 +104,8 @@ async def upload_file(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while uploading the file.",
         )
-    
+
+
 @router.get(
     "",
     tags=[DEFAULT_TAG],

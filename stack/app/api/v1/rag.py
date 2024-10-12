@@ -78,12 +78,11 @@ async def ingest(
                 payload, assistant_repository
             )
 
-        for file_id in payload.files: 
+        for file_id in payload.files:
             file_model = await file_repository.retrieve_file(file_id)
             file = FileSchema.model_validate(file_model)
             file_content = await file_repository.retrieve_file_content(str(file_id))
             files_to_ingest.append((file, file_content))
-
 
         tasks = await get_ingest_tasks_from_config(files_to_ingest, payload)
 

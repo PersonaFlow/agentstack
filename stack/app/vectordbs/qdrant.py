@@ -63,7 +63,7 @@ class QdrantService(BaseVectorDatabase):
                     payload={
                         "page_content": chunk.page_content,
                         "namespace": chunk.namespace,
-                        "metadata": chunk.metadata
+                        "metadata": chunk.metadata,
                     },
                 )
             )
@@ -101,7 +101,11 @@ class QdrantService(BaseVectorDatabase):
                 id=result.id,
                 page_content=result.payload.get("page_content", ""),
                 namespace=result.payload.get("namespace"),
-                metadata={k: v for k, v in result.payload.items() if k not in ["page_content", "namespace"]}
+                metadata={
+                    k: v
+                    for k, v in result.payload.items()
+                    if k not in ["page_content", "namespace"]
+                },
             )
             for result in search_result
         ]

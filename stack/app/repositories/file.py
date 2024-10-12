@@ -27,20 +27,21 @@ class FileRepository(BaseRepository):
     def __init__(self, postgresql_session):
         self.postgresql_session = postgresql_session
 
-
     async def create_file(self, data: dict, file_content: bytes) -> File:
         try:
             original_filename = data.get("filename")
             if not original_filename:
                 raise ValueError("Filename is required")
-                        
+
             # Guess the mime type using the original filename
             mime_type = guess_mime_type(original_filename, file_content)
-            
+
             # Get the file extension from the original filename
             _, file_extension = os.path.splitext(original_filename)
             if not file_extension:
-                file_extension = f".{guess_file_extension(original_filename, file_content)}"
+                file_extension = (
+                    f".{guess_file_extension(original_filename, file_content)}"
+                )
 
             data["mime_type"] = mime_type
 
@@ -62,7 +63,7 @@ class FileRepository(BaseRepository):
                 f.write(file_content)
 
             return file
-        
+
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
             logger.exception(
@@ -79,10 +80,8 @@ class FileRepository(BaseRepository):
                 exc_info=True,
                 file_data=data,
             )
-            raise HTTPException(
-                status_code=400, detail=str(e)
-            ) from e
-            
+            raise HTTPException(status_code=400, detail=str(e)) from e
+
     @staticmethod
     def _get_retrieve_query() -> select:
         """A private method to construct the default query for file

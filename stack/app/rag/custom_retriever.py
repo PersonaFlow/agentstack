@@ -41,9 +41,5 @@ class Retriever(BaseRetriever):
         return [self._chunk_to_document(chunk) for chunk in chunks]
 
     def _chunk_to_document(self, chunk: BaseDocumentChunk) -> Document:
-        metadata = {
-            "namespace": chunk.namespace,
-            **chunk.metadata
-        }
+        metadata = {"namespace": chunk.namespace, **chunk.metadata}
         return Document(page_content=chunk.page_content, metadata=metadata)
-

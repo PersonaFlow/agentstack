@@ -28,6 +28,8 @@ MIMETYPE_BASED_PARSER = MimeTypeBasedParser(
     handlers=HANDLERS,
     fallback_parser=None,
 )
+
+
 def guess_mime_type(file_name: str, file_bytes: bytes) -> str:
     """Guess the mime-type of a file based on its name or bytes."""
     # Guess based on the file extension
@@ -53,8 +55,9 @@ def guess_mime_type(file_name: str, file_bytes: bytes) -> str:
     try:
         decoded = file_bytes[:1024].decode("utf-8", errors="ignore")
         stripped = decoded.strip()
-        if (stripped.startswith('{') and stripped.endswith('}')) or \
-           (stripped.startswith('[') and stripped.endswith(']')):
+        if (stripped.startswith("{") and stripped.endswith("}")) or (
+            stripped.startswith("[") and stripped.endswith("]")
+        ):
             return "application/json"
     except UnicodeDecodeError:
         pass
@@ -107,19 +110,21 @@ def is_mime_type_supported(mime_type: str) -> bool:
     """Check if the mime type is supported."""
     return mime_type in SUPPORTED_MIMETYPES
 
+
 def parse_json_file(file_content: bytes) -> list:
     try:
-        data = json.loads(file_content.decode('utf-8'))
+        data = json.loads(file_content.decode("utf-8"))
         if isinstance(data, list):
             return data
         else:
             raise ValueError("JSON file must contain an array of objects")
     except json.JSONDecodeError:
         raise ValueError("Invalid JSON file")
-    
+
+
 def parse_csv_file(file_content: bytes) -> list:
     try:
-        csv_content = file_content.decode('utf-8')
+        csv_content = file_content.decode("utf-8")
         csv_reader = csv.DictReader(io.StringIO(csv_content))
         return list(csv_reader)
     except csv.Error:

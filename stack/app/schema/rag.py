@@ -110,9 +110,13 @@ class EncoderConfig(BaseModel):
             raise ValueError(f"Encoder '{self.provider}' not found.")
         encoder_model = self.encoder_model or encoder_config["default_model_name"]
         dimensions = self.dimensions or encoder_config["default_dimensions"]
-        score_threshold=self.score_threshold or encoder_config["default_score_threshold"]
+        score_threshold = (
+            self.score_threshold or encoder_config["default_score_threshold"]
+        )
         encoder_class = encoder_config["class"]
-        return encoder_class(name=encoder_model, dimensions=dimensions, score_threshold=score_threshold)
+        return encoder_class(
+            name=encoder_model, dimensions=dimensions, score_threshold=score_threshold
+        )
 
 
 class UnstructuredConfig(BaseModel):
@@ -154,12 +158,14 @@ class SplitterConfig(BaseModel):
         default=settings.PREFIX_SUMMARY, description="Add to split sub-document summary"
     )
 
+
 class ParserConfig(BaseModel):
     structured_data_content_field: Optional[str] = Field(
-        default="page_content", 
-        description="For JSON and CSV files: the field name containing the content to be embedded. All other fields will be saved as metadata."
+        default="page_content",
+        description="For JSON and CSV files: the field name containing the content to be embedded. All other fields will be saved as metadata.",
     )
-    
+
+
 class DocumentProcessorConfig(BaseModel):
     summarize: bool = Field(
         default=settings.CREATE_SUMMARY_COLLECTION,
@@ -179,7 +185,8 @@ class DocumentProcessorConfig(BaseModel):
     )
     parser_config: Optional[ParserConfig] = Field(
         default=ParserConfig(),
-        description="Content-specific keyword arguments for processing")
+        description="Content-specific keyword arguments for processing",
+    )
 
 
 class IngestRequestPayload(BaseModel):
@@ -208,7 +215,7 @@ class IngestRequestPayload(BaseModel):
         None,
         description="Webhook url to send the notification to when the ingestion is completed.",
     )
-    
+
 
 # Query Schemas
 class QueryRequestPayload(BaseModel):
@@ -251,7 +258,6 @@ class BaseDocument(BaseModel):
     metadata: dict | None = None
 
 
-
 class BaseDocumentChunk(BaseModel):
     id: str
     page_content: str
@@ -265,14 +271,14 @@ class BaseDocumentChunk(BaseModel):
         chunk_id = metadata.pop("chunk_id", "")
         page_content = metadata.pop("page_content", "")
         namespace = metadata.pop("namespace", None)
-        
+
         # Everything else goes into metadata
         return cls(
             id=chunk_id,
             page_content=page_content,
             namespace=namespace,
             metadata=metadata,
-            dense_embedding=metadata.pop("values", None)
+            dense_embedding=metadata.pop("values", None),
         )
 
     @classmethod
@@ -304,7 +310,7 @@ class BaseDocumentChunk(BaseModel):
             "metadata": {
                 "page_content": self.page_content,
                 "namespace": self.namespace,
-                **self.metadata
+                **self.metadata,
             },
         }
 
@@ -314,7 +320,7 @@ class BaseDocumentChunk(BaseModel):
             "page_content": self.page_content,
             "namespace": self.namespace,
             "metadata": self.metadata,
-            "dense_embedding": self.dense_embedding
+            "dense_embedding": self.dense_embedding,
         }
 
 

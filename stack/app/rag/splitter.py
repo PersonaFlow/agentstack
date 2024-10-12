@@ -131,7 +131,7 @@ class UnstructuredSemanticSplitter:
                     **metadata,
                     "title": title,
                     "chunk_index": chunk_index,
-                }
+                },
             }
         )
 
