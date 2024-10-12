@@ -49,10 +49,10 @@ class Settings(BaseSettings):
     TITLE: str = "PersonaFlow"
     VERSION: str = "0.1.0"
     DESCRIPTION: str = "PersonaFlow API"
-    ENVIRONMENT: EnvironmentEnum = os.getenv("ENVIRONMENT", "PRODUCTION")
+    ENVIRONMENT: str | EnvironmentEnum = os.getenv("ENVIRONMENT", EnvironmentEnum.LOCAL)
     LOG_LEVEL: LogLevelEnum = (
         LogLevelEnum.DEBUG
-        if ENVIRONMENT == EnvironmentEnum.LOCAL
+        if ENVIRONMENT != EnvironmentEnum.PRODUCTION
         else LogLevelEnum.ERROR
     )
 
@@ -65,7 +65,7 @@ class Settings(BaseSettings):
     JWT_ISSUER: Optional[str] = os.getenv("JWT_ISSUER", None)
     JWT_ALGORITHM: Optional[str] = os.getenv("JWT_ALGORITHM", "HS256")
     AUTH_SECRET_KEY: Optional[str] = os.getenv("AUTH_SECRET_KEY", "secret")
-    TOKEN_EXPIRY_HOURS: Optional[int] = os.getenv("TOKEN_EXPIRY_HOURS", 24)
+    TOKEN_EXPIRY_HOURS: Optional[str | int] = os.getenv("TOKEN_EXPIRY_HOURS", 24)
 
     # Required if you intend to use reranking functionality to query documents
     COHERE_API_KEY: Optional[str] = os.getenv("COHERE_API_KEY", None)
@@ -87,7 +87,7 @@ class Settings(BaseSettings):
     TAVILY_API_KEY: Optional[str] = os.getenv("TAVILY_API_KEY", None)
 
     # Number of iterations assistant is allowed to run to accomplish task or improve results or response (Required)
-    LANGGRAPH_RECURSION_LIMIT: int = os.getenv("LANGGRAPH_RECURSION_LIMIT", 25)
+    LANGGRAPH_RECURSION_LIMIT: str | int = os.getenv("LANGGRAPH_RECURSION_LIMIT", 25)
 
     EXCLUDE_REQUEST_LOG_ENDPOINTS: list[str] = ["/docs"]
 
@@ -100,7 +100,7 @@ class Settings(BaseSettings):
         "INTERNAL_DATABASE_PASSWORD", "postgres"
     )
     INTERNAL_DATABASE_HOST: str = os.getenv("INTERNAL_DATABASE_HOST", "localhost")
-    INTERNAL_DATABASE_PORT: int = os.getenv("INTERNAL_DATABASE_PORT", 5432)
+    INTERNAL_DATABASE_PORT: str | int = os.getenv("INTERNAL_DATABASE_PORT", 5432)
     INTERNAL_DATABASE_DATABASE: str = os.getenv(
         "INTERNAL_DATABASE_DATABASE", "internal"
     )
@@ -149,7 +149,7 @@ class Settings(BaseSettings):
         "accounts/fireworks/models/mixtral-8x7b-instruct",
     )
 
-    OLLAMA_MODEL: Optional[str] = os.getenv("OLLAMA_MODEL", "llama3")
+    OLLAMA_MODEL: Optional[str] = os.getenv("OLLAMA_MODEL", "llama3.1")
     OLLAMA_BASE_URL: Optional[str] = os.getenv(
         "OLLAMA_BASE_URL", "http://localhost:11434"
     )
@@ -159,9 +159,11 @@ class Settings(BaseSettings):
     VECTOR_DB_API_KEY: str = os.getenv("VECTOR_DB_API_KEY", "")
     VECTOR_DB_NAME: str = os.getenv("VECTOR_DB_NAME", "qdrant")
     VECTOR_DB_HOST: str = os.getenv("VECTOR_DB_HOST", "localhost")
-    VECTOR_DB_PORT: int = os.getenv("VECTOR_DB_PORT", 6333)
+    VECTOR_DB_PORT: str | int = os.getenv("VECTOR_DB_PORT", 6333)
     VECTOR_DB_COLLECTION_NAME: str = os.getenv("VECTOR_DB_COLLECTION_NAME", "documents")
-    VECTOR_DB_ENCODER_DIMENSIONS: int = os.getenv("VECTOR_DB_ENCODER_DIMENSIONS", 1536)
+    VECTOR_DB_ENCODER_DIMENSIONS: str | int = os.getenv(
+        "VECTOR_DB_ENCODER_DIMENSIONS", 1536
+    )
     VECTOR_DB_ENCODER_MODEL: str = os.getenv(
         "VECTOR_DB_ENCODER_MODEL", "text-embedding-3-small"
     )
