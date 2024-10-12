@@ -154,7 +154,12 @@ class SplitterConfig(BaseModel):
         default=settings.PREFIX_SUMMARY, description="Add to split sub-document summary"
     )
 
-
+class ParserConfig(BaseModel):
+    structured_data_content_field: Optional[str] = Field(
+        default="page_content", 
+        description="For JSON and CSV files: the field name containing the content to be embedded. All other fields will be saved as metadata."
+    )
+    
 class DocumentProcessorConfig(BaseModel):
     summarize: bool = Field(
         default=settings.CREATE_SUMMARY_COLLECTION,
@@ -172,12 +177,10 @@ class DocumentProcessorConfig(BaseModel):
         default=SplitterConfig(),
         description="Document partition manager configuration. If not provided, this comes from the env config.",
     )
+    parser_config: Optional[ParserConfig] = Field(
+        default=ParserConfig(),
+        description="Content-specific keyword arguments for processing")
 
-class ParserConfig(BaseModel):
-    structured_data_content_field: Optional[str] = Field(
-        default="page_content", 
-        description="For JSON and CSV files: the field name containing the content to be embedded. All other fields will be saved as metadata."
-    )
 
 class IngestRequestPayload(BaseModel):
     files: list[uuid.UUID] = Field(..., description="An array of file ids to ingest")
@@ -205,9 +208,7 @@ class IngestRequestPayload(BaseModel):
         None,
         description="Webhook url to send the notification to when the ingestion is completed.",
     )
-    parser_config: Optional[ParserConfig] = Field(
-        default=ParserConfig(),
-        description="Content-specific keyword arguments for processing")
+    
 
 # Query Schemas
 class QueryRequestPayload(BaseModel):
