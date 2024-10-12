@@ -1,9 +1,14 @@
 import mimetypes
-import re
+import json
+import csv
+import io
 from langchain.document_loaders.parsers import BS4HTMLParser, PDFMinerParser
 from langchain.document_loaders.parsers.generic import MimeTypeBasedParser
 from langchain.document_loaders.parsers.msword import MsWordParser
 from langchain.document_loaders.parsers.txt import TextParser
+import structlog
+
+logger = structlog.get_logger()
 
 HANDLERS = {
     "application/pdf": PDFMinerParser(),
@@ -45,6 +50,17 @@ def guess_mime_type(file_name: str, file_bytes: bytes) -> str:
         return "application/msword"
     elif file_bytes.startswith(b"\x09\x00\xff\x00\x06\x00"):
         return "application/vnd.ms-excel"
+
+    # Check for JSON-like content
+    try:
+        decoded = file_bytes[:1024].decode("utf-8", errors="ignore")
+        stripped = decoded.strip()
+        if (stripped.startswith("{") and stripped.endswith("}")) or (
+            stripped.startswith("[") and stripped.endswith("]")
+        ):
+            return "application/json"
+    except UnicodeDecodeError:
+        pass
 
     # Check for CSV-like plain text content (commas, tabs, newlines)
     try:
@@ -93,3 +109,23 @@ def get_file_handler(mime_type: str):
 def is_mime_type_supported(mime_type: str) -> bool:
     """Check if the mime type is supported."""
     return mime_type in SUPPORTED_MIMETYPES
+
+
+def parse_json_file(file_content: bytes) -> list:
+    try:
+        data = json.loads(file_content.decode("utf-8"))
+        if isinstance(data, list):
+            return data
+        else:
+            raise ValueError("JSON file must contain an array of objects")
+    except json.JSONDecodeError:
+        raise ValueError("Invalid JSON file")
+
+
+def parse_csv_file(file_content: bytes) -> list:
+    try:
+        csv_content = file_content.decode("utf-8")
+        csv_reader = csv.DictReader(io.StringIO(csv_content))
+        return list(csv_reader)
+    except csv.Error:
+        raise ValueError("Invalid CSV file")

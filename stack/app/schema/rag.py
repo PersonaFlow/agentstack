@@ -63,6 +63,10 @@ class EncoderConfig(BaseModel):
         default=settings.VECTOR_DB_ENCODER_DIMENSIONS,
         description="Dimension of the encoder output",
     )
+    score_threshold: float = Field(
+        default=0.5,
+        description="Score threshold for the encoder",
+    )
 
     @classmethod
     def get_encoder_config(cls, encoder_provider: EncoderProvider):
@@ -71,26 +75,31 @@ class EncoderConfig(BaseModel):
                 "class": CohereEncoder,
                 "default_model_name": "embed-multilingual-light-v3.0",
                 "default_dimensions": 384,
+                "default_score_threshold": 0.3,
             },
             EncoderProvider.openai: {
                 "class": OpenAIEncoder,
                 "default_model_name": "text-embedding-3-small",
                 "default_dimensions": 1536,
+                "default_score_threshold": 0.82,
             },
             EncoderProvider.ollama: {
                 "class": OllamaEncoder,
                 "default_model_name": "all-minilm",
                 "default_dimensions": 384,
+                "default_score_threshold": 0.67,
             },
             EncoderProvider.azure_openai: {
                 "class": AzureOpenAIEncoder,
                 "default_model_name": "text-embedding-3-small",
                 "default_dimensions": 1536,
+                "default_score_threshold": 0.82,
             },
             EncoderProvider.mistral: {
                 "class": MistralEncoder,
                 "default_model_name": "mistral-embed",
                 "default_dimensions": 1024,
+                "default_score_threshold": 0.82,
             },
         }
         return encoder_configs.get(encoder_provider)
@@ -101,8 +110,13 @@ class EncoderConfig(BaseModel):
             raise ValueError(f"Encoder '{self.provider}' not found.")
         encoder_model = self.encoder_model or encoder_config["default_model_name"]
         dimensions = self.dimensions or encoder_config["default_dimensions"]
+        score_threshold = (
+            self.score_threshold or encoder_config["default_score_threshold"]
+        )
         encoder_class = encoder_config["class"]
-        return encoder_class(name=encoder_model, dimensions=dimensions)
+        return encoder_class(
+            name=encoder_model, dimensions=dimensions, score_threshold=score_threshold
+        )
 
 
 class UnstructuredConfig(BaseModel):
@@ -145,6 +159,13 @@ class SplitterConfig(BaseModel):
     )
 
 
+class ParserConfig(BaseModel):
+    structured_data_content_field: Optional[str] = Field(
+        default="page_content",
+        description="For JSON and CSV files: the field name containing the content to be embedded. All other fields will be saved as metadata.",
+    )
+
+
 class DocumentProcessorConfig(BaseModel):
     summarize: bool = Field(
         default=settings.CREATE_SUMMARY_COLLECTION,
@@ -161,6 +182,10 @@ class DocumentProcessorConfig(BaseModel):
     splitter: SplitterConfig = Field(
         default=SplitterConfig(),
         description="Document partition manager configuration. If not provided, this comes from the env config.",
+    )
+    parser_config: Optional[ParserConfig] = Field(
+        default=ParserConfig(),
+        description="Content-specific keyword arguments for processing",
     )
 
 
@@ -227,9 +252,6 @@ class QueryRequestPayload(BaseModel):
     )
 
 
-# Documents
-
-
 class BaseDocument(BaseModel):
     id: str
     page_content: str
@@ -238,67 +260,34 @@ class BaseDocument(BaseModel):
 
 class BaseDocumentChunk(BaseModel):
     id: str
-    document_id: str
     page_content: str
-    file_id: str | None = None
-    namespace: str | None = None
-    source: str | None = None
-    source_type: str | None = None
-    chunk_index: int | None = None
-    title: str | None = None
-    purpose: ContextType | None = None
-    token_count: int | None = None
-    page_number: int | None = None
-    metadata: dict | None = None
+    namespace: Optional[str] = None
+    metadata: dict = Field(default_factory=dict)
     dense_embedding: Optional[list[float]] = None
 
     @classmethod
     def from_metadata(cls, metadata: dict):
-        exclude_keys = {
-            "chunk_id",
-            "chunk_index",
-            "document_id",
-            "file_id",
-            "namespace",
-            "page_content",
-            "source",
-            "source_type",
-            "purpose",
-            "title",
-            "token_count",
-            "page_number",
-        }
-        # Prepare metadata for the constructor and for embedding into the object
-        constructor_metadata = {
-            k: v for k, v in metadata.items() if k not in exclude_keys
-        }
-        filtered_metadata = {
-            k: v for k, v in metadata.items() if k in exclude_keys and k != "chunk_id"
-        }
+        # Extract the core fields
+        chunk_id = metadata.pop("chunk_id", "")
+        page_content = metadata.pop("page_content", "")
+        namespace = metadata.pop("namespace", None)
 
-        def to_int(value):
-            try:
-                return int(value) if str(value).isdigit() else None
-            except (TypeError, ValueError):
-                return None
-
-        chunk_index = to_int(metadata.get("chunk_index"))
-        token_count = to_int(metadata.get("token_count"))
-
-        # Remove explicitly passed keys from filtered_metadata to avoid duplication
-        for key in ["chunk_index", "token_count"]:
-            filtered_metadata.pop(key, None)
-
+        # Everything else goes into metadata
         return cls(
-            id=metadata.get("chunk_id", ""),
-            chunk_index=chunk_index,
-            token_count=token_count,
-            **filtered_metadata,  # Pass filtered metadata for constructor
-            metadata=constructor_metadata,  # Pass the rest as part of the metadata
-            dense_embedding=metadata.get("values"),
+            id=chunk_id,
+            page_content=page_content,
+            namespace=namespace,
+            metadata=metadata,
+            dense_embedding=metadata.pop("values", None),
         )
 
-    @validator("id")
+    @classmethod
+    def validate(cls, v):
+        if isinstance(v, dict):
+            return cls(**v)
+        return v
+
+    @classmethod
     def id_must_be_valid_uuid(cls, v):
         try:
             uuid_obj = uuid.UUID(v, version=4)
@@ -306,7 +295,7 @@ class BaseDocumentChunk(BaseModel):
         except ValueError:
             raise ValueError(f"id must be a valid UUID, got {v}")
 
-    @validator("dense_embedding")
+    @classmethod
     def embeddings_must_be_list_of_floats(cls, v):
         if v is None:
             return v  # Allow None to pass through
@@ -315,26 +304,24 @@ class BaseDocumentChunk(BaseModel):
         return v
 
     def to_vector_db(self):
-        metadata = {
-            "chunk_id": self.id,
-            "chunk_index": self.chunk_index or "",
-            "document_id": self.document_id,
-            "file_id": self.file_id,
-            "namespace": self.namespace,
-            "page_content": self.page_content,
-            "source": self.source,
-            "source_type": self.source_type,
-            "title": self.title or "",
-            "purpose": self.purpose,
-            "token_count": self.token_count,
-            **(self.metadata or {}),
-        }
-        result = {
+        return {
             "id": self.id,
             "values": self.dense_embedding,
-            "metadata": metadata,
+            "metadata": {
+                "page_content": self.page_content,
+                "namespace": self.namespace,
+                **self.metadata,
+            },
         }
-        return result
+
+    def model_dump(self, exclude: set = None):
+        return {
+            "id": self.id,
+            "page_content": self.page_content,
+            "namespace": self.namespace,
+            "metadata": self.metadata,
+            "dense_embedding": self.dense_embedding,
+        }
 
 
 class QueryResponsePayload(BaseModel):
