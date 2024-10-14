@@ -5,7 +5,6 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { FileIcon } from "@radix-ui/react-icons";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -13,16 +12,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { UseFormReturn } from "react-hook-form";
-import { Plus, SquarePlus } from "lucide-react";
+import { Plus } from "lucide-react";
 import MultiSelect from "@/components/ui/multiselect";
-import { useAssistant, useAssistantFiles, useFiles, useUploadFile } from "@/data-provider/query-service";
+import { useAssistant, useFiles, useUploadFile } from "@/data-provider/query-service";
 import Spinner from "@/components/ui/spinner";
 import { ChangeEvent, useEffect, useState } from "react";
 import {
-  FormControl,
-  FormField,
-  FormItem,
+  Form,
 } from "@/components/ui/form";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/utils/utils";
@@ -30,7 +26,6 @@ import { useSlugRoutes } from "@/hooks/useSlugParams";
 import { TAssistant } from "@/data-provider/types";
 
 type TFilesDialog = {
-  form: UseFormReturn<any>;
   classNames: string;
 };
 
@@ -57,9 +52,9 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
 
   const [fileUpload, setFileUpload] = useState<File | null>();
   const [values, setValues] = useState<TOption[]>([]);
-  const [fileSelections, setFileSelections] = useState<string[]>(file_ids ? [...file_ids] : []);
-
-  console.log(assistantId);
+  const [fileIdSelections, setFileIdSelections] = useState<string[]>(
+    file_ids ? [...file_ids] : [],
+  );
 
   //Might be dead endpoint
   //const { data: file_ids } = useAssistantFiles(assistantId as string);
@@ -74,6 +69,7 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
     return files;
   }, [] as TOption[]);
 
+  // Format files for MultiSelect
   useEffect(() => {
     if (fileOptions) {
       const formattedFileData = fileOptions.map((file) => ({
@@ -150,11 +146,15 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
         Manage Files
       </DialogTrigger>
       <DialogContent>
-        <DialogHeader>
-          <DialogTitle className="mb-3 text-slate-300">Add Files</DialogTitle>
-          <hr className="border-slate-400 pb-2" />
-          <DialogDescription>
-            {/* <FormField
+        <Form>
+          <form>
+            <DialogHeader>
+              <DialogTitle className="mb-3 text-slate-300">
+                Add Files
+              </DialogTitle>
+              <hr className="border-slate-400 pb-2" />
+              <DialogDescription>
+                {/* <FormField
               control={form.control}
               name="file_ids"
               render={({ field }) => {
@@ -175,57 +175,61 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
                 );
               }}
             /> */}
-            <MultiSelect
-              values={values}
-              placecholder="Select a file..."
-              defaultValues={formattedAssistantFiles}
-              onValueChange={(selections) => {
-                const fileIds = getFileIds(selections);
-                setFileSelections([...fileIds]);
-                // form.setValues(fileIds);
-              }}
-            />
-            <Card className="bg-slate-200">
-              <CardContent className="p-6 space-y-4">
-                <div className="border-2 border-dashed border-gray-700 rounded-lg flex flex-col gap-1 p-6 items-center">
-                  <FileIcon className="w-12 h-12" />
-                  <span className="text-sm font-medium text-gray-500">
-                    Drag and drop a file or click to browse
-                  </span>
-                </div>
-                <div className="space-y-2 text-sm">
-                  <Label>File upload</Label>
-                  <Input
-                    placeholder="Picture"
-                    type="file"
-                    accept="image/*, application/pdf"
-                    onChange={(event) => {
-                      handleFileChange(event);
+                <div>
+                  <MultiSelect
+                    values={values}
+                    placecholder="Select a file..."
+                    defaultValues={formattedAssistantFiles}
+                    onValueChange={(selections) => {
+                      const fileIds = getFileIds(selections);
+                      setFileIdSelections([...fileIds]);
+                      // form.setValues(fileIds);
                     }}
                   />
                 </div>
-              </CardContent>
-              <CardFooter>
-                <Button
-                  variant="default"
-                  disabled={!fileUpload}
-                  size="lg"
-                  type="button"
-                  onClick={handleUpload}
-                >
-                  Upload file
-                </Button>
-              </CardFooter>
-            </Card>
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button size="lg" type="button">
-              Close
-            </Button>
-          </DialogClose>
-        </DialogFooter>
+                <Card className="bg-slate-200">
+                  <CardContent className="p-6 space-y-4">
+                    <div className="border-2 border-dashed border-gray-700 rounded-lg flex flex-col gap-1 p-6 items-center">
+                      <FileIcon className="w-12 h-12" />
+                      <span className="text-sm font-medium text-gray-500">
+                        Drag and drop a file or click to browse
+                      </span>
+                    </div>
+                    <div className="space-y-2 text-sm">
+                      <Label>File upload</Label>
+                      <Input
+                        placeholder="Picture"
+                        type="file"
+                        accept="image/*, application/pdf"
+                        onChange={(event) => {
+                          handleFileChange(event);
+                        }}
+                      />
+                    </div>
+                  </CardContent>
+                  <CardFooter>
+                    <Button
+                      variant="default"
+                      disabled={!fileUpload}
+                      size="lg"
+                      type="button"
+                      onClick={handleUpload}
+                    >
+                      Upload file
+                    </Button>
+                  </CardFooter>
+                </Card>
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              {/* <DialogClose asChild> */}
+              <Button size="lg" type="submit">
+                Save Files to Assistant
+              </Button>
+              {/* </DialogClose> */}
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

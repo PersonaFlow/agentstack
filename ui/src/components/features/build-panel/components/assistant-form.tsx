@@ -25,8 +25,8 @@ import Spinner from "@/components/ui/spinner";
 import { FormSelect } from "./form-select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { File, Wrench } from "lucide-react";
-import { useEffect } from "react";
 import { useSlugRoutes } from "@/hooks/useSlugParams";
+import FileBuilder from "./file-builder";
 
 type TAssistantFormProps = {
   form: UseFormReturn<any>;
@@ -153,10 +153,7 @@ export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
             </div>
           </TabsContent>
           <TabsContent value="files-tab">
-            <div className="flex flex-col">
-              <FilesDialog classNames="mb-4" form={form} />
-              <SelectFiles form={form} />
-            </div>
+            <FileBuilder />
           </TabsContent>
         </Tabs>
       </form>
