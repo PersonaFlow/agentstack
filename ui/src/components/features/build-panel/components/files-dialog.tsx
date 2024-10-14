@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
 import MultiSelect from "@/components/ui/multiselect";
-import { useAssistant, useFiles, useUploadFile } from "@/data-provider/query-service";
+import { useAssistant, useFiles, useIngestFileData, useUpdateAssistant, useUploadFile } from "@/data-provider/query-service";
 import Spinner from "@/components/ui/spinner";
 import { ChangeEvent, useEffect, useState } from "react";
 import {
@@ -23,7 +23,14 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/utils/utils";
 import { useSlugRoutes } from "@/hooks/useSlugParams";
-import { TAssistant } from "@/data-provider/types";
+import { formSchema, TAssistant } from "@/data-provider/types";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+// TODO
+// - Get assistant form default getRandomValues 
+// - Get file default values
 
 type TFilesDialog = {
   classNames: string;
@@ -50,13 +57,28 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
 
   const { toast } = useToast();
 
+  const updateAssistant = useUpdateAssistant(assistantId ? assistantId : "");
+  const ingestFiles = useIngestFileData();
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+  });
+
   const [fileUpload, setFileUpload] = useState<File | null>();
   const [values, setValues] = useState<TOption[]>([]);
   const [fileIdSelections, setFileIdSelections] = useState<string[]>(
     file_ids ? [...file_ids] : [],
   );
 
-  //Might be dead endpoint
+  const onSubmit = () => {
+    // updateAssistant.mutate({}, {
+    //   onSuccess: () => {
+    //     ingestFiles.mutate() 
+    //   }
+    // })
+  }
+
+  //Not dead - TODO figure out why doesn't work
   //const { data: file_ids } = useAssistantFiles(assistantId as string);
 
   //Old way of getting file_ids from form
@@ -146,8 +168,8 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
         Manage Files
       </DialogTrigger>
       <DialogContent>
-        <Form>
-          <form>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
             <DialogHeader>
               <DialogTitle className="mb-3 text-slate-300">
                 Add Files

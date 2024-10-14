@@ -1,5 +1,9 @@
 import { z } from "zod";
 
+export const fileSchema = z.object({
+  files: z.array(z.string())
+})
+
 export const toolSchema = z.object({
   title: z.string(),
   properties: z.object({
