@@ -16,7 +16,7 @@ import {
 import { UseFormReturn } from "react-hook-form";
 import { Plus, SquarePlus } from "lucide-react";
 import MultiSelect from "@/components/ui/multiselect";
-import { useFiles, useUploadFile } from "@/data-provider/query-service";
+import { useAssistant, useAssistantFiles, useFiles, useUploadFile } from "@/data-provider/query-service";
 import Spinner from "@/components/ui/spinner";
 import { ChangeEvent, useEffect, useState } from "react";
 import {
@@ -27,6 +27,7 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/utils/utils";
 import { useSlugRoutes } from "@/hooks/useSlugParams";
+import { TAssistant } from "@/data-provider/types";
 
 type TFilesDialog = {
   form: UseFormReturn<any>;
@@ -45,16 +46,24 @@ export default function FilesDialog({ form, classNames }: TFilesDialog) {
 
   const uploadFile = useUploadFile();
 
-  const { assistantId} = useSlugRoutes();
+  const { assistantId } = useSlugRoutes();
 
-  //const {data: file_ids} = useAssistantFiles(assistantId ? assistantId : "");
+  console.log(assistantId);
 
-  const { file_ids } = form.getValues();
+  //Might be dead endpoint
+  //const { data: file_ids } = useAssistantFiles(assistantId as string);
 
-  const {toast} = useToast();
+  //Old way of getting file_ids from form
+  //const { file_ids } = form.getValues();
+
+  const { data: assistantData } = useAssistant(assistantId ? assistantId : "");
+
+  const { file_ids } = assistantData as TAssistant;
+
+  const { toast } = useToast();
 
   const formattedAssistantFiles = fileOptions?.reduce((files, file) => {
-    if (file_ids.includes(file.id)) {
+    if (file_ids?.includes(file.id)) {
       files.push({ label: file.filename, value: file.id });
     }
     return files;
@@ -100,32 +109,36 @@ export default function FilesDialog({ form, classNames }: TFilesDialog) {
     }
   };
 
-    const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-      if (event.target.files) {
-        const selectedFiles = Array.from(event.target.files);
-        const duplicateFiles = selectedFiles.filter((file) =>
-          fileOptions?.some(
-            (uploadedFile) =>
-              uploadedFile.filename === file.name &&
-              uploadedFile.bytes === file.size,
-          ),
-        );
-        if (duplicateFiles.length > 0) {
-          return toast({
-            variant: "destructive",
-            title: "Cannot add duplicate files.",
-          });
-        }
-        setFileUpload(event.target.files[0]);
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files) {
+      const selectedFiles = Array.from(event.target.files);
+      const duplicateFiles = selectedFiles.filter((file) =>
+        fileOptions?.some(
+          (uploadedFile) =>
+            uploadedFile.filename === file.name &&
+            uploadedFile.bytes === file.size,
+        ),
+      );
+      if (duplicateFiles.length > 0) {
+        return toast({
+          variant: "destructive",
+          title: "Cannot add duplicate files.",
+        });
       }
-    };
+      setFileUpload(event.target.files[0]);
+    }
+  };
 
   if (isLoading) return <Spinner />;
 
   return (
     <Dialog>
       <DialogTrigger
-        className={cn(buttonVariants({ variant: "outline" }), "gap-2", classNames)}
+        className={cn(
+          buttonVariants({ variant: "outline" }),
+          "gap-2",
+          classNames,
+        )}
         type="button"
       >
         <Plus />
