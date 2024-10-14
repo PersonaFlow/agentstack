@@ -12,7 +12,6 @@ import { useAvailableTools } from "@/hooks/useAvailableTools";
 import { useToast } from "@/components/ui/use-toast";
 import { useRouter } from "next/navigation";
 import { SquarePlus } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const defaultValues = {
   public: false,
@@ -115,16 +114,7 @@ export function CreateAssistant() {
         <SquarePlus />
         <h1 className="text-2xl">Create</h1>
       </div>
-      <Tabs defaultValue="builder-tab">
-        <TabsList>
-          <TabsTrigger value="builder-tab">Assistant Builder</TabsTrigger>
-          <TabsTrigger value="files-tab">File Ingestion</TabsTrigger>
-        </TabsList>
-        <TabsContent value="builder-tab">
-          <AssistantForm form={form} onSubmit={onSubmit} />
-        </TabsContent>
-        <TabsContent value="files-tab">Files...</TabsContent>
-      </Tabs>
+      <AssistantForm form={form} onSubmit={onSubmit} />
     </>
   );
 }

@@ -25,6 +25,7 @@ import Spinner from "@/components/ui/spinner";
 import { FormSelect } from "./form-select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { File, Wrench } from "lucide-react";
+import { useEffect } from "react";
 
 type TAssistantFormProps = {
   form: UseFormReturn<any>;
@@ -34,6 +35,10 @@ type TAssistantFormProps = {
 export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
   const { type: architectureType } = form.getValues().config.configurable;
   const { data: config, isLoading, isError } = useRunnableConfigSchema();
+
+  useEffect(() => {
+    console.log(form.getValues())
+  },[form])
 
   const {
     formState: { isDirty },
