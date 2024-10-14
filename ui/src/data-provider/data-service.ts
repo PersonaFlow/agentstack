@@ -193,8 +193,8 @@ export function uploadFile(payload: FormData): Promise<FormData> {
   return request.postMultiPart(endpoints.file(), payload);
 }
 
-export function getFiles(purpose?: string): Promise<t.TFile[]> {
-  return request.get(endpoints.files(purpose));
+export function getFiles(): Promise<t.TFile[]> {
+  return request.get(endpoints.files);
 }
 
 export function getFile(fileId: string): Promise<t.TFile> {

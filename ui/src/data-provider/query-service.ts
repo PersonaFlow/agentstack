@@ -392,11 +392,11 @@ export const useUploadFile = () => {
   });
 };
 
-export const useFiles = (purpose?: t.TPurpose) => {
+export const useFiles = () => {
   return useQuery<t.TFile[], Error>({
-    queryKey: [QueryKeys.files, purpose],
+    queryKey: [QueryKeys.files],
     queryFn: async (): Promise<t.TFile[]> =>
-      await dataService.getFiles(purpose),
+      await dataService.getFiles(),
   });
 };
 
