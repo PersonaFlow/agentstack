@@ -37,8 +37,9 @@ export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
   const { data: config, isLoading, isError } = useRunnableConfigSchema();
 
   useEffect(() => {
-    console.log(form.getValues())
-  },[form])
+    console.log(architectureType === "chatbot")
+    console.log(architectureType)
+  },[architectureType])
 
   const {
     formState: { isDirty },
@@ -62,7 +63,7 @@ export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
             <TabsTrigger
               value="files-tab"
               className="gap-2"
-              disabled={architectureType === "chatbot"}
+              disabled={architectureType === "chatbot" || !architectureType}
             >
               File Ingestion <File size={16} />
             </TabsTrigger>
