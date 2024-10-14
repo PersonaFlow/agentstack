@@ -39,14 +39,25 @@ type TOption = {
   value: string;
 };
 
-export default function FilesDialog({ form, classNames }: TFilesDialog) {
-  const [fileUpload, setFileUpload] = useState<File | null>();
-  const [values, setValues] = useState<TOption[]>([]);
+export default function FilesDialog({ classNames }: TFilesDialog) {
+
   const { data: fileOptions, isLoading } = useFiles();
 
   const uploadFile = useUploadFile();
 
   const { assistantId } = useSlugRoutes();
+
+  const { data: assistantData } = useAssistant(
+    assistantId ? assistantId : "",
+  );
+
+  const { file_ids } = assistantData as TAssistant;
+
+  const { toast } = useToast();
+
+  const [fileUpload, setFileUpload] = useState<File | null>();
+  const [values, setValues] = useState<TOption[]>([]);
+  const [fileSelections, setFileSelections] = useState<string[]>(file_ids ? [...file_ids] : []);
 
   console.log(assistantId);
 
@@ -55,12 +66,6 @@ export default function FilesDialog({ form, classNames }: TFilesDialog) {
 
   //Old way of getting file_ids from form
   //const { file_ids } = form.getValues();
-
-  const { data: assistantData } = useAssistant(assistantId ? assistantId : "");
-
-  const { file_ids } = assistantData as TAssistant;
-
-  const { toast } = useToast();
 
   const formattedAssistantFiles = fileOptions?.reduce((files, file) => {
     if (file_ids?.includes(file.id)) {
@@ -149,7 +154,7 @@ export default function FilesDialog({ form, classNames }: TFilesDialog) {
           <DialogTitle className="mb-3 text-slate-300">Add Files</DialogTitle>
           <hr className="border-slate-400 pb-2" />
           <DialogDescription>
-            <FormField
+            {/* <FormField
               control={form.control}
               name="file_ids"
               render={({ field }) => {
@@ -168,6 +173,16 @@ export default function FilesDialog({ form, classNames }: TFilesDialog) {
                     </FormControl>
                   </FormItem>
                 );
+              }}
+            /> */}
+            <MultiSelect
+              values={values}
+              placecholder="Select a file..."
+              defaultValues={formattedAssistantFiles}
+              onValueChange={(selections) => {
+                const fileIds = getFileIds(selections);
+                setFileSelections([...fileIds]);
+                // form.setValues(fileIds);
               }}
             />
             <Card className="bg-slate-200">
