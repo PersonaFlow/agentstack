@@ -26,6 +26,7 @@ import { FormSelect } from "./form-select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { File, Wrench } from "lucide-react";
 import { useEffect } from "react";
+import { useSlugRoutes } from "@/hooks/useSlugParams";
 
 type TAssistantFormProps = {
   form: UseFormReturn<any>;
@@ -36,10 +37,7 @@ export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
   const { type: architectureType } = form.getValues().config.configurable;
   const { data: config, isLoading, isError } = useRunnableConfigSchema();
 
-  useEffect(() => {
-    console.log(architectureType === "chatbot")
-    console.log(architectureType)
-  },[architectureType])
+  const { assistantId } = useSlugRoutes();
 
   const {
     formState: { isDirty },
@@ -63,7 +61,7 @@ export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
             <TabsTrigger
               value="files-tab"
               className="gap-2"
-              disabled={architectureType === "chatbot" || !architectureType}
+              disabled={architectureType === "chatbot" || !assistantId}
             >
               File Ingestion <File size={16} />
             </TabsTrigger>
