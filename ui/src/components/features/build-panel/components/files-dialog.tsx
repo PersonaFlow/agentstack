@@ -23,10 +23,10 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
 } from "@/components/ui/form";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/utils/utils";
+import { useSlugRoutes } from "@/hooks/useSlugParams";
 
 type TFilesDialog = {
   form: UseFormReturn<any>;
@@ -41,15 +41,19 @@ type TOption = {
 export default function FilesDialog({ form, classNames }: TFilesDialog) {
   const [fileUpload, setFileUpload] = useState<File | null>();
   const [values, setValues] = useState<TOption[]>([]);
-  const { data: files, isLoading } = useFiles("assistants");
+  const { data: fileOptions, isLoading } = useFiles();
 
   const uploadFile = useUploadFile();
+
+  const { assistantId} = useSlugRoutes();
+
+  //const {data: file_ids} = useAssistantFiles(assistantId ? assistantId : "");
 
   const { file_ids } = form.getValues();
 
   const {toast} = useToast();
 
-  const formattedAssistantFiles = files?.reduce((files, file) => {
+  const formattedAssistantFiles = fileOptions?.reduce((files, file) => {
     if (file_ids.includes(file.id)) {
       files.push({ label: file.filename, value: file.id });
     }
@@ -57,15 +61,15 @@ export default function FilesDialog({ form, classNames }: TFilesDialog) {
   }, [] as TOption[]);
 
   useEffect(() => {
-    if (files) {
-      const formattedFileData = files.map((file) => ({
+    if (fileOptions) {
+      const formattedFileData = fileOptions.map((file) => ({
         label: file.filename,
         value: file.id,
       }));
 
       setValues(formattedFileData);
     }
-  }, [files]);
+  }, [fileOptions]);
 
   const getFileIds = (selections: TOption[]) =>
     selections.map((selection) => selection.value);
@@ -100,7 +104,7 @@ export default function FilesDialog({ form, classNames }: TFilesDialog) {
       if (event.target.files) {
         const selectedFiles = Array.from(event.target.files);
         const duplicateFiles = selectedFiles.filter((file) =>
-          files?.some(
+          fileOptions?.some(
             (uploadedFile) =>
               uploadedFile.filename === file.name &&
               uploadedFile.bytes === file.size,

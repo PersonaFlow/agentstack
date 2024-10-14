@@ -44,6 +44,7 @@ export const assistantFiles = (
   after?: string,
 ) =>
   `${BASE_PATH}/assistants/${assistantId}/files/${formatParam(limit)}/${formatParam(order)}/${formatParam(before)}/${formatParam(after)}`;
+
 export const assistantFile = (assistantId: string, fileId?: string) =>
   `${BASE_PATH}/assistants/${assistantId}/files/${formatParam(fileId)}`;
 
@@ -52,7 +53,7 @@ export const ingest = () => `${BASE_PATH}/rag/ingest`;
 export const query = () => `${BASE_PATH}/rag/query`;
 
 // --Files--
-export const files = (purpose?: string) => `${BASE_PATH}/files`;
+export const files = `${BASE_PATH}/files`;
 
 export const file = (fileId?: string, purpose?: string) =>
   `${BASE_PATH}/files/${formatParam(fileId)}`;
