@@ -15,8 +15,7 @@ import { useAvailableTools } from "@/hooks/useAvailableTools";
 import { useToast } from "@/components/ui/use-toast";
 import { useSlugRoutes } from "@/hooks/useSlugParams";
 import Spinner from "@/components/ui/spinner";
-import { File, LucidePencil, Wrench } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { LucidePencil } from "lucide-react";
 
 const RetrievalType = "retrieval";
 
