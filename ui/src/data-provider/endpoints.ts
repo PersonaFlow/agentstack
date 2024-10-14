@@ -43,7 +43,7 @@ export const assistantFiles = (
   before?: string,
   after?: string,
 ) =>
-  `${BASE_PATH}/assistants/${assistantId}/files/${formatParam(limit)}/${formatParam(order)}/${formatParam(before)}/${formatParam(after)}`;
+  `${BASE_PATH}/assistants/${assistantId}/files`;
 
 export const assistantFile = (assistantId: string, fileId?: string) =>
   `${BASE_PATH}/assistants/${assistantId}/files/${formatParam(fileId)}`;
