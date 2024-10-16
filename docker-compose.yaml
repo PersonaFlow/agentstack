@@ -1,14 +1,19 @@
+name: PersonaFlow
 services:
-  stack:
-    image: personaflow/stack:latest
-    container_name: stack
-    # restart: on-failure
-    ports:
-      - "9000:9000"
-    networks:
-      - net
-    env_file:
-      - .env.production
+  # stack:
+  #   image: personaflow/stack:latest
+  #   container_name: stack
+  #   # restart: on-failure
+  #   ports:
+  #     - "9000:9000"
+  #   networks:
+  #     - net
+  #   env_file:
+  #     - .env.production
+  #   depends_on:
+  #     - redis
+  #     - qdrant
+  #     - postgres-db
   postgres-db:
     # Use a custom Docker build context for PostgreSQL.
     build: ./contrib/postgresql
@@ -57,6 +62,21 @@ services:
       - 8000:8000
     networks:
       - net
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   # langfuse-server:
   #   image: langfuse/langfuse:latest
   #   container_name: langfuse
@@ -113,6 +133,8 @@ volumes:
   postgresql_data:
     driver: local
   langfuse_data:
+    driver: local
+  redis_data:
     driver: local
   # models:
   #   driver: local
