@@ -105,9 +105,7 @@ async def generate_chunks_and_summaries(
 
         summary_documents = None
         if payload.document_processor and payload.document_processor.summarize:
-            await redis_service.push_progress_message(
-                task_id, "Generating summaries"
-            )
+            await redis_service.push_progress_message(task_id, "Generating summaries")
             summary_documents = await embedding_service.generate_summary_documents(
                 chunks
             )
@@ -252,12 +250,12 @@ async def process_ingestion(
         )
 
         await embed_and_upsert(
-            task_id, 
-            embedding_service, 
-            payload, 
-            chunks, 
-            summary_documents, 
-            redis_service
+            task_id,
+            embedding_service,
+            payload,
+            chunks,
+            summary_documents,
+            redis_service,
         )
 
         if is_assistant:
@@ -322,7 +320,7 @@ async def ingest(
 
 
 @router.get(
-    "/ingest/{task_id}/progress", 
+    "/ingest/{task_id}/progress",
     tags=[DEFAULT_TAG],
     response_class=EventSourceResponse,
     operation_id="ingest_task_progress",

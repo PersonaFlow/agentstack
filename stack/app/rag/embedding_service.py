@@ -92,9 +92,7 @@ class EmbeddingService:
 
     async def _report_progress(self, message: str):
         if self.redis_service and self.task_id:
-            logger.debug(
-                f"Reporting progress update for {self.task_id}: {message}"
-            )
+            logger.debug(f"Reporting progress update for {self.task_id}: {message}")
             await self.redis_service.push_progress_message(self.task_id, message)
         else:
             logger.info(f"Progress update for {self.task_id}: {message}")
