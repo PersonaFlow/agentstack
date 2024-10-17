@@ -5,6 +5,8 @@ import asyncio
 from redis.asyncio import Redis
 from fastapi import APIRouter, Depends, BackgroundTasks, Query
 from fastapi.exceptions import HTTPException
+from sse_starlette.sse import EventSourceResponse
+
 from stack.app.core.auth.request_validators import AuthenticatedUser
 from stack.app.schema.rag import (
     IngestRequestPayload,
@@ -27,7 +29,7 @@ from stack.app.schema.rag import BaseDocumentChunk
 from stack.app.schema.assistant import Assistant
 from stack.app.core.datastore import get_redis_connection
 from stack.app.rag.embedding_service import EmbeddingService
-
+from stack.app.core.redis import RedisService, get_redis_service
 
 logger = structlog.get_logger()
 settings = get_settings()
@@ -36,12 +38,36 @@ router = APIRouter()
 DEFAULT_TAG = "RAG"
 
 
+async def event_generator(ingestion_id: str, redis_service: RedisService):
+    logger.info(f"Starting event generator for ingestion {ingestion_id}")
+    try:
+        while True:
+            message = await redis_service.get_progress_message(ingestion_id)
+            if message:
+                logger.debug(f"Sending progress event: {message}")
+                yield {"event": "progress", "data": message}
+
+            status = await redis_service.get_ingestion_status(ingestion_id)
+            if status in ["completed", "failed"]:
+                logger.debug(f"Sending completion event: {status}")
+                yield {"event": "completed", "data": status}
+                break
+
+            logger.debug("Waiting for next iteration")
+            await asyncio.sleep(0.1)
+    except Exception as e:
+        logger.exception(f"Error in event generator: {str(e)}")
+        yield {"event": "error", "data": f"Error: {str(e)}"}
+    finally:
+        logger.info(f"Event generator for ingestion {ingestion_id} finished")
+
+
 async def prepare_files(
-    redis: Redis,
     ingestion_id: str,
     payload: IngestRequestPayload,
     file_repository: FileRepository,
     assistant_repository: AssistantRepository,
+    redis_service: RedisService,
 ) -> tuple[Optional[list[tuple[FileSchema, bytes]]], bool]:
     try:
         files_to_ingest = []
@@ -57,138 +83,135 @@ async def prepare_files(
                 existing_file_ids
             )
             if not new_file_ids:
-                await redis.set(f"ingestion:{ingestion_id}:status", "completed")
-                await redis.set(
-                    f"ingestion:{ingestion_id}:message", "No new files to ingest."
+                await redis_service.set_ingestion_status(ingestion_id, "completed")
+                await redis_service.push_progress_message(
+                    ingestion_id, "No new files to ingest."
                 )
                 return None, is_assistant
             payload.files = list(new_file_ids)
 
         total_files = len(payload.files)
         for index, file_id in enumerate(payload.files, start=1):
-            await redis.rpush(
-                f"ingestion:{ingestion_id}:progress",
-                f"Retrieving file {index}/{total_files}",
+            await redis_service.push_progress_message(
+                ingestion_id, f"Retrieving file {index}/{total_files}"
             )
             file_model = await file_repository.retrieve_file(file_id)
             file = FileSchema.model_validate(file_model)
             file_content = await file_repository.retrieve_file_content(str(file_id))
             files_to_ingest.append((file, file_content))
-            await redis.rpush(
-                f"ingestion:{ingestion_id}:progress",
-                f"Retrieved file {index}/{total_files}: {file.filename}",
+            await redis_service.push_progress_message(
+                ingestion_id, f"Retrieved file {index}/{total_files}: {file.filename}"
             )
 
         return files_to_ingest, is_assistant
     except Exception as e:
         logger.exception(f"Error in prepare_files: {str(e)}")
-        await redis.rpush(
-            f"ingestion:{ingestion_id}:progress", f"Error preparing files: {str(e)}"
+        await redis_service.push_progress_message(
+            ingestion_id, f"Error preparing files: {str(e)}"
         )
         raise
 
 
 async def generate_chunks_and_summaries(
-    redis: Redis,
     ingestion_id: str,
     embedding_service: EmbeddingService,
     payload: IngestRequestPayload,
-) -> tuple[list[BaseDocumentChunk], list[BaseDocumentChunk] | None]:
+    redis_service: RedisService,
+) -> tuple[list[BaseDocumentChunk], Optional[list[BaseDocumentChunk]]]:
     try:
-        chunks = await embedding_service.generate_chunks(
-            payload.document_processor
-        )
-        await redis.rpush(
-            f"ingestion:{ingestion_id}:progress", f"Generated {len(chunks)} chunks"
+        await redis_service.push_progress_message(ingestion_id, "Generating chunks")
+        chunks = await embedding_service.generate_chunks(payload.document_processor)
+        await redis_service.push_progress_message(
+            ingestion_id, f"Generated {len(chunks)} chunks"
         )
 
         summary_documents = None
         if payload.document_processor and payload.document_processor.summarize:
-            await redis.rpush(
-                f"ingestion:{ingestion_id}:progress", "Generating summaries"
+            await redis_service.push_progress_message(
+                ingestion_id, "Generating summaries"
             )
             summary_documents = await embedding_service.generate_summary_documents(
                 chunks
             )
-            await redis.rpush(
-                f"ingestion:{ingestion_id}:progress",
-                f"Generated {len(summary_documents)} summaries",
+            await redis_service.push_progress_message(
+                ingestion_id, f"Generated {len(summary_documents)} summaries"
             )
 
         return chunks, summary_documents
     except Exception as e:
         logger.exception(f"Error in generate_chunks_and_summaries: {str(e)}")
-        await redis.rpush(
-            f"ingestion:{ingestion_id}:progress",
-            f"Error generating chunks and summaries: {str(e)}",
+        await redis_service.push_progress_message(
+            ingestion_id, f"Error generating chunks and summaries: {str(e)}"
         )
         raise
 
 
 async def embed_and_upsert(
-    redis: Redis,
     ingestion_id: str,
     embedding_service: EmbeddingService,
     payload: IngestRequestPayload,
-    chunks: List[dict],
-    summary_documents: Optional[List[dict]],
+    chunks: list[BaseDocumentChunk],
+    summary_documents: Optional[list[BaseDocumentChunk]],
+    redis_service: RedisService,
 ) -> None:
     try:
-        await redis.rpush(
-            f"ingestion:{ingestion_id}:progress", "Embedding and upserting documents"
+        await redis_service.push_progress_message(
+            ingestion_id, "Embedding and upserting chunks"
         )
         await embedding_service.embed_and_upsert(
             chunks=chunks,
-            encoder=payload.document_processor.encoder.get_encoder() if payload.document_processor else None,
+            encoder=payload.document_processor.encoder.get_encoder()
+            if payload.document_processor
+            else None,
             index_name=payload.index_name,
+            ingestion_id=ingestion_id,
+            redis_service=redis_service,
         )
-        await redis.rpush(
-            f"ingestion:{ingestion_id}:progress",
-            "Completed embedding and upserting chunks",
+        await redis_service.push_progress_message(
+            ingestion_id, "Completed embedding and upserting chunks"
         )
 
         if summary_documents:
-            await redis.rpush(
-                f"ingestion:{ingestion_id}:progress",
-                "Embedding and upserting summaries",
+            await redis_service.push_progress_message(
+                ingestion_id, "Embedding and upserting summaries"
             )
             await embedding_service.embed_and_upsert(
                 chunks=summary_documents,
                 encoder=payload.document_processor.encoder.get_encoder(),
                 index_name=f"{payload.index_name}_summary",
+                ingestion_id=ingestion_id,
+                redis_service=redis_service,
             )
-            await redis.rpush(
-                f"ingestion:{ingestion_id}:progress",
-                "Completed embedding and upserting summaries",
+            await redis_service.push_progress_message(
+                ingestion_id, "Completed embedding and upserting summaries"
             )
     except Exception as e:
         logger.exception(f"Error in embed_and_upsert: {str(e)}")
-        await redis.rpush(
-            f"ingestion:{ingestion_id}:progress",
-            f"Error embedding and upserting: {str(e)}",
+        await redis_service.push_progress_message(
+            ingestion_id, f"Error embedding and upserting: {str(e)}"
         )
         raise
 
 
 async def update_assistant(
-    redis: Redis,
     ingestion_id: str,
     assistant_repository: AssistantRepository,
     assistant: dict,
     payload: IngestRequestPayload,
+    redis_service: RedisService,
 ) -> None:
     try:
-        await redis.rpush(f"ingestion:{ingestion_id}:progress", "Updating assistant")
+        await redis_service.push_progress_message(ingestion_id, "Updating assistant")
         existing_file_ids = set(assistant.get("file_ids", []))
         updated_file_ids = list(existing_file_ids | set(payload.files))
         await assistant_repository.update_assistant(
             assistant.id, {"file_ids": updated_file_ids}
         )
-        await redis.rpush(f"ingestion:{ingestion_id}:progress", "Assistant updated")
+        await redis_service.push_progress_message(ingestion_id, "Assistant updated")
     except Exception as e:
         logger.exception(f"Error in update_assistant: {str(e)}")
-        await redis.rpush(
-            f"ingestion:{ingestion_id}:progress", f"Error updating assistant: {str(e)}"
+        await redis_service.push_progress_message(
+            ingestion_id, f"Error updating assistant: {str(e)}"
         )
         raise
 
@@ -217,14 +240,14 @@ async def process_ingestion(
     payload: IngestRequestPayload,
     file_repository: FileRepository,
     assistant_repository: AssistantRepository,
-    test_delay: float = 0,
+    redis_service: RedisService,
 ) -> None:
     redis = await get_redis_connection()
     try:
-        await redis.set(f"ingestion:{ingestion_id}:status", "started")
+        await redis_service.set_ingestion_status(ingestion_id, "started")
 
         files_to_ingest, is_assistant = await prepare_files(
-            redis, ingestion_id, payload, file_repository, assistant_repository
+            ingestion_id, payload, file_repository, assistant_repository, redis_service
         )
         if files_to_ingest is None:
             return
@@ -233,28 +256,36 @@ async def process_ingestion(
             index_name=payload.index_name,
             encoder=payload.document_processor.encoder.get_encoder(),
             vector_credentials=payload.vector_database,
-            dimensions=payload.document_processor.encoder.dimensions if payload.document_processor else None,
+            dimensions=payload.document_processor.encoder.dimensions
+            if payload.document_processor
+            else None,
             files=files_to_ingest,
             namespace=payload.namespace,
             purpose=payload.purpose,
-            parser_config=payload.document_processor.parser_config if payload.document_processor else None,
-            redis=redis,
+            parser_config=payload.document_processor.parser_config
+            if payload.document_processor
+            else None,
             ingestion_id=ingestion_id,
-            test_delay=test_delay,
+            redis_service=redis_service,
         )
 
         chunks, summary_documents = await generate_chunks_and_summaries(
-            redis, ingestion_id, embedding_service, payload
+            ingestion_id, embedding_service, payload, redis_service
         )
 
         await embed_and_upsert(
-            redis, ingestion_id, embedding_service, payload, chunks, summary_documents
+            ingestion_id, 
+            embedding_service, 
+            payload, 
+            chunks, 
+            summary_documents, 
+            redis_service
         )
 
         if is_assistant:
             assistant = await assistant_repository.retrieve_assistant(payload.namespace)
             await update_assistant(
-                redis, ingestion_id, assistant_repository, assistant, payload
+                ingestion_id, assistant_repository, assistant, payload, redis_service
             )
 
         if payload.webhook_url:
@@ -265,16 +296,15 @@ async def process_ingestion(
                 payload.files,
             )
 
-        await redis.set(f"ingestion:{ingestion_id}:status", "completed")
-        await redis.rpush(
-            f"ingestion:{ingestion_id}:progress",
-            "Ingestion process completed successfully",
+        await redis_service.set_ingestion_status(ingestion_id, "completed")
+        await redis_service.push_progress_message(
+            ingestion_id, "Ingestion process completed successfully"
         )
 
     except Exception as e:
         logger.exception(f"Error during ingestion process: {str(e)}")
-        await redis.set(f"ingestion:{ingestion_id}:status", "failed")
-        await redis.rpush(f"ingestion:{ingestion_id}:progress", f"Error: {str(e)}")
+        await redis_service.set_ingestion_status(ingestion_id, "failed")
+        await redis_service.push_progress_message(ingestion_id, f"Error: {str(e)}")
     finally:
         await redis.close()
 
@@ -291,9 +321,9 @@ async def ingest(
     auth: AuthenticatedUser,
     payload: IngestRequestPayload,
     background_tasks: BackgroundTasks,
-    test_delay: float = Query(0, description="Introduces a delay in seconds for each step of the ingestion process for testing purposes."),
     file_repository: FileRepository = Depends(get_file_repository),
     assistant_repository: AssistantRepository = Depends(get_assistant_repository),
+    redis_service: RedisService = Depends(get_redis_service),
 ) -> dict:
     try:
         ingestion_id = str(uuid4())
@@ -303,7 +333,7 @@ async def ingest(
             payload,
             file_repository,
             assistant_repository,
-            test_delay,
+            redis_service,
         )
         return {"ingestion_id": ingestion_id, "status": "started"}
     except Exception as e:
@@ -314,40 +344,10 @@ async def ingest(
 
 
 @router.get("/ingest/{ingestion_id}/progress", tags=[DEFAULT_TAG])
-async def ingest_progress(ingestion_id: str):
-    from sse_starlette.sse import EventSourceResponse
-    
-    async def event_generator():
-        redis = await get_redis_connection()
-        try:
-            logger.info(f"Starting event generator for ingestion {ingestion_id}")
-            while True:
-                # Consume all available messages
-                while True:
-                    message = await redis.lpop(f"ingestion:{ingestion_id}:progress")
-                    if message:
-                        logger.debug(f"Received progress message: {message.decode('utf-8')}")
-                        yield {"event": "progress", "data": message.decode("utf-8")}
-                    else:
-                        break  # No more messages available
-                
-                # Check status after consuming all available messages
-                status = await redis.get(f"ingestion:{ingestion_id}:status")
-                if status in [b"completed", b"failed"]:
-                    logger.info(f"Ingestion {ingestion_id} {status.decode('utf-8')}")
-                    yield {"event": "completed", "data": status.decode("utf-8")}
-                    break
-                
-                # Short sleep to prevent tight looping
-                await asyncio.sleep(0.1)
-        except Exception as e:
-            logger.exception(f"Error in event_generator: {str(e)}")
-            yield {"event": "error", "data": f"Error: {str(e)}"}
-        finally:
-            await redis.close()
-            logger.info(f"Event generator for ingestion {ingestion_id} finished")
-
-    return EventSourceResponse(event_generator())
+async def ingest_progress(
+    ingestion_id: str, redis_service: RedisService = Depends(get_redis_service)
+):
+    return EventSourceResponse(event_generator(ingestion_id, redis_service))
 
 
 # async def handle_assistant_files(

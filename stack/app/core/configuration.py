@@ -116,7 +116,7 @@ class Settings(BaseSettings):
     # Redis Configuration
     @property
     def REDIS_URL(self) -> str:
-        if os.environ.get('DOCKER_ENV'):
+        if os.environ.get("DOCKER_ENV"):
             return os.getenv("REDIS_URL", "redis://redis:6379")
         else:
             return os.getenv("REDIS_URL", "redis://localhost:6379")

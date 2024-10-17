@@ -1,8 +1,7 @@
 import asyncio
 import copy
 import uuid
-from typing import Any, Literal, Optional, Tuple
-from redis.asyncio import Redis
+from typing import Any, Literal, Optional
 import numpy as np
 import structlog
 from semantic_router.encoders import (
@@ -13,7 +12,6 @@ from unstructured_client import UnstructuredClient
 from unstructured_client.models import shared
 
 from stack.app.schema.rag import (
-    BaseDocument,
     BaseDocumentChunk,
     DocumentProcessorConfig,
     ParserConfig,
@@ -28,8 +26,8 @@ from stack.app.rag.summarizer import completion
 from stack.app.vectordbs import get_vector_service
 from stack.app.schema.file import FileSchema
 from stack.app.core.configuration import get_settings
-from stack.app.model.file import File
 from stack.app.utils.file_helpers import parse_json_file, parse_csv_file
+from stack.app.core.redis import RedisService
 
 
 # TODO: Add similarity score to the BaseDocumentChunk
@@ -74,9 +72,8 @@ class EmbeddingService:
         namespace: Optional[str] = None,
         purpose: Optional[str] = None,
         parser_config: Optional[ParserConfig] = None,
-        redis: Optional[Redis] = None,
+        redis_service: Optional[RedisService] = None,
         ingestion_id: Optional[str] = None,
-        test_delay: float = 0,
     ):
         self.encoder = encoder
         self.files = files
@@ -90,24 +87,17 @@ class EmbeddingService:
             server_url=settings.UNSTRUCTURED_BASE_URL,
         )
         self.parser_config = parser_config or ParserConfig()
-        self.redis = redis
-        self.ingestion_id = ingestion_id 
-        self.test_delay = test_delay
-
-    async def _simulate_delay(self):
-        if self.test_delay > 0:
-            await asyncio.sleep(self.test_delay)
-            # await self._report_progress(f"Simulated delay of {self.test_delay} seconds")
-
+        self.redis_service = redis_service
+        self.ingestion_id = ingestion_id
 
     async def _report_progress(self, message: str):
-        if self.redis and self.ingestion_id:
-            await self.redis.rpush(f"ingestion:{self.ingestion_id}:progress", message)
-        # if self.test_delay > 0:
-        #     await self._simulate_delay()
+        if self.redis_service and self.ingestion_id:
+            logger.debug(
+                f"Reporting progress update for {self.ingestion_id}: {message}"
+            )
+            await self.redis_service.push_progress_message(self.ingestion_id, message)
         else:
             logger.info(f"Progress update for {self.ingestion_id}: {message}")
-
 
     async def generate_chunks(
         self, config: DocumentProcessorConfig
@@ -130,13 +120,16 @@ class EmbeddingService:
                 chunks = await self._process_file(file, file_content, config)
                 filtered_chunks = self._filter_chunks(chunks)
                 doc_chunks.extend(filtered_chunks)
-                await self._report_progress(f"Processed file {index}/{total_files}: {file.filename}")
+                await self._report_progress(
+                    f"Processed file {index}/{total_files}: {file.filename}"
+                )
             except Exception as e:
                 logger.error(f"Error loading chunks for file {file.filename}: {e}")
-                await self._report_progress(f"Error processing file {file.filename}: {str(e)}")
+                await self._report_progress(
+                    f"Error processing file {file.filename}: {str(e)}"
+                )
                 raise
         return doc_chunks
-
 
     def _filter_chunks(
         self, chunks: list[BaseDocumentChunk]
@@ -311,9 +304,20 @@ class EmbeddingService:
         encoder: BaseEncoder,
         index_name: Optional[str] = None,
         batch_size: int = 100,
+        ingestion_id: Optional[str] = None,
+        redis_service: Optional[RedisService] = None,
     ) -> list[BaseDocumentChunk]:
+        _redis_service = redis_service or self.redis_service
+        _ingestion_id = ingestion_id or self.ingestion_id
+
         total_chunks = len(chunks)
-        await self._report_progress(f"Starting embedding process for {total_chunks} chunks...")
+
+        if _redis_service and _ingestion_id:
+            await _redis_service.push_progress_message(
+                _ingestion_id,
+                f"Starting embedding process for {total_chunks} chunks...",
+            )
+
         pbar = tqdm(total=len(chunks), desc="Generating embeddings")
         queue = asyncio.Queue()
 
@@ -333,7 +337,9 @@ class EmbeddingService:
                 for chunk, embedding in zip(chunks_batch, embeddings):
                     chunk.dense_embedding = np.array(embedding).tolist()
                 pbar.update(len(chunks_batch))
-                await self._report_progress(f"Embedded {pbar.n}/{total_chunks} chunks ({pbar.n/total_chunks:.2%})")
+                await self._report_progress(
+                    f"Embedded {pbar.n}/{total_chunks} chunks ({pbar.n/total_chunks:.2%})"
+                )
                 return chunks_batch
             except Exception as e:
                 logger.error(f"Error embedding a batch of documents: {e}")
@@ -363,7 +369,9 @@ class EmbeddingService:
         ]
         pbar.close()
 
-        await self._report_progress(f"Embedding completed. Starting upsert for {len(chunks_with_embeddings)} chunks...")
+        await self._report_progress(
+            f"Embedding completed. Starting upsert for {len(chunks_with_embeddings)} chunks..."
+        )
 
         if not chunks_with_embeddings:
             logger.warn("No chunks to upsert. Aborting operation.")
@@ -379,14 +387,16 @@ class EmbeddingService:
         try:
             total_chunks = len(chunks_with_embeddings)
             for i in range(0, total_chunks, batch_size):
-                batch = chunks_with_embeddings[i:i+batch_size]
+                batch = chunks_with_embeddings[i : i + batch_size]
                 await vector_service.upsert(chunks=batch)
-                await self._report_progress(f"Upserted {min(i+batch_size, total_chunks)}/{total_chunks} chunks ({min(i+batch_size, total_chunks)/total_chunks:.2%})")
+                await self._report_progress(
+                    f"Upserted {min(i+batch_size, total_chunks)}/{total_chunks} chunks ({min(i+batch_size, total_chunks)/total_chunks:.2%})"
+                )
         except Exception as e:
             logger.error(f"Error upserting embeddings: {e}")
             await self._report_progress(f"Error upserting embeddings: {str(e)}")
             raise
-        
+
         await self._report_progress("Upsert completed.")
         return chunks_with_embeddings
 
