@@ -30,36 +30,14 @@ from stack.app.schema.assistant import Assistant
 from stack.app.core.datastore import get_redis_connection
 from stack.app.rag.embedding_service import EmbeddingService
 from stack.app.core.redis import RedisService, get_redis_service
+from stack.app.utils.stream import ingest_task_event_generator
+
 
 logger = structlog.get_logger()
 settings = get_settings()
 
 router = APIRouter()
 DEFAULT_TAG = "RAG"
-
-
-async def event_generator(ingestion_id: str, redis_service: RedisService):
-    logger.info(f"Starting event generator for ingestion {ingestion_id}")
-    try:
-        while True:
-            message = await redis_service.get_progress_message(ingestion_id)
-            if message:
-                logger.debug(f"Sending progress event: {message}")
-                yield {"event": "progress", "data": message}
-
-            status = await redis_service.get_ingestion_status(ingestion_id)
-            if status in ["completed", "failed"]:
-                logger.debug(f"Sending completion event: {status}")
-                yield {"event": "completed", "data": status}
-                break
-
-            logger.debug("Waiting for next iteration")
-            await asyncio.sleep(0.1)
-    except Exception as e:
-        logger.exception(f"Error in event generator: {str(e)}")
-        yield {"event": "error", "data": f"Error: {str(e)}"}
-    finally:
-        logger.info(f"Event generator for ingestion {ingestion_id} finished")
 
 
 async def prepare_files(
@@ -343,111 +321,21 @@ async def ingest(
         )
 
 
-@router.get("/ingest/{ingestion_id}/progress", tags=[DEFAULT_TAG])
+@router.get(
+    "/ingest/{ingestion_id}/progress", 
+    tags=[DEFAULT_TAG],
+    response_class=EventSourceResponse,
+    operation_id="ingest_task_progress",
+    summary="Get progress and status updates for an ingestion task.",
+    description="""
+                Streams progress and status updates for an ingestion task 
+                using the task_id that was recieved when the /ingest api was called.
+                """,
+)
 async def ingest_progress(
     ingestion_id: str, redis_service: RedisService = Depends(get_redis_service)
 ):
-    return EventSourceResponse(event_generator(ingestion_id, redis_service))
-
-
-# async def handle_assistant_files(
-#     payload: IngestRequestPayload, assistant_repository: AssistantRepository
-# ) -> tuple[list[str], set[str], Assistant]:
-#     assistant = await assistant_repository.retrieve_assistant(payload.namespace)
-#     if assistant is None:
-#         raise HTTPException(
-#             status_code=status.HTTP_404_NOT_FOUND,
-#             detail=f"Assistant with ID {payload.namespace} not found.",
-#         )
-
-#     existing_file_ids = set(assistant.file_ids or [])
-#     new_file_ids = set(str(file_id) for file_id in payload.files) - existing_file_ids
-
-#     if not new_file_ids:
-#         raise HTTPException(
-#             status_code=status.HTTP_200_OK,
-#             detail="No new files to ingest.",
-#         )
-
-#     return list(new_file_ids), existing_file_ids, assistant
-
-# @router.post(
-#     "/ingest",
-#     tags=[DEFAULT_TAG],
-#     response_model=dict,
-#     operation_id="ingest_data_from_files",
-#     summary="Ingest files to be indexed and queried.",
-#     description="Upload files for ingesting using the advanced RAG system.",
-# )
-# async def ingest(
-#     auth: AuthenticatedUser,
-#     payload: IngestRequestPayload,
-#     file_repository: FileRepository = Depends(get_file_repository),
-#     assistant_repository: AssistantRepository = Depends(get_assistant_repository),
-# ) -> dict:
-#     files_to_ingest = []
-#     try:
-#         is_assistant = payload.purpose == ContextType.assistants
-#         existing_file_ids = set()
-#         assistant = None
-
-#         if is_assistant:
-#             payload.files, existing_file_ids, assistant = await handle_assistant_files(
-#                 payload, assistant_repository
-#             )
-
-#         for file_id in payload.files:
-#             file_model = await file_repository.retrieve_file(file_id)
-#             file = FileSchema.model_validate(file_model)
-#             file_content = await file_repository.retrieve_file_content(str(file_id))
-#             files_to_ingest.append((file, file_content))
-
-#         tasks = await get_ingest_tasks_from_config(files_to_ingest, payload)
-
-#         await asyncio.gather(*tasks)
-
-#         if is_assistant and assistant:
-#             updated_file_ids = list(existing_file_ids | set(payload.files))
-#             await assistant_repository.update_assistant(
-#                 assistant.id, {"file_ids": updated_file_ids}
-#             )
-
-#         if payload.webhook_url:
-#             await notify_webhook(
-#                 payload.webhook_url,
-#                 payload.index_name,
-#                 payload.namespace,
-#                 payload.files,
-#             )
-
-#         return {
-#             "success": True,
-#             "message": f"Ingested {len(files_to_ingest)} new files.",
-#         }
-#     except HTTPException as he:
-#         # Re-raise HTTP exceptions
-#         raise he
-#     except Exception as e:
-#         logger.exception(f"Error ingesting files: {str(e)}")
-#         raise HTTPException(
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#             detail="An error occurred while ingesting the files.",
-#         )
-
-
-# async def notify_webhook(
-#     webhook_url: str, collection_name: str, namespace: str, file_ids: list[str]
-# ):
-#     async with aiohttp.ClientSession() as session:
-#         await session.post(
-#             url=webhook_url,
-#             json={
-#                 "index_name": collection_name,
-#                 "status": "completed",
-#                 "namespace": namespace,
-#                 "file_ids": file_ids,
-#             },
-#         )
+    return EventSourceResponse(ingest_task_event_generator(ingestion_id, redis_service))
 
 
 @router.post(

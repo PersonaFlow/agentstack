@@ -145,9 +145,8 @@ class EmbeddingService:
                 max_density_word_count=self.MAX_DENSITY_WORD_COUNT,
             )
             if not valid:
-                logger.debug(f"Filtering out chunk, {reason}, {chunk}")
+                logger.debug(f"Filtering out chunk, {reason}")
                 continue
-            logger.debug(f"Chunk is useful: {chunk}")
             document_content += chunk_content
             filtered_chunks.append(chunk)
 

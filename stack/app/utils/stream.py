@@ -1,15 +1,61 @@
 import functools
+import asyncio
 from typing import Any, AsyncIterator, Dict, Optional, Sequence, Union
 import structlog
 
 import orjson
 from langchain_core.messages import AnyMessage, BaseMessage, message_chunk_to_message
 from langchain_core.runnables import Runnable, RunnableConfig
+from stack.app.core.redis import RedisService
+
 
 logger = structlog.get_logger(__name__)
 
 MessagesStream = AsyncIterator[Union[list[AnyMessage], str]]
 
+
+async def ingest_task_event_generator(ingestion_id: str, redis_service: RedisService):
+    """
+    Generator function to stream data ingestion task events to the client.
+    """
+    logger.info(f"Starting event generator for ingestion {ingestion_id}")
+    last_index = 0
+    try:
+        yield {
+            "event": "metadata",
+            "data": orjson.dumps({"ingestion_id": ingestion_id}).decode(),
+        }
+        
+        while True:
+            messages = await redis_service.get_progress_messages(ingestion_id, last_index)
+            for message in messages:
+                yield {
+                    "event": "data",
+                    "data": orjson.dumps({"progress": message}).decode(),
+                }
+                last_index += 1
+
+            status = await redis_service.get_ingestion_status(ingestion_id)
+            if status in ["completed", "failed"]:
+                yield {
+                    "event": "data",
+                    "data": orjson.dumps({"status": status}).decode(),
+                }
+                break
+
+            if not messages:
+                await asyncio.sleep(0.1)
+    except Exception as e:
+        logger.exception(f"Error in event generator: {str(e)}")
+        yield {
+            "event": "error",
+            "data": orjson.dumps(
+                {"status_code": 500, "message": f"Internal Server Error: {str(e)}"}
+            ).decode(),
+        }
+    finally:
+        logger.info(f"Event generator for ingestion {ingestion_id} finished")
+        yield {"event": "end"}
 
 async def astream_state(
     app: Runnable,
