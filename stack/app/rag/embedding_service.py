@@ -73,7 +73,7 @@ class EmbeddingService:
         purpose: Optional[str] = None,
         parser_config: Optional[ParserConfig] = None,
         redis_service: Optional[RedisService] = None,
-        ingestion_id: Optional[str] = None,
+        task_id: Optional[str] = None,
     ):
         self.encoder = encoder
         self.files = files
@@ -88,16 +88,16 @@ class EmbeddingService:
         )
         self.parser_config = parser_config or ParserConfig()
         self.redis_service = redis_service
-        self.ingestion_id = ingestion_id
+        self.task_id = task_id
 
     async def _report_progress(self, message: str):
-        if self.redis_service and self.ingestion_id:
+        if self.redis_service and self.task_id:
             logger.debug(
-                f"Reporting progress update for {self.ingestion_id}: {message}"
+                f"Reporting progress update for {self.task_id}: {message}"
             )
-            await self.redis_service.push_progress_message(self.ingestion_id, message)
+            await self.redis_service.push_progress_message(self.task_id, message)
         else:
-            logger.info(f"Progress update for {self.ingestion_id}: {message}")
+            logger.info(f"Progress update for {self.task_id}: {message}")
 
     async def generate_chunks(
         self, config: DocumentProcessorConfig
@@ -303,17 +303,17 @@ class EmbeddingService:
         encoder: BaseEncoder,
         index_name: Optional[str] = None,
         batch_size: int = 100,
-        ingestion_id: Optional[str] = None,
+        task_id: Optional[str] = None,
         redis_service: Optional[RedisService] = None,
     ) -> list[BaseDocumentChunk]:
         _redis_service = redis_service or self.redis_service
-        _ingestion_id = ingestion_id or self.ingestion_id
+        _task_id = task_id or self.task_id
 
         total_chunks = len(chunks)
 
-        if _redis_service and _ingestion_id:
+        if _redis_service and _task_id:
             await _redis_service.push_progress_message(
-                _ingestion_id,
+                _task_id,
                 f"Starting embedding process for {total_chunks} chunks...",
             )
 
