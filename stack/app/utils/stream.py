@@ -1,14 +1,62 @@
 import functools
-from typing import Any, AsyncIterator, Dict, Optional, Sequence, Union
+import asyncio
+from typing import Any, AsyncIterator, Dict, Optional, Sequence, Union, AsyncGenerator
 import structlog
 
 import orjson
 from langchain_core.messages import AnyMessage, BaseMessage, message_chunk_to_message
 from langchain_core.runnables import Runnable, RunnableConfig
+from stack.app.core.redis import RedisService
+
 
 logger = structlog.get_logger(__name__)
 
 MessagesStream = AsyncIterator[Union[list[AnyMessage], str]]
+
+
+async def ingest_task_event_generator(task_id: str, redis_service: RedisService):
+    """Generator function to stream data ingestion task events to the
+    client."""
+    logger.info(f"Starting event generator for ingestion {task_id}")
+    last_index = 0
+    try:
+        yield {
+            "event": "metadata",
+            "data": orjson.dumps({"task_id": task_id}).decode(),
+        }
+
+        while True:
+            messages = await redis_service.get_progress_messages(task_id, last_index)
+            for message in messages:
+                logger.debug(f"Sending progress event: {message}")
+                yield {
+                    "event": "data",
+                    "data": orjson.dumps({"progress": message}).decode(),
+                }
+                last_index += 1
+
+            status = await redis_service.get_ingestion_status(task_id)
+            if status in ["completed", "failed"]:
+                logger.debug(f"Sending completion event: {status}")
+                yield {
+                    "event": "data",
+                    "data": orjson.dumps({"status": status}).decode(),
+                }
+                break
+
+            if not messages:
+                await asyncio.sleep(0.5)  # Wait a bit before checking again
+    except Exception as e:
+        logger.exception(f"Error in event generator: {str(e)}")
+        yield {
+            "event": "error",
+            "data": orjson.dumps(
+                {"status_code": 500, "message": f"Internal Server Error: {str(e)}"}
+            ).decode(),
+        }
+    finally:
+        logger.info(f"Event generator for ingestion {task_id} finished")
+        yield {"event": "end"}
 
 
 async def astream_state(

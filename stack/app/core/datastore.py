@@ -10,6 +10,7 @@ It integrates with the application configuration settings to fetch or create a n
 
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from redis.asyncio import Redis
 from sqlalchemy.orm import sessionmaker
 from stack.app.core.configuration import Settings, get_settings
 from typing import AsyncGenerator, Annotated, Any, Generator
@@ -32,3 +33,7 @@ def get_session() -> Generator[Session, Any, None]:
     engine = create_engine(Settings.INTERNAL_DATABASE_URI)
     with Session(engine) as session:
         yield session
+
+
+async def get_redis_connection():
+    return Redis.from_url("redis://localhost:6379")
