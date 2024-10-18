@@ -13,8 +13,10 @@ logger = structlog.get_logger(__name__)
 
 MessagesStream = AsyncIterator[Union[list[AnyMessage], str]]
 
+
 async def ingest_task_event_generator(task_id: str, redis_service: RedisService):
-    """Generator function to stream data ingestion task events to the client."""
+    """Generator function to stream data ingestion task events to the
+    client."""
     logger.info(f"Starting event generator for ingestion {task_id}")
     last_index = 0
     try:
@@ -22,7 +24,7 @@ async def ingest_task_event_generator(task_id: str, redis_service: RedisService)
             "event": "metadata",
             "data": orjson.dumps({"task_id": task_id}).decode(),
         }
-        
+
         while True:
             messages = await redis_service.get_progress_messages(task_id, last_index)
             for message in messages:
@@ -32,7 +34,7 @@ async def ingest_task_event_generator(task_id: str, redis_service: RedisService)
                     "data": orjson.dumps({"progress": message}).decode(),
                 }
                 last_index += 1
-            
+
             status = await redis_service.get_ingestion_status(task_id)
             if status in ["completed", "failed"]:
                 logger.debug(f"Sending completion event: {status}")
@@ -41,7 +43,7 @@ async def ingest_task_event_generator(task_id: str, redis_service: RedisService)
                     "data": orjson.dumps({"status": status}).decode(),
                 }
                 break
-            
+
             if not messages:
                 await asyncio.sleep(0.5)  # Wait a bit before checking again
     except Exception as e:
