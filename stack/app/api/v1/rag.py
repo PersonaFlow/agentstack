@@ -172,13 +172,13 @@ async def embed_and_upsert(
 async def update_assistant(
     task_id: str,
     assistant_repository: AssistantRepository,
-    assistant: dict,
+    assistant: Assistant,
     payload: IngestRequestPayload,
     redis_service: RedisService,
 ) -> None:
     try:
         await redis_service.push_progress_message(task_id, "Updating assistant")
-        existing_file_ids = set(assistant.get("file_ids", []))
+        existing_file_ids = set(assistant.file_ids or [])
         updated_file_ids = list(existing_file_ids | set(payload.files))
         await assistant_repository.update_assistant(
             assistant.id, {"file_ids": updated_file_ids}
