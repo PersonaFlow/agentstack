@@ -1,4 +1,4 @@
-name: PersonaFlow
+name: personaflow
 services:
   # stack:
   #   image: personaflow/stack:latest
