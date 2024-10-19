@@ -112,6 +112,7 @@ services:
   #     - PHOENIX_SQL_DATABASE_URL=postgresql://postgres:postgres@postgres-db:5432/phoenix
   #     - PHOENIX_WORKING_DIR=/phoenix
   # Uncomment if you want to run local models using ollama docker image
+  # Use the command: `docker exec -it ollama ollama pull <model>` to pull a model
   # ollama:
   #   image: ollama/ollama
   #   container_name: embed-ollama
@@ -119,6 +120,9 @@ services:
   #     - 11435:11434
   #   volumes:
   #     - ./models:/root/.ollama/models
+  #   pull_policy: always
+  #   tty: true
+  #   restart: always
 
 configs:
   qdrant_config:
