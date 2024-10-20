@@ -14,16 +14,19 @@ import {
 } from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
 import MultiSelect from "@/components/ui/multiselect";
-import { useAssistant, useFiles, useIngestFileData, useUpdateAssistant, useUploadFile } from "@/data-provider/query-service";
+import { useAssistant, useAssistantFiles, useFiles, useIngestFileData, useUploadFile } from "@/data-provider/query-service";
 import Spinner from "@/components/ui/spinner";
 import { ChangeEvent, useEffect, useState } from "react";
 import {
   Form,
+  FormControl,
+  FormField,
+  FormItem,
 } from "@/components/ui/form";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/utils/utils";
 import { useSlugRoutes } from "@/hooks/useSlugParams";
-import { formSchema, TAssistant } from "@/data-provider/types";
+import { fileIngestSchema, TAssistant, TFile } from "@/data-provider/types";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -41,6 +44,34 @@ type TOption = {
   value: string;
 };
 
+const defaultFormValues = {
+  files: [],
+  purpose: "assistants",
+  namespace: "",
+  document_processor: {
+    summarize: false,
+    encoder: {
+      provider: "openai",
+      encoder_model: "text-embedding-3-small",
+      dimensions: 1536,
+      score_threshold: 0.75
+    },
+    unstructured: {
+      partition_strategy: "auto",
+      hi_res_model_name: "detectron2_onnx",
+      process_tables: false
+    },
+    splitter: {
+      name: "semantic",
+      min_tokens: 30,
+      max_tokens: 280,
+      rolling_window_size: 1,
+      prefix_titles: true,
+      prefix_summary: false
+    }
+  }
+}
+
 export default function FilesDialog({ classNames }: TFilesDialog) {
 
   const { data: fileOptions, isLoading } = useFiles();
@@ -49,34 +80,27 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
 
   const { assistantId } = useSlugRoutes();
 
-  const { data: assistantData } = useAssistant(
-    assistantId ? assistantId : "",
-  );
-
-  const { file_ids } = assistantData as TAssistant;
+  const { data: assistantFiles } = useAssistantFiles(assistantId as string);
 
   const { toast } = useToast();
 
-  const updateAssistant = useUpdateAssistant(assistantId ? assistantId : "");
   const ingestFiles = useIngestFileData();
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof fileIngestSchema>>({
+    resolver: zodResolver(fileIngestSchema),
+    defaultValues: defaultFormValues
   });
 
   const [fileUpload, setFileUpload] = useState<File | null>();
   const [values, setValues] = useState<TOption[]>([]);
-  const [fileIdSelections, setFileIdSelections] = useState<string[]>(
-    file_ids ? [...file_ids] : [],
+  const [fileSelections, setFileSelections] = useState<TFile[]>(
+    assistantFiles ? [...assistantFiles] : [],
   );
 
-  const onSubmit = () => {
-    // updateAssistant.mutate({}, {
-    //   onSuccess: () => {
-    //     ingestFiles.mutate() 
-    //   }
-    // })
-  }
+  const onSubmit = (values: z.infer<typeof fileIngestSchema>) => {
+    console.log(values);
+    // ingestFiles.mutate();
+  };
 
   //Not dead - TODO figure out why doesn't work
   //const { data: file_ids } = useAssistantFiles(assistantId as string);
@@ -85,7 +109,7 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
   //const { file_ids } = form.getValues();
 
   const formattedAssistantFiles = fileOptions?.reduce((files, file) => {
-    if (file_ids?.includes(file.id)) {
+    if (assistantFiles?.some(assistantFile => assistantFile.id === file.id)) {
       files.push({ label: file.filename, value: file.id });
     }
     return files;
@@ -103,8 +127,12 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
     }
   }, [fileOptions]);
 
-  const getFileIds = (selections: TOption[]) =>
-    selections.map((selection) => selection.value);
+  const getFilesFromSelections = (selections: TOption[]) =>
+    selections.map((selection) => {
+      return assistantFiles?.find(
+        (assistantFile) => assistantFile.id === selection.value,
+      );
+    });
 
   const handleUpload = () => {
     if (fileUpload) {
@@ -176,39 +204,27 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
               </DialogTitle>
               <hr className="border-slate-400 pb-2" />
               <DialogDescription>
-                {/* <FormField
-              control={form.control}
-              name="file_ids"
-              render={({ field }) => {
-                return (
-                  <FormItem className="flex flex-col">
-                    <FormControl>
-                      <MultiSelect
-                        values={values}
-                        placecholder="Select a file..."
-                        defaultValues={formattedAssistantFiles}
-                        onValueChange={(selections) => {
-                          const fileIds = getFileIds(selections);
-                          field.onChange(fileIds);
-                        }}
-                      />
-                    </FormControl>
-                  </FormItem>
-                );
-              }}
-            /> */}
-                <div>
-                  <MultiSelect
-                    values={values}
-                    placecholder="Select a file..."
-                    defaultValues={formattedAssistantFiles}
-                    onValueChange={(selections) => {
-                      const fileIds = getFileIds(selections);
-                      setFileIdSelections([...fileIds]);
-                      // form.setValues(fileIds);
-                    }}
-                  />
-                </div>
+                <FormField
+                  control={form.control}
+                  name="files"
+                  render={({ field }) => {
+                    return (
+                      <FormItem className="flex flex-col">
+                        <FormControl>
+                          <MultiSelect
+                            values={values}
+                            placecholder="Select a file..."
+                            defaultValues={formattedAssistantFiles}
+                            onValueChange={(selections) => {
+                              const files = getFilesFromSelections(selections);
+                              field.onChange(files);
+                            }}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    );
+                  }}
+                /> 
                 <Card className="bg-slate-200">
                   <CardContent className="p-6 space-y-4">
                     <div className="border-2 border-dashed border-gray-700 rounded-lg flex flex-col gap-1 p-6 items-center">
@@ -245,7 +261,7 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
             </DialogHeader>
             <DialogFooter>
               {/* <DialogClose asChild> */}
-              <Button size="lg" type="submit">
+              <Button size="lg" type="submit" className="mt-4">
                 Save Files to Assistant
               </Button>
               {/* </DialogClose> */}
