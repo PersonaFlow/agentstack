@@ -15,6 +15,34 @@ export const toolSchema = z.object({
   }),
 });
 
+export const fileIngestSchema = z.object({
+  files: z.array(z.string()),
+  purpose: z.string(),
+  namespace: z.string(),
+  document_processor: z.object({
+    summarize: z.boolean(),
+    encoder: z.object({
+      provider: z.string(),
+      encoder_model: z.string(),
+      dimensions: z.number(),
+      score_threshold: z.number(),
+    }),
+    unstructured: z.object({
+      partition_strategy: z.string(),
+      hi_res_model_name: z.string(),
+      process_tables: z.boolean(),
+    }),
+    splitter: z.object({
+      name: z.string(),
+      min_tokens: z.number(),
+      max_tokens: z.number(),
+      rolling_window_size: z.number(),
+      prefix_titles: z.boolean(),
+      prefix_summary: z.boolean(),
+    }),
+  }),
+});
+
 export const formSchema = z.object({
   public: z.boolean(),
   name: z.string().min(1, { message: "Name is required" }),
