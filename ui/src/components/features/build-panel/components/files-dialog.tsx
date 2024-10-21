@@ -90,10 +90,11 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
   const form = useForm<z.infer<typeof fileIngestSchema>>({
     resolver: zodResolver(fileIngestSchema),
     defaultValues: useMemo(() => {
-      if (assistantFiles) {
-        return defaultFormValues.files = assistantFiles
+      if (assistantFiles && assistantId) {
+        defaultFormValues.namespace = assistantId;
+        defaultFormValues.files = assistantFiles;
       }
-      return defaultFormValues
+      return defaultFormValues;
     },[assistantFiles])
   });
 
@@ -161,6 +162,7 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
       });
     }
   };
+  console.log(form.formState.isDirty)
   console.log(form.getValues());
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
