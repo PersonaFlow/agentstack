@@ -364,11 +364,12 @@ export const useDeleteAssistantFile = () => {
 
 // --RAG--
 
-// todo: update return type
 export const useIngestFileData = () => {
-  return useMutation<t.TIngestFileDataRequest, Error>({
+  const queryClient = useQueryClient();
+  return useMutation({
     mutationFn: async (payload: t.TIngestFileDataRequest): Promise<any> =>
       await dataService.ingestFileData(payload),
+    onSuccess: () =>  queryClient.invalidateQueries({ queryKey: [QueryKeys.assistantFiles, QueryKeys.assistant] })
   });
 };
 

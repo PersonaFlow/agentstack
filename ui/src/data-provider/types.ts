@@ -17,7 +17,11 @@ export const toolSchema = z.object({
 
 export const fileIngestSchema = z.object({
   files: z.array(z.string()),
-  purpose: z.string(),
+  purpose: z.union([
+    z.literal('assistants'),
+    z.literal('threads'),
+    z.literal('personas'),
+  ]),
   namespace: z.string(),
   document_processor: z.object({
     summarize: z.boolean(),
@@ -330,14 +334,14 @@ export type TIngestFileDataRequest = {
   files: string[];
   purpose: TPurpose;
   namespace: string;
-  vector_database: TVectorDatabase;
+  vector_database?: TVectorDatabase;
   document_processor: {
     summarize: boolean;
     encoder: TEncoder;
     unstructured: TUnstructured;
     splitter: TSplitter;
   };
-  webhook_url: string;
+  webhook_url?: string;
 };
 
 export type TQuery = {

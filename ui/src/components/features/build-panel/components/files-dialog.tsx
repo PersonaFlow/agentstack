@@ -97,6 +97,7 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
   const [fileSelections, setFileSelections] = useState<TFile[]>(
     assistantFiles ? [...assistantFiles] : [],
   );
+  const [open, setOpen] = useState(false);
 
   // Format files for MultiSelect
   useEffect(() => {
@@ -112,7 +113,9 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
 
   const onSubmit = (values: z.infer<typeof fileIngestSchema>) => {
     console.log(values);
-    // ingestFiles.mutate();
+    ingestFiles.mutate(values, {
+      onSuccess: () => setOpen(false)
+    });
   };
 
   const formattedAssistantFiles = fileOptions?.reduce((files, file) => {
@@ -180,7 +183,7 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
   if (isLoading) return <Spinner />;
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
         className={cn(
           buttonVariants({ variant: "outline" }),
@@ -197,68 +200,67 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <DialogHeader>
               <DialogTitle className="mb-3 text-slate-300">
-                Add Files
+                Manage Files
               </DialogTitle>
-              <hr className="border-slate-400 pb-2" />
-              <DialogDescription>
-                <FormField
-                  control={form.control}
-                  name="files"
-                  render={({ field }) => {
-                    return (
-                      <FormItem className="flex flex-col">
-                        <FormControl>
-                          <MultiSelect
-                            values={values}
-                            placecholder="Select a file..."
-                            defaultValues={formattedAssistantFiles}
-                            onValueChange={(selections) => {
-                              const files = getFilesFromSelections(selections);
-                              field.onChange(files);
-                            }}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    );
-                  }}
-                />
-                <Card className="bg-slate-200">
-                  <CardContent className="p-6 space-y-4">
-                    <div className="border-2 border-dashed border-gray-700 rounded-lg flex flex-col gap-1 p-6 items-center">
-                      <FileIcon className="w-12 h-12" />
-                      <span className="text-sm font-medium text-gray-500">
-                        Drag and drop a file or click to browse
-                      </span>
-                    </div>
-                    <div className="space-y-2 text-sm">
-                      <Label>File upload</Label>
-                      <Input
-                        placeholder="Picture"
-                        type="file"
-                        accept="image/*, application/pdf"
-                        onChange={(event) => {
-                          handleFileChange(event);
-                        }}
-                      />
-                    </div>
-                  </CardContent>
-                  <CardFooter>
-                    <Button
-                      variant="default"
-                      disabled={!fileUpload}
-                      size="lg"
-                      type="button"
-                      onClick={handleUpload}
-                    >
-                      Upload file
-                    </Button>
-                  </CardFooter>
-                </Card>
-                <Button size="lg" type="submit" className="mt-4">
+            </DialogHeader>
+            <DialogDescription>
+              <FormField
+                control={form.control}
+                name="files"
+                render={({ field }) => {
+                  return (
+                    <FormItem className="flex flex-col">
+                      <FormControl>
+                        <MultiSelect
+                          values={values}
+                          placecholder="Select a file..."
+                          defaultValues={formattedAssistantFiles}
+                          onValueChange={(selections) => {
+                            const files = getFilesFromSelections(selections);
+                            field.onChange(files);
+                          }}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  );
+                }}
+              />
+              <Card className="bg-slate-200">
+                <CardContent className="p-6 space-y-4">
+                  <div className="border-2 border-dashed border-gray-700 rounded-lg flex flex-col gap-1 p-6 items-center">
+                    <FileIcon className="w-12 h-12" />
+                    <span className="text-sm font-medium text-gray-500">
+                      Drag and drop a file or click to browse
+                    </span>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <Label>File upload</Label>
+                    <Input
+                      placeholder="Picture"
+                      type="file"
+                      accept="image/*, application/pdf"
+                      onChange={(event) => {
+                        handleFileChange(event);
+                      }}
+                    />
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <Button
+                    variant="default"
+                    disabled={!fileUpload}
+                    size="lg"
+                    type="button"
+                    onClick={handleUpload}
+                  >
+                    Upload file
+                  </Button>
+                </CardFooter>
+              </Card>
+              <Button size="lg" type="submit" className="mt-4 ml-auto" disabled={!form.formState.isDirty}>
                   Save Files to Assistant
                 </Button>
-              </DialogDescription>
-            </DialogHeader>
+            </DialogDescription>
           </form>
         </Form>
       </DialogContent>
