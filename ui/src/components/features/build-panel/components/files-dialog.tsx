@@ -30,6 +30,7 @@ import { fileIngestSchema, TAssistant, TFile } from "@/data-provider/types";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { DialogClose } from "@radix-ui/react-dialog";
 
 // TODO
 // - Get assistant form default getRandomValues 
@@ -97,24 +98,6 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
     assistantFiles ? [...assistantFiles] : [],
   );
 
-  const onSubmit = (values: z.infer<typeof fileIngestSchema>) => {
-    console.log(values);
-    // ingestFiles.mutate();
-  };
-
-  //Not dead - TODO figure out why doesn't work
-  //const { data: file_ids } = useAssistantFiles(assistantId as string);
-
-  //Old way of getting file_ids from form
-  //const { file_ids } = form.getValues();
-
-  const formattedAssistantFiles = fileOptions?.reduce((files, file) => {
-    if (assistantFiles?.some(assistantFile => assistantFile.id === file.id)) {
-      files.push({ label: file.filename, value: file.id });
-    }
-    return files;
-  }, [] as TOption[]);
-
   // Format files for MultiSelect
   useEffect(() => {
     if (fileOptions) {
@@ -126,6 +109,20 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
       setValues(formattedFileData);
     }
   }, [fileOptions]);
+
+  const onSubmit = (values: z.infer<typeof fileIngestSchema>) => {
+    console.log(values);
+    // ingestFiles.mutate();
+  };
+
+  const formattedAssistantFiles = fileOptions?.reduce((files, file) => {
+    if (
+      assistantFiles?.some((assistantFile) => assistantFile.id === file.id)
+    ) {
+      files.push({ label: file.filename, value: file.id });
+    }
+    return files;
+  }, [] as TOption[]);
 
   const getFilesFromSelections = (selections: TOption[]) =>
     selections.map((selection) => {
@@ -224,7 +221,7 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
                       </FormItem>
                     );
                   }}
-                /> 
+                />
                 <Card className="bg-slate-200">
                   <CardContent className="p-6 space-y-4">
                     <div className="border-2 border-dashed border-gray-700 rounded-lg flex flex-col gap-1 p-6 items-center">
@@ -257,15 +254,11 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
                     </Button>
                   </CardFooter>
                 </Card>
+                <Button size="lg" type="submit" className="mt-4">
+                  Save Files to Assistant
+                </Button>
               </DialogDescription>
             </DialogHeader>
-            <DialogFooter>
-              {/* <DialogClose asChild> */}
-              <Button size="lg" type="submit" className="mt-4">
-                Save Files to Assistant
-              </Button>
-              {/* </DialogClose> */}
-            </DialogFooter>
           </form>
         </Form>
       </DialogContent>
