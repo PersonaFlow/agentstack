@@ -1,9 +1,5 @@
 import { z } from "zod";
 
-export const fileSchema = z.object({
-  files: z.array(z.string())
-})
-
 export const toolSchema = z.object({
   title: z.string(),
   properties: z.object({
@@ -15,13 +11,28 @@ export const toolSchema = z.object({
   }),
 });
 
-export const fileIngestSchema = z.object({
-  files: z.array(z.string()),
-  purpose: z.union([
+export const purposeSchema = z.union([
     z.literal('assistants'),
     z.literal('threads'),
     z.literal('personas'),
-  ]),
+  ])
+
+export const fileSchema = z.object({
+  id: z.string(),
+  user_id: z.string().optional(),
+  purpose: purposeSchema,
+  filename: z.string(),
+  bytes: z.number(),
+  mime_type: z.string(),
+  source: z.string(),
+  kwargs: z.object({}),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+
+export const fileIngestSchema = z.object({
+  files: z.array(fileSchema),
+  purpose: purposeSchema,
   namespace: z.string(),
   document_processor: z.object({
     summarize: z.boolean(),
