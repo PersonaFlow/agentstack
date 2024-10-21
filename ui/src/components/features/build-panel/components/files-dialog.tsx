@@ -16,7 +16,7 @@ import { Plus } from "lucide-react";
 import MultiSelect from "@/components/ui/multiselect";
 import { useAssistant, useAssistantFiles, useFiles, useIngestFileData, useUploadFile } from "@/data-provider/query-service";
 import Spinner from "@/components/ui/spinner";
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import {
   Form,
   FormControl,
@@ -45,7 +45,7 @@ type TOption = {
   value: string;
 };
 
-const defaultFormValues = {
+const defaultFormValues: z.infer<typeof fileIngestSchema> = {
   files: [],
   purpose: "assistants",
   namespace: "",
@@ -55,12 +55,12 @@ const defaultFormValues = {
       provider: "openai",
       encoder_model: "text-embedding-3-small",
       dimensions: 1536,
-      score_threshold: 0.75
+      score_threshold: 0.75,
     },
     unstructured: {
       partition_strategy: "auto",
       hi_res_model_name: "detectron2_onnx",
-      process_tables: false
+      process_tables: false,
     },
     splitter: {
       name: "semantic",
@@ -68,10 +68,10 @@ const defaultFormValues = {
       max_tokens: 280,
       rolling_window_size: 1,
       prefix_titles: true,
-      prefix_summary: false
-    }
-  }
-}
+      prefix_summary: false,
+    },
+  },
+};
 
 export default function FilesDialog({ classNames }: TFilesDialog) {
 
@@ -89,14 +89,16 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
 
   const form = useForm<z.infer<typeof fileIngestSchema>>({
     resolver: zodResolver(fileIngestSchema),
-    defaultValues: defaultFormValues
+    defaultValues: useMemo(() => {
+      if (assistantFiles) {
+        return defaultFormValues.files = assistantFiles
+      }
+      return defaultFormValues
+    },[assistantFiles])
   });
 
   const [fileUpload, setFileUpload] = useState<File | null>();
   const [values, setValues] = useState<TOption[]>([]);
-  const [fileSelections, setFileSelections] = useState<TFile[]>(
-    assistantFiles ? [...assistantFiles] : [],
-  );
   const [open, setOpen] = useState(false);
 
   // Format files for MultiSelect
@@ -159,6 +161,7 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
       });
     }
   };
+  console.log(form.getValues());
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -259,7 +262,7 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
               </Card>
               <Button size="lg" type="submit" className="mt-4 ml-auto" disabled={!form.formState.isDirty}>
                   Save Files to Assistant
-                </Button>
+              </Button>
             </DialogDescription>
           </form>
         </Form>
