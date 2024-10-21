@@ -46,115 +46,117 @@ export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
   if (isError) return <div>There was an issue fetching config schema.</div>;
 
   return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="overflow-y-scroll hide-scrollbar"
-      >
-        <Tabs defaultValue="builder-tab">
-          <TabsList>
-            <TabsTrigger value="builder-tab" className="gap-2">
-              Assistant Builder <Wrench size={16} />
-            </TabsTrigger>
-            <TabsTrigger
-              value="files-tab"
-              className="gap-2"
-              disabled={architectureType === "chatbot" || !assistantId}
+    <>
+      <Tabs defaultValue="builder-tab">
+        <TabsList>
+          <TabsTrigger value="builder-tab" className="gap-2">
+            Assistant Builder <Wrench size={16} />
+          </TabsTrigger>
+          <TabsTrigger
+            value="files-tab"
+            className="gap-2"
+            disabled={architectureType === "chatbot" || !assistantId}
+          >
+            File Ingestion <File size={16} />
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="builder-tab">
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="overflow-y-scroll hide-scrollbar"
             >
-              File Ingestion <File size={16} />
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="builder-tab">
-            <div className="rounded-md bg-gray-50 p-4 md:p-6">
-              <div className="flex flex-col gap-6">
-                <div className="flex gap-6">
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Input
-                            placeholder="Assistant Name"
-                            type="text"
-                            {...field}
-                            className="w-[400px]"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+              <div className="rounded-md bg-gray-50 p-4 md:p-6">
+                <div className="flex flex-col gap-6">
+                  <div className="flex gap-6">
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input
+                              placeholder="Assistant Name"
+                              type="text"
+                              {...field}
+                              className="w-[400px]"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div className="flex gap-6">
+                    <PublicSwitch form={form} />
+                  </div>
+                  <FormSelect
+                    form={form}
+                    options={
+                      (config?.definitions.Bot_Type as TSchemaField).enum ?? []
+                    }
+                    formName="config.configurable.type"
+                    title="Architecture"
+                    placeholder="Architecture"
                   />
+                  {architectureType && (
+                    <>
+                      {architectureType === "agent" ? (
+                        <FormSelect
+                          form={form}
+                          options={
+                            (config?.definitions.AgentType as TSchemaField)
+                              .enum ?? []
+                          }
+                          formName="config.configurable.agent_type"
+                          title="Agent type"
+                          placeholder="Select agent type"
+                        />
+                      ) : (
+                        <FormSelect
+                          form={form}
+                          options={
+                            (config?.definitions.LLMType as TSchemaField)
+                              .enum ?? []
+                          }
+                          formName="config.configurable.llm_type"
+                          title="LLM type"
+                          placeholder="Select LLM type"
+                        />
+                      )}
+                      <SystemPrompt form={form} />
+                      {architectureType !== "chatbot" && (
+                        <>
+                          <SelectCapabilities form={form} />
+                          <RetrievalInstructions form={form} />
+                          {architectureType !== "chat_retrieval" && (
+                            <SelectTools form={form} />
+                          )}
+                          <SelectOptions form={form} />
+                          {architectureType !== "chat_retrieval" && (
+                            <SelectActions form={form} />
+                          )}
+                        </>
+                      )}
+                      <Button
+                        variant="outline"
+                        type="submit"
+                        className="w-1/4 self-center"
+                        disabled={!isDirty}
+                      >
+                        Save
+                      </Button>
+                    </>
+                  )}
                 </div>
-                <div className="flex gap-6">
-                  <PublicSwitch form={form} />
-                </div>
-                <FormSelect
-                  form={form}
-                  options={
-                    (config?.definitions.Bot_Type as TSchemaField).enum ?? []
-                  }
-                  formName="config.configurable.type"
-                  title="Architecture"
-                  placeholder="Architecture"
-                />
-                {architectureType && (
-                  <>
-                    {architectureType === "agent" ? (
-                      <FormSelect
-                        form={form}
-                        options={
-                          (config?.definitions.AgentType as TSchemaField)
-                            .enum ?? []
-                        }
-                        formName="config.configurable.agent_type"
-                        title="Agent type"
-                        placeholder="Select agent type"
-                      />
-                    ) : (
-                      <FormSelect
-                        form={form}
-                        options={
-                          (config?.definitions.LLMType as TSchemaField).enum ??
-                          []
-                        }
-                        formName="config.configurable.llm_type"
-                        title="LLM type"
-                        placeholder="Select LLM type"
-                      />
-                    )}
-                    <SystemPrompt form={form} />
-                    {architectureType !== "chatbot" && (
-                      <>
-                        <SelectCapabilities form={form} />
-                        <RetrievalInstructions form={form} />
-                        {architectureType !== "chat_retrieval" && (
-                          <SelectTools form={form} />
-                        )}
-                        <SelectOptions form={form} />
-                        {architectureType !== "chat_retrieval" && (
-                          <SelectActions form={form} />
-                        )}
-                      </>
-                    )}
-                    <Button
-                      variant="outline"
-                      type="submit"
-                      className="w-1/4 self-center"
-                      disabled={!isDirty}
-                    >
-                      Save
-                    </Button>
-                  </>
-                )}
               </div>
-            </div>
-          </TabsContent>
-          <TabsContent value="files-tab">
-            <FileBuilder />
-          </TabsContent>
-        </Tabs>
-      </form>
-    </Form>
+            </form>
+          </Form>
+        </TabsContent>
+        <TabsContent value="files-tab">
+          <FileBuilder />
+        </TabsContent>
+      </Tabs>
+    </>
   );
 }
