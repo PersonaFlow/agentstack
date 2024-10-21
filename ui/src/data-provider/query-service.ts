@@ -345,12 +345,14 @@ export const useAssistantFiles = (
 
 export const useDeleteAssistantFile = () => {
   const queryClient = useQueryClient();
-  return useMutation<t.TAssistant>({
-    // @ts-ignore to be able to build
-    mutationFn: async (
-      assistantId: string,
-      fileId: string,
-    ): Promise<t.TAssistant> =>
+  return useMutation({
+    mutationFn: async ({
+      assistantId,
+      fileId,
+    }: {
+      assistantId: string;
+      fileId: string;
+    }): Promise<t.TAssistant> =>
       dataService.deleteAssistantFile(assistantId, fileId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKeys.assistantFiles] });

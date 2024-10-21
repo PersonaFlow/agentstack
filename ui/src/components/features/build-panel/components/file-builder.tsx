@@ -5,7 +5,7 @@ export default function FileBuilder() {
     return (
       <div className="flex flex-col">
         <FilesDialog classNames="mb-4" />
-        {/* <SelectFiles form={form} /> */}
+        <SelectFiles />
       </div>
     );
 }
