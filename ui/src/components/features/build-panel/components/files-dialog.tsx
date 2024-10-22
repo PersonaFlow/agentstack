@@ -98,9 +98,19 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
     },[assistantFiles])
   });
 
+  const { formState: { isDirty} } = form;
+
   const [fileUpload, setFileUpload] = useState<File | null>();
   const [values, setValues] = useState<TOption[]>([]);
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (assistantFiles && assistantId) {
+      defaultFormValues.namespace = assistantId;
+      defaultFormValues.files = assistantFiles;
+      form.reset(defaultFormValues);
+    }
+  }, [assistantFiles, assistantId]);
 
   // Format files for MultiSelect
   useEffect(() => {
@@ -162,8 +172,8 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
       });
     }
   };
-  console.log(form.formState.isDirty)
-  console.log(form.getValues());
+
+  console.log(isDirty);
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
