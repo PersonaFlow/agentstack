@@ -98,16 +98,18 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
     },[assistantFiles])
   });
 
-  const { formState: { isDirty} } = form;
+  const { formState: { isDirty } } = form;
 
   const [fileUpload, setFileUpload] = useState<File | null>();
   const [values, setValues] = useState<TOption[]>([]);
   const [open, setOpen] = useState(false);
 
+  //Update form defaultValues
   useEffect(() => {
     if (assistantFiles && assistantId) {
       defaultFormValues.namespace = assistantId;
       defaultFormValues.files = assistantFiles;
+      console.log(defaultFormValues)
       form.reset(defaultFormValues);
     }
   }, [assistantFiles, assistantId]);
@@ -125,7 +127,7 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
   }, [fileOptions]);
 
   const onSubmit = (values: z.infer<typeof fileIngestSchema>) => {
-    console.log(values);
+    console.log("values", values);
     ingestFiles.mutate(values, {
       onSuccess: () => setOpen(false)
     });
@@ -272,10 +274,15 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
                   </Button>
                 </CardFooter>
               </Card>
-              <Button size="lg" type="submit" className="mt-4 ml-auto" disabled={!form.formState.isDirty}>
-                  Save Files to Assistant
-              </Button>
             </DialogDescription>
+            <Button
+              size="lg"
+              type="submit"
+              className="mt-4 ml-auto"
+              disabled={!isDirty}
+            >
+              Save Files to Assistant
+            </Button>
           </form>
         </Form>
       </DialogContent>

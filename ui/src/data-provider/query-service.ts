@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-query";
 import * as dataService from "./data-service";
 import * as t from "./types";
+import { z } from "zod";
 
 export enum QueryKeys {
   stream = "stream",
@@ -369,9 +370,13 @@ export const useDeleteAssistantFile = () => {
 export const useIngestFileData = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (payload: t.TIngestFileDataRequest): Promise<any> =>
-      await dataService.ingestFileData(payload),
-    onSuccess: () =>  queryClient.invalidateQueries({ queryKey: [QueryKeys.assistantFiles, QueryKeys.assistant] })
+    mutationFn: async (
+      payload: z.infer<(typeof t.fileIngestSchema)>,
+    ): Promise<any> => await dataService.ingestFileData(payload),
+    onSuccess: () =>
+      queryClient.invalidateQueries({
+        queryKey: [QueryKeys.assistantFiles, QueryKeys.assistant],
+      }),
   });
 };
 
