@@ -36,6 +36,11 @@ class Retriever(BaseRetriever):
         payload = QueryRequestPayload(
             input=query,
             namespace=self.metadata.get("namespace"),
+            index_name=self.metadata.get("index_name") if self.metadata.get("index_name") else settings.VECTOR_DB_COLLECTION_NAME,
+            vector_database=self.metadata.get("vector_database"),
+            encoder=self.metadata.get("encoder"),
+            enable_rerank=self.metadata.get("enable_rerank"),
+            exclude_fields=self.metadata.get("exclude_fields"),
         )
         chunks = await query_documents(payload)
         return [self._chunk_to_document(chunk) for chunk in chunks]

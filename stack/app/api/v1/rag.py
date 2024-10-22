@@ -366,8 +366,11 @@ async def query(auth: AuthenticatedUser, payload: QueryRequestPayload):
 @router.post("/query-lc-retriever", tags=[DEFAULT_TAG])
 async def query_lc_retriever(auth: AuthenticatedUser, payload: QueryRequestPayload):
     metadata: dict = {}
-    if payload.namespace:
-        metadata["namespace"] = payload.namespace
+    metadata["namespace"] = payload.namespace 
+    metadata["index_name"] = payload.index_name
+    metadata["vector_database"] = payload.vector_database
+    metadata["encoder"] = payload.encoder
+    metadata["enable_rerank"] = payload.enable_rerank
 
     retriever = Retriever(
         metadata=metadata,

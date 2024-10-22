@@ -25,6 +25,7 @@ from langchain_core.tools import Tool
 from langchain_robocorp import ActionServerToolkit
 from typing_extensions import TypedDict
 from stack.app.rag.custom_retriever import Retriever
+from stack.app.core.configuration import settings
 
 
 class DDGInput(BaseModel):
@@ -84,6 +85,12 @@ class BaseTool(BaseModel):
         title="Multi-Use",
         description="Whether or not this is a multi-use tool.",
     )
+
+class RetrievalConfig(ToolConfig):
+    index_name: Optional[str]
+    encoder: Optional[dict]
+    vector_database: Optional[dict]
+    enable_rerank: Optional[bool]
 
 
 class ActionServerConfig(ToolConfig):
@@ -202,6 +209,7 @@ class Retrieval(BaseTool):
     type: AvailableTools = Field(AvailableTools.RETRIEVAL, const=True)
     name: str = Field("Retrieval", const=True)
     description: str = Field("Look up information in uploaded files.", const=True)
+    config: RetrievalConfig
 
 
 class DallE(BaseTool):
@@ -218,12 +226,13 @@ If the user is referencing particular files, that is often a good hint that info
 If the user asks a vague question, they are likely meaning to look up info from this retriever, and you should call it!"""
 
 
-def get_retriever(assistant_id: str, thread_id: str):
+def get_retriever(assistant_id: str, thread_id: str, index_name: str = settings.VECTOR_DB_COLLECTION_NAME):
     if not assistant_id or not thread_id:
         return
     namespace = assistant_id if assistant_id is not None else thread_id
     metadata: dict = {}
     metadata["namespace"] = namespace
+    metadata["index_name"] = index_name
     retriever = Retriever(
         metadata=metadata,
     )
