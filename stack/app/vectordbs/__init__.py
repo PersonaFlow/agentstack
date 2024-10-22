@@ -12,7 +12,7 @@ settings = get_settings()
 
 def get_vector_service(
     *,
-    index_name: str,
+    index_name: str = settings.VECTOR_DB_COLLECTION_NAME,
     namespace: Optional[str] = settings.VECTOR_DB_DEFAULT_NAMESPACE,
     credentials: Optional[VectorDatabase] = VectorDatabase(),
     encoder_provider: Optional[EncoderProvider] = EncoderProvider(
