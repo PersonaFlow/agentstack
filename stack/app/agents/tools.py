@@ -1,6 +1,6 @@
 from enum import Enum
 from functools import lru_cache
-from typing import Optional
+from typing import Optional, Any
 
 from langchain.pydantic_v1 import BaseModel, Field
 from langchain.tools.retriever import create_retriever_tool
@@ -76,7 +76,7 @@ class BaseTool(BaseModel):
         title="Tool Name",
         description="The name of the tool.",
     )
-    config: Optional[ToolConfig] = Field(
+    config: Optional[dict] = Field(
         title="Tool Configuration",
         description="A field for additional configuration of the tool.",
     )
@@ -86,10 +86,12 @@ class BaseTool(BaseModel):
         description="Whether or not this is a multi-use tool.",
     )
 
+
+
 class RetrievalConfig(ToolConfig):
     index_name: Optional[str]
-    encoder: Optional[dict]
-    vector_database: Optional[dict]
+    encoder: Optional[dict[str, Any]]
+    vector_database: Optional[dict[str, Any]]
     enable_rerank: Optional[bool]
 
 
@@ -209,7 +211,7 @@ class Retrieval(BaseTool):
     type: AvailableTools = Field(AvailableTools.RETRIEVAL, const=True)
     name: str = Field("Retrieval", const=True)
     description: str = Field("Look up information in uploaded files.", const=True)
-    config: RetrievalConfig
+    config: Optional[RetrievalConfig] = Field(default={}) 
 
 
 class DallE(BaseTool):
@@ -226,24 +228,68 @@ If the user is referencing particular files, that is often a good hint that info
 If the user asks a vague question, they are likely meaning to look up info from this retriever, and you should call it!"""
 
 
-def get_retriever(assistant_id: str, thread_id: str, index_name: str = settings.VECTOR_DB_COLLECTION_NAME):
+# def get_retriever(assistant_id: str, thread_id: str, index_name: str = settings.VECTOR_DB_COLLECTION_NAME):
+#     if not assistant_id or not thread_id:
+#         return
+#     namespace = assistant_id if assistant_id is not None else thread_id
+#     metadata: dict = {}
+#     metadata["namespace"] = namespace
+#     metadata["index_name"] = index_name
+#     retriever = Retriever(
+#         metadata=metadata,
+#     )
+#     return retriever
+
+def get_retriever(
+    assistant_id: str, 
+    thread_id: str, 
+    config: Optional[RetrievalConfig] = None
+) -> Retriever:
     if not assistant_id or not thread_id:
         return
+    
     namespace = assistant_id if assistant_id is not None else thread_id
-    metadata: dict = {}
-    metadata["namespace"] = namespace
-    metadata["index_name"] = index_name
-    retriever = Retriever(
-        metadata=metadata,
-    )
-    return retriever
+    metadata: dict = {
+        "namespace": namespace,
+    }
+    
+    if config:
+        metadata["index_name"] = config.index_name
+        if config.encoder:
+            metadata["encoder"] = config.encoder
+        if config.vector_database:
+            metadata["vector_database"] = config.vector_database
+        if config.enable_rerank is not None:
+            metadata["enable_rerank"] = config.enable_rerank
+    else:
+        metadata["index_name"] = settings.VECTOR_DB_COLLECTION_NAME
+            
+    return Retriever(metadata=metadata)
 
+
+# @lru_cache(maxsize=5)
+# def get_retrieval_tool(assistant_id: str, thread_id: str, description: str):
+#     return create_retriever_tool(
+#         get_retriever(assistant_id, thread_id),
+#         "Retriever",
+#         description,
+#     )
 
 @lru_cache(maxsize=5)
-def get_retrieval_tool(assistant_id: str, thread_id: str, description: str):
+def get_retrieval_tool(
+    assistant_id: str, 
+    thread_id: str, 
+    description: str,
+    config: Optional[RetrievalConfig] = None
+):
+    retriever = get_retriever(
+        assistant_id=assistant_id,
+        thread_id=thread_id,
+        config=config
+    )
     return create_retriever_tool(
-        get_retriever(assistant_id, thread_id),
-        "Retriever",
+        retriever,
+        "Retrieval",
         description,
     )
 
