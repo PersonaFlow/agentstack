@@ -1,7 +1,12 @@
 from typing import Optional
 from dotenv import load_dotenv
 from semantic_router.encoders import BaseEncoder
-from stack.app.schema.rag import VectorDatabase, EncoderConfig, EncoderProvider
+from stack.app.schema.rag import (
+    VectorDatabase,
+    VectorDatabaseType,
+    EncoderConfig,
+    EncoderProvider,
+)
 from stack.app.vectordbs.base import BaseVectorDatabase
 from stack.app.vectordbs.qdrant import QdrantService
 from stack.app.core.configuration import get_settings
@@ -23,13 +28,21 @@ def get_vector_service(
     enable_rerank: Optional[bool] = settings.ENABLE_RERANK_BY_DEFAULT,
 ) -> BaseVectorDatabase:
     services = {
-        "qdrant": QdrantService,
+        VectorDatabaseType.qdrant: QdrantService,
         # Add other providers here
     }
 
-    service = services.get(credentials.type)
+    vector_db = credentials or VectorDatabase()
+    # Convert string to enum if necessary
+    db_type = (
+        VectorDatabaseType(vector_db.type)
+        if isinstance(vector_db.type, str)
+        else vector_db.type
+    )
+
+    service = services.get(db_type)
     if service is None:
-        raise ValueError(f"Unsupported provider: {credentials.type}")
+        raise ValueError(f"Unsupported provider: {db_type}")
 
     encoder_config = EncoderConfig.get_encoder_config(encoder_provider)
     if encoder_config is None:
