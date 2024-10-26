@@ -194,7 +194,7 @@ export default function FilesDialog({ form, classNames }: TFilesDialog) {
             </Button>
           </DialogClose>
         </DialogFooter>
-      </DialogContent>
+``      </DialogContent>
     </Dialog>
   );
 }

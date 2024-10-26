@@ -47,6 +47,7 @@ export function CreateAssistant() {
   const architectureType = form.watch("config.configurable.type");
   const tools = form.watch("config.configurable.tools");
 
+  // Only use config schema as defaults - don't use in edit
   const { systemMessage, retrievalDescription } = useConfigSchema(
     architectureType ?? "",
   );
