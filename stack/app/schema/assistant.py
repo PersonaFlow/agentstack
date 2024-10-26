@@ -48,7 +48,7 @@ class Tool(BaseModel):
         title="Tool Name",
         description="The name of the tool.",
     )
-    config: Optional[ToolConfig] = Field(
+    config: Optional[dict] = Field(
         title="Tool Configuration",
         description="A field for additional configuration of the tool.",
     )

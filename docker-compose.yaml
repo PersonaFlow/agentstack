@@ -115,7 +115,7 @@ services:
   # Use the command: `docker exec -it ollama ollama pull <model>` to pull a model
   # ollama:
   #   image: ollama/ollama
-  #   container_name: embed-ollama
+  #   container_name: personaflow-ollama
   #   ports:
   #     - 11435:11434
   #   volumes:
