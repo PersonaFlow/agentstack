@@ -1,6 +1,6 @@
 # Document Processing and RAG
 
-PersonaFlow's document processing system can be used as part of the Assistants flow or as a standalone system for processing and querying structured or unstructured data. The system is designed to be modular and can be easily extended to support other embedding models and vector databases.
+AgentStack's document processing system can be used as part of the Assistants flow or as a standalone system for processing and querying structured or unstructured data. The system is designed to be modular and can be easily extended to support other embedding models and vector databases.
 
 Processing of data is handled primarily by the embedding service, which orchestrates the partioning, chunking, embedding, and upserting of documents. The splitting of documents can be done by title, where title elements in the document are identified and used as split points, or splits can be created according to semantic similarity of the surrounding content. Splits can also be made using the standard recursive method with a chunk overlap.
 
@@ -57,7 +57,7 @@ The `/api/v1/rag/ingest` endpoint takes an array of file IDs. An optional webhoo
 - For use-cases that involve multiple collections across different vector stores, the `vector_database` and `index_name` fields can be used to specifiy the location where the embeddings should be stored. This applies to both the ingest and query endpoints.
 
 ```json
-...
+(...)
   "vector_database": {
     "type": "qdrant",
     "config": {
@@ -66,12 +66,66 @@ The `/api/v1/rag/ingest` endpoint takes an array of file IDs. An optional webhoo
     }
   },
   "index_name": "custom"
-...
+(...)
 ```
 
-## Querying
+## Assistant Retrieval
+To use retrieval augmented generation (RAG) via an assistant, you can create an assistant using one of the architectures that support it. The `chat_retrieval` architecture has knowledge base retrieval built in to the assistant. The standard `agent` architecture performs RAG by including the Retrieval tool in the assistant configuration, like so:
 
-Document retrieval can be done independent of an assistant by calling the `/api/v1/rag/query` endpoint. This is a POST request with a JSON payload containing the query parameters. Here is an example of a query payload:
+```json
+(...)
+"tools": [
+  {
+      "type": "retrieval",
+      "description": "Look up information in uploaded files.",
+      "name": "Retrieval",
+      "config": {
+          "encoder": {
+              "provider": "ollama",
+              "dimensions": 384, 
+              "encoder_model": "all-minilm"
+          },
+          "enable_rerank": true,
+          "index_name": "test"
+      },
+      "multi_use": false 
+  }
+],
+(...)
+```
+Currently, the supported encoders include: Cohere, OpenAI, Ollama, Azure OpenAI, and Mistral, but any encoder that is supported by langchain can be added by creating an adapter class:
+
+```python
+from typing import List
+from pydantic import Field
+from semantic_router.encoders import BaseEncoder
+from langchain_community.embeddings import OllamaEmbeddings
+from stack.app.core.configuration import settings
+
+class OllamaEncoder(BaseEncoder):
+    name: str = Field(default="all-minilm")
+    score_threshold: float = Field(default=0.5)
+    type: str = Field(default="ollama")
+    dimensions: int = Field(default=384)
+    embeddings: OllamaEmbeddings = Field(default=None)
+
+    class Config:
+        arbitrary_types_allowed = True
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        if "name" in data:
+            self.embeddings = OllamaEmbeddings(
+                model=self.name, base_url=settings.OLLAMA_BASE_URL
+            )
+
+    def __call__(self, docs: List[str]) -> List[List[float]]:
+        return self.embeddings.embed_documents(docs)
+```
+
+## Stand-alone Querying
+
+Document retrieval can also be done independent of an assistant by calling the `/api/v1/rag/query` endpoint. This is a POST request with a JSON payload containing the query parameters. Here is an example of a query payload:
 
 ```json
 {
@@ -99,3 +153,4 @@ Document retrieval can be done independent of an assistant by calling the `/api/
 - `vector_database`: This block is optional but is useful when collections are held across different vector databases. If omitted, these details will be obtained from environment variables.
 - `thread_id`: This is an optional parameter and can be used to tie the query to an existing conversation id for logging purposes.
 - `enable_rerank`: Whether or not to rerank the query results. Currently requires a cohere api key if true (local reranking will be included in an upcoming release).
+
