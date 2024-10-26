@@ -31,7 +31,7 @@ export const fileSchema = z.object({
 });
 
 export const fileIngestSchema = z.object({
-  files: z.array(fileSchema),
+  files: z.array(z.string()),
   purpose: purposeSchema,
   namespace: z.string(),
   document_processor: z.object({

@@ -26,7 +26,7 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/utils/utils";
 import { useSlugRoutes } from "@/hooks/useSlugParams";
-import { fileIngestSchema, TAssistant, TFile } from "@/data-provider/types";
+import { fileIngestSchema } from "@/data-provider/types";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -143,11 +143,7 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
   }, [] as TOption[]);
 
   const getFilesFromSelections = (selections: TOption[]) =>
-    selections.map((selection) => {
-      return fileOptions?.find(
-        (file) => file.id === selection.value,
-      );
-    });
+    selections.map((selection) => selection.value);
 
   const handleUpload = () => {
     if (fileUpload) {
@@ -174,8 +170,6 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
       });
     }
   };
-
-  console.log(isDirty);
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
