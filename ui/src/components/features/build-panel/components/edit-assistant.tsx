@@ -58,10 +58,6 @@ function EditAssistantForm({
 
   const { toast } = useToast();
 
-  const { systemMessage, retrievalDescription } = useConfigSchema(
-    architectureType ?? "",
-  );
-
   const { availableTools } = useAvailableTools();
 
   useEffect(() => {
@@ -69,18 +65,6 @@ function EditAssistantForm({
       form.reset(selectedAssistant);
     }
   }, [selectedAssistant]);
-
-  useEffect(() => {
-    if (architectureType) {
-      // @ts-ignore
-      form.setValue("config.configurable.system_message", systemMessage);
-      form.setValue(
-        "config.configurable.retrieval_description",
-        // @ts-ignore
-        retrievalDescription,
-      );
-    }
-  }, [architectureType]);
 
   useEffect(() => {
     if (architectureType !== "agent") {
