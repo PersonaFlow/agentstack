@@ -144,8 +144,8 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
 
   const getFilesFromSelections = (selections: TOption[]) =>
     selections.map((selection) => {
-      return assistantFiles?.find(
-        (assistantFile) => assistantFile.id === selection.value,
+      return fileOptions?.find(
+        (file) => file.id === selection.value,
       );
     });
 
@@ -214,7 +214,12 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
       </DialogTrigger>
       <DialogContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit, (e) => {
+              console.log(e);
+              console.log(form.getValues())
+            })}
+          >
             <DialogHeader>
               <DialogTitle className="mb-3 text-slate-300">
                 Manage Files
@@ -234,6 +239,7 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
                           defaultValues={formattedAssistantFiles}
                           onValueChange={(selections) => {
                             const files = getFilesFromSelections(selections);
+                            console.log(files);
                             field.onChange(files);
                           }}
                         />
