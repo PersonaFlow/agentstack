@@ -60,11 +60,12 @@ export default function MessagesContainer({
             : undefined,
       });
     }
-  }, [messages]);
+  }, [messages, prevMessages]);
 
   return (
       <div className="p-6 overflow-y-scroll" ref={divRef}>
         {messages?.map((message, index) => {
+          console.log("Rendering message:", message);
           const isToolCall =
             message.tool_calls?.length && message.tool_calls.length > 0;
 
@@ -86,7 +87,11 @@ export default function MessagesContainer({
           }
 
           return (
-            <MessageItem message={message} assistant={selectedAssistant} key={`${message.id}-${index}`} />
+            <MessageItem 
+              message={message} 
+              assistant={selectedAssistant} 
+              key={`${message.id}-${index}`} 
+            />
           );
         })}
         {next.length > 0 && stream?.status !== "inflight" && (

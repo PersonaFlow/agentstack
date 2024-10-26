@@ -24,7 +24,12 @@ export const useStream = () => {
     async ({ input, thread_id, assistant_id, user_id }: TStartStreamProps) => {
       const controller = new AbortController();
       setController(controller);
-      setCurrentState({ status: "inflight", messages: [] });
+      // setCurrentState({ status: "inflight", messages: [] });
+      setCurrentState(prev => ({ 
+        status: "inflight",
+        messages: input === null ? prev?.messages || [] : [], // Keep messages for continuation
+        thread_id: prev?.thread_id
+      }));
       setIsStreaming(true);
 
       await fetchEventSource(
@@ -36,11 +41,18 @@ export const useStream = () => {
             "Content-Type": "application/json",
             "X-API-KEY": "personaflow_api_key",
           },
-          body: JSON.stringify({ user_id, input, thread_id, assistant_id }),
+          body: JSON.stringify({ 
+            user_id, 
+            input, 
+            thread_id, 
+            assistant_id 
+          }),
           openWhenHidden: true,
           onmessage(msg) {
+            console.log("Stream event received:", msg.event, msg.data);
             if (msg.event === "data") {
               const messages = JSON.parse(msg.data);
+              console.log("Parsed messages:", messages);
               setCurrentState((currentState) => ({
                 status: "inflight" as TStreamState["status"],
                 messages: mergeMessagesById(currentState?.messages, messages),
