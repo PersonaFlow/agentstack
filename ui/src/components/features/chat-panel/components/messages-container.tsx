@@ -12,6 +12,8 @@ import { useChatMessages } from "@/hooks/useChat";
 import ToolContainer from "../../tools/tool-container";
 import { ToolResult } from "../../tools/tool-result";
 import { useSlugRoutes } from "@/hooks/useSlugParams";
+import { ArrowDownCircle } from "lucide-react";
+import { useStream } from "@/hooks/useStream";
 
 
 type Props = {
@@ -35,9 +37,10 @@ export default function MessagesContainer({
   threadId,
   stream
 }: Props) {
-  const { messages } = useChatMessages(threadId, stream);
+  const { messages, next } = useChatMessages(threadId, stream);
   const prevMessages = usePrevious(messages);
   const {assistantId} = useSlugRoutes();
+  const { startStream } = useStream();
 
   const {data: selectedAssistant, isLoading: isLoadingAssistant} = useAssistant(assistantId as string, {
     enabled: !!assistantId
@@ -86,6 +89,21 @@ export default function MessagesContainer({
             <MessageItem message={message} assistant={selectedAssistant} key={`${message.id}-${index}`} />
           );
         })}
+        {next.length > 0 && stream?.status !== "inflight" && (
+          <div
+            className="flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-800 ring-1 ring-inset ring-blue-600/20 cursor-pointer"
+            onClick={() =>
+              startStream({
+                input: null,
+                thread_id: threadId,
+                assistant_id: assistantId as string,
+              })
+            }
+          >
+            <ArrowDownCircle className="h-5 w-5 mr-1" />
+            Click to continue.
+          </div>
+        )}
       </div>
   );
 }
