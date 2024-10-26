@@ -150,6 +150,35 @@ class ConfigurableAgent(RunnableBinding):
     thread_id: Optional[str] = None
     user_id: Optional[str] = None
 
+    def _create_tool(
+        self,
+        tool: Union[dict, Tool],
+        assistant_id: Optional[str],
+        thread_id: Optional[str],
+        retrieval_description: str,
+    ) -> Union[Tool, list[Tool]]:
+        """Helper method to create tool instances."""
+        if isinstance(tool, dict):
+            tool_type = AvailableTools(tool["type"])
+        else:
+            tool_type = tool.type
+
+        if tool_type == AvailableTools.RETRIEVAL:
+            if assistant_id is None or thread_id is None:
+                raise ValueError(
+                    "Both assistant_id and thread_id must be provided if Retrieval tool is used"
+                )
+            config = tool.config if isinstance(tool, Tool) else tool.get("config", {})
+            return get_retrieval_tool(
+                assistant_id, thread_id, retrieval_description, config
+            )
+        else:
+            tool_obj = (
+                tool if isinstance(tool, Tool) else self._convert_dict_to_tool(tool)
+            )
+            tool_config = tool_obj.config or {}
+            return TOOLS[tool_obj.type](**tool_config)
+
     def __init__(
         self,
         *,
@@ -166,23 +195,17 @@ class ConfigurableAgent(RunnableBinding):
     ) -> None:
         settings = get_settings()
         others.pop("bound", None)
+
         _tools = []
-        for _tool in tools:
-            if _tool["type"] == AvailableTools.RETRIEVAL:
-                if assistant_id is None or thread_id is None:
-                    raise ValueError(
-                        "Both assistant_id and thread_id must be provided if Retrieval tool is used"
-                    )
-                _tools.append(
-                    get_retrieval_tool(assistant_id, thread_id, retrieval_description)
-                )
+        for tool in tools:
+            created_tool = self._create_tool(
+                tool, assistant_id, thread_id, retrieval_description
+            )
+            if isinstance(created_tool, list):
+                _tools.extend(created_tool)
             else:
-                tool_config = _tool.get("config", {})
-                _returned_tools = TOOLS[_tool["type"]](**tool_config)
-                if isinstance(_returned_tools, list):
-                    _tools.extend(_returned_tools)
-                else:
-                    _tools.append(_returned_tools)
+                _tools.append(created_tool)
+
         _agent = get_agent_executor(
             _tools, agent, system_message, interrupt_before_action
         )

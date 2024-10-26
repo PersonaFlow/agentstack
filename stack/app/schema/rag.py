@@ -224,6 +224,7 @@ class QueryRequestPayload(BaseModel):
         None,
         description="Context of the query: This is the assistant_id, thread_id, file_id, or random uuid that is used for filtering the results.",
     )
+    # TODO: should rename this to "purpose" for consistency with IngestRequestPayload
     context: Optional[ContextType] = Field(
         default=ContextType.assistants,
         description="Context of where the embeddings will be used.",
@@ -244,9 +245,9 @@ class QueryRequestPayload(BaseModel):
         default=settings.ENABLE_RERANK_BY_DEFAULT,
         description="Enable reranking of the results. *NOTE: `COHERE_API_KEY` env var is required to use this feature.*",
     )
-    interpreter_mode: Optional[bool] = Field(
-        False, description="Enable code interpreter mode."
-    )
+    # interpreter_mode: Optional[bool] = Field(
+    #     False, description="Enable code interpreter mode."
+    # )
     exclude_fields: Optional[list[str]] = Field(
         None, description="List of fields to exclude from the results."
     )
