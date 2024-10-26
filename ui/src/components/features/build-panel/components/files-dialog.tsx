@@ -30,7 +30,6 @@ import { fileIngestSchema } from "@/data-provider/types";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { DialogClose } from "@radix-ui/react-dialog";
 
 // TODO
 // - Get assistant form default getRandomValues 
@@ -92,7 +91,7 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
     defaultValues: useMemo(() => {
       if (assistantFiles && assistantId) {
         defaultFormValues.namespace = assistantId;
-        defaultFormValues.files = assistantFiles;
+        defaultFormValues.files = assistantFiles.map(file => file.id);
       }
       return defaultFormValues;
     },[assistantFiles])
@@ -108,7 +107,7 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
   useEffect(() => {
     if (assistantFiles && assistantId) {
       defaultFormValues.namespace = assistantId;
-      defaultFormValues.files = assistantFiles;
+      defaultFormValues.files = assistantFiles.map(file => file.id);
       console.log(defaultFormValues)
       form.reset(defaultFormValues);
     }
