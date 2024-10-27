@@ -84,6 +84,7 @@ export const useStream = () => {
               thread_id: currentState?.thread_id
             }));
             setController(null);
+            setIsStreaming(false);
           },
           onerror(error) {
             setCurrentState((currentState) => ({
@@ -93,6 +94,7 @@ export const useStream = () => {
               thread_id: currentState?.thread_id
             }));
             setController(null);
+            setIsStreaming(false);
             throw error;
           },
         },
@@ -119,6 +121,7 @@ export const useStream = () => {
           thread_id: currentState?.thread_id
         }));
       }
+      setIsStreaming(false);
     },
     [controller],
   );

@@ -1,59 +1,59 @@
 import { TMessage, TStreamState } from "@/data-provider/types";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { mergeMessagesById } from "./useStream";
 import { useThreadState } from "@/data-provider/query-service";
 import { useAtom } from "jotai";
 import { messagesAtom } from "@/store";
 
+function usePrevious<T>(value: T): T | undefined {
+  const ref = useRef<T>();
+  useEffect(() => {
+    ref.current = value;
+  });
+  return ref.current;
+}
+
 export function useChatMessages(
   threadId: string | null,
   stream: TStreamState | null,
 ) {
-  // const [streamedMessages, setStreamedMessages] = useAtom(messagesAtom)
-
+  const [streamedMessages, setStreamedMessages] = useAtom(messagesAtom);
+  const prevStreamStatus = usePrevious(stream?.status);
+  
   const { data: threadData, refetch, isFetched } = useThreadState(threadId as string, {
     enabled: !!threadId
   });
 
-  // Refetch messages after streaming ends or is aborted
+  // Only refetch when transitioning from inflight to non-inflight
   useEffect(() => {
-    if (stream?.status !== "inflight" && threadId) {
+    if (prevStreamStatus === "inflight" && 
+        stream?.status !== "inflight" && 
+        threadId) {
       refetch();
     }
-  }, [stream?.status, threadId, refetch]);
+  }, [stream?.status, threadId, refetch, prevStreamStatus]);
 
-  // // Clear streamed messages after fetching thread state
-  // useEffect(() => {
-  //   if (isFetched) {
-  //     setStreamedMessages([]);
-  //   }
-  // }, [isFetched, setStreamedMessages]);
+  // Clear streamed messages after fetching thread state
+  useEffect(() => {
+    if (isFetched) {
+      setStreamedMessages([]);
+    }
+  }, [isFetched, setStreamedMessages]);
 
-  // useEffect(() => {
-  //   console.log("Stream changed:", stream);
-  //   if (stream?.messages) {
-  //     console.log("Setting streamed messages, current:", streamedMessages);
-  //     setStreamedMessages(prevMessages => {
-  //       const newMessages = stream.status === "inflight" ? 
-  //         mergeMessagesById(prevMessages, stream.messages as TMessage[]) :
-  //         stream.messages as TMessage[];
-  //       console.log("New streamed messages:", newMessages);
-  //       return newMessages;
-  //     });
-  //   }
-  // }, [stream?.messages, stream?.status, setStreamedMessages]);
-  // useEffect(() => {
-  //   if (stream?.messages) {
-  //     setStreamedMessages(stream.messages as TMessage[])
-  //   }
-  // }, [setStreamedMessages, stream?.messages])
+  // Update streamed messages during streaming
+  useEffect(() => {
+    if (stream?.messages) {
+      setStreamedMessages(stream.messages as TMessage[]);
+    }
+  }, [stream?.messages, setStreamedMessages]);
 
   const messages = threadData?.values ? threadData.values : null;
-  const streamMessages = stream?.messages as TMessage[] | undefined;
+  const next = threadData?.next || [];
 
   return {
-    messages: mergeMessagesById(messages, streamMessages),
-    next: threadData?.next || [],
+    messages: mergeMessagesById(messages, streamedMessages),
+    next,
     refreshMessages: refetch
   };
 }
+
