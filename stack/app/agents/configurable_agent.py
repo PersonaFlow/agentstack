@@ -5,6 +5,7 @@ from langchain_core.messages import AnyMessage
 from langchain_core.runnables import (
     ConfigurableField,
     RunnableBinding,
+    RunnableSerializable
 )
 from langgraph.graph.message import Messages
 from langgraph.pregel import Pregel
@@ -348,8 +349,8 @@ agent: Pregel = (
         ConfigurableField(id="type", name="Bot Type"),
         default_key="agent",
         prefix_keys=True,
-        chatbot=chatbot,
-        chat_retrieval=chat_retrieval,
+        # chatbot=chatbot,
+        # chat_retrieval=chat_retrieval,
     )
     .with_types(
         input_type=Messages,
