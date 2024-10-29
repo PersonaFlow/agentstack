@@ -21,6 +21,12 @@ type Props = {
   onRetry?: VoidFunction;
   threadId: string;
   stream: TStreamState;
+  startStream: ({
+    input,
+    thread_id,
+    assistant_id,
+    user_id,
+  }: TStartStreamProps) => Promise<void>;
 };
 
 function usePrevious<T>(value: T): T | undefined {
@@ -35,17 +41,16 @@ export default function MessagesContainer({
   streamingMessage,
   onRetry,
   threadId,
-  stream
+  stream,
+  startStream,
 }: Props) {
   const { messages, next } = useChatMessages(threadId, stream);
   const prevMessages = usePrevious(messages);
-  const {assistantId} = useSlugRoutes();
-  const { startStream } = useStream();
-
-  const {data: selectedAssistant, isLoading: isLoadingAssistant} = useAssistant(assistantId as string, {
-    enabled: !!assistantId
-  })
-
+  const { assistantId } = useSlugRoutes();
+  const { data: selectedAssistant, isLoading: isLoadingAssistant } =
+    useAssistant(assistantId as string, {
+      enabled: !!assistantId,
+    });
 
   const divRef = useRef<HTMLDivElement>(null);
 

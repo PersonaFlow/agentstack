@@ -73,6 +73,7 @@ export default function ChatPanel() {
           <MessagesContainer
             threadId={threadId as string}
             stream={stream as TStreamState}
+            startStream={startStream}
           />
         ) : (
           <div className="self-center h-full items-center flex">
