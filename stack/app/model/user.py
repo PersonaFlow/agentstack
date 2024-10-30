@@ -76,8 +76,6 @@ class User(Base):
         cascade="all, delete-orphan",
     )
 
-    checkpoint = relationship("PostgresCheckpoint", back_populates="user")
-
     # don't cascade assistants when user is deleted
     assistant = relationship("Assistant", back_populates="user")
 
