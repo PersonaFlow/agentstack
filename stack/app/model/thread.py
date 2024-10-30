@@ -51,13 +51,7 @@ class Thread(Base):
         index=True,
         comment="Last updated date",
     )
-
-    checkpoint = relationship(
-        "PostgresCheckpoint",
-        back_populates="thread",
-        cascade="all, delete-orphan",
-    )
-
+    # TODO: this is no longer in use, need to remove message table and relationship
     message = relationship(
         "Message",
         back_populates="thread",

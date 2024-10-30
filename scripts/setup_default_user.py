@@ -13,7 +13,6 @@ from stack.app.model.thread import Thread
 from stack.app.model.assistant import Assistant
 from stack.app.model.file import File
 from stack.app.model.message import Message
-from stack.app.model.checkpoint import PostgresCheckpoint
 
 from stack.app.core.configuration import settings
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
