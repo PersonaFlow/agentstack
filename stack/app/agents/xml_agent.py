@@ -7,13 +7,13 @@ from langchain_core.messages import (
     HumanMessage,
     SystemMessage,
 )
-from langgraph.checkpoint import BaseCheckpointSaver
 from langgraph.graph import END
 from langgraph.graph.message import MessageGraph
 from langgraph.prebuilt import ToolExecutor, ToolInvocation
 
 from stack.app.agents.prompts import xml_template
 from stack.app.schema.message_types import LiberalFunctionMessage
+from stack.app.core.datastore import get_checkpointer
 
 
 def _collapse_messages(messages):
@@ -64,8 +64,9 @@ def get_xml_agent_executor(
     llm: LanguageModelLike,
     system_message: str,
     interrupt_before_action: bool,
-    checkpointer: BaseCheckpointSaver,
 ):
+    checkpoint = get_checkpointer()
+
     formatted_system_message = xml_template.format(
         system_message=system_message,
         tools=render_text_description(tools),
