@@ -7,10 +7,10 @@ from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, System
 from langchain_core.prompts import PromptTemplate
 from langchain_core.retrievers import BaseRetriever
 from langchain_core.runnables import chain
-from langgraph.checkpoint import BaseCheckpointSaver
 from langgraph.graph import END
 from langgraph.graph.state import StateGraph
 
+from stack.app.core.datastore import get_checkpointer
 from stack.app.schema.message_types import LiberalToolMessage, add_messages_liberal
 
 search_prompt = PromptTemplate.from_template(
@@ -39,8 +39,8 @@ def get_retrieval_executor(
     llm: LanguageModelLike,
     retriever: BaseRetriever,
     system_message: str,
-    checkpoint: BaseCheckpointSaver,
 ):
+    checkpoint = get_checkpointer()
     class AgentState(TypedDict):
         messages: Annotated[List[BaseMessage], add_messages_liberal]
         msg_count: Annotated[int, operator.add]

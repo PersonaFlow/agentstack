@@ -28,7 +28,16 @@ def create_async_engine_with_settings(settings: Settings) -> AsyncEngine:
 def get_lifespan(settings: Settings) -> Callable:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
+        
         app.state.async_engine = create_async_engine_with_settings(settings)
+        
+        from stack.app.core.datastore import initialize_checkpointer
+        
+        if is_authentication_enabled():
+            await get_auth_strategy_endpoints()
+
+        await initialize_checkpointer()
+
         try:
             yield
         finally:
@@ -149,10 +158,5 @@ def create_app(settings: Settings):
     _app.settings = settings
     _app.include_router(api_router, prefix="/api/v1")
     _app.openapi = lambda: get_custom_openapi(_app, settings)
-
-    @_app.on_event("startup")
-    async def startup_event():
-        if is_authentication_enabled():
-            await get_auth_strategy_endpoints()
 
     return _app

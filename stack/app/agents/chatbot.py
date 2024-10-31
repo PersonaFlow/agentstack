@@ -2,16 +2,16 @@ from typing import Annotated, List
 from langchain_core.language_models.base import LanguageModelLike
 from langchain_core.messages import BaseMessage, SystemMessage
 from langgraph.graph import END
-from langgraph.checkpoint import BaseCheckpointSaver
 from langgraph.graph.state import StateGraph
 from stack.app.schema.message_types import add_messages_liberal
+from stack.app.core.datastore import get_checkpointer
 
 
 def get_chatbot_executor(
     llm: LanguageModelLike,
     system_message: str,
-    checkpointer: BaseCheckpointSaver,
 ):
+    checkpointer = get_checkpointer()
     def _get_messages(messages):
         return [SystemMessage(content=system_message)] + messages
 
