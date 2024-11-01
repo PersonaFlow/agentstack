@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 @lru_cache(maxsize=4)
-def get_openai_llm(model: str = "gpt-3.5-turbo", azure: bool = False):
+def get_openai_llm(model: str = "gpt-4o-mini", azure: bool = False):
     proxy_url = settings.OPENAI_PROXY_URL
     http_client = None
     if proxy_url:
