@@ -9,19 +9,20 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from typing import Optional
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
+from psycopg_pool import AsyncConnectionPool
 
 logger = structlog.get_logger()
 settings = get_settings()
 
 _checkpointer: Optional[AsyncPostgresSaver] = None
 # checkpointer used by langgraph for saving messages
-def get_checkpointer() -> AsyncPostgresSaver:
-    if _checkpointer is None:
-        logger.error("Attempting to access uninitialized checkpointer")
-        raise RuntimeError("Checkpointer not initialized. Ensure application startup has completed.")
-    return _checkpointer
-
 async def initialize_checkpointer() -> None:
+    """Initialize the global checkpointer instance.
+    
+    This creates a connection pool for the checkpointer that will be used
+    throughout the application lifecycle. The pool will be closed when the
+    application shuts down.
+    """
     global _checkpointer
     if _checkpointer is not None:
         logger.info("Checkpointer already initialized")
@@ -36,13 +37,40 @@ async def initialize_checkpointer() -> None:
     
     try:
         logger.info("Creating checkpointer instance...")
-        async with AsyncPostgresSaver.from_conn_string(conn_string) as saver:
-            _checkpointer = saver
-            await _checkpointer.setup()
-            logger.info("Completed checkpointer setup")
+        # Create a connection pool that will be managed by the checkpointer
+        pool = AsyncConnectionPool(
+            conn_string,
+            min_size=1,
+            max_size=10,
+            kwargs={"autocommit": True, "prepare_threshold": 0}
+        )
+        
+        # Create the checkpointer with the pool
+        _checkpointer = AsyncPostgresSaver(pool)
+        
+        # Set up the database tables
+        await _checkpointer.setup()
+        logger.info("Completed checkpointer setup")
     except Exception as e:
         logger.error(f"Failed to initialize checkpointer: {str(e)}", exc_info=True)
+        if '_checkpointer' in globals() and hasattr(_checkpointer, 'conn'):
+            await _checkpointer.conn.close()
+        _checkpointer = None
         raise
+
+def get_checkpointer() -> AsyncPostgresSaver:
+    """Get the global checkpointer instance.
+    
+    Returns:
+        AsyncPostgresSaver: The global checkpointer instance.
+        
+    Raises:
+        RuntimeError: If the checkpointer hasn't been initialized.
+    """
+    if _checkpointer is None:
+        logger.error("Attempting to access uninitialized checkpointer")
+        raise RuntimeError("Checkpointer not initialized. Ensure application startup has completed.")
+    return _checkpointer
 
 async def get_postgresql_session_provider(
     settings: Settings = Depends(get_settings),

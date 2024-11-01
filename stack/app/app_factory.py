@@ -28,10 +28,9 @@ def create_async_engine_with_settings(settings: Settings) -> AsyncEngine:
 def get_lifespan(settings: Settings) -> Callable:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
-        
         app.state.async_engine = create_async_engine_with_settings(settings)
         
-        from stack.app.core.datastore import initialize_checkpointer
+        from stack.app.core.datastore import initialize_checkpointer, get_checkpointer
         
         if is_authentication_enabled():
             await get_auth_strategy_endpoints()
@@ -41,6 +40,10 @@ def get_lifespan(settings: Settings) -> Callable:
         try:
             yield
         finally:
+            # Get the checkpointer and close its connection pool if it exists
+            checkpointer = get_checkpointer()
+            if hasattr(checkpointer, 'conn') and hasattr(checkpointer.conn, 'close'):
+                await checkpointer.conn.close()
             await app.state.async_engine.dispose()
 
     return lifespan
