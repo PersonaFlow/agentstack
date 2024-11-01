@@ -87,7 +87,7 @@ class Settings(BaseSettings):
     TAVILY_API_KEY: Optional[str] = os.getenv("TAVILY_API_KEY", None)
 
     # Number of iterations assistant is allowed to run to accomplish task or improve results or response (Required)
-    LANGGRAPH_RECURSION_LIMIT: str | int = os.getenv("LANGGRAPH_RECURSION_LIMIT", 25)
+    LANGGRAPH_RECURSION_LIMIT: int = int(os.getenv("LANGGRAPH_RECURSION_LIMIT", 8))
 
     EXCLUDE_REQUEST_LOG_ENDPOINTS: list[str] = ["/docs"]
 
