@@ -10,7 +10,6 @@ from fastapi.openapi.utils import get_openapi
 
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.sessions import SessionMiddleware
-from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 from stack.app.core.auth.auth_config import is_authentication_enabled
 from stack.app.api.v1 import api_router
 from stack.app.core.configuration import Settings
@@ -19,32 +18,56 @@ from stack.app.core.struct_logger import init_structlogger
 from stack.app.middlewares.system_logger import SystemLoggerMiddleware
 from stack.app.utils.exceptions import UniqueConstraintViolationError
 from stack.app.core.auth.auth_config import get_auth_strategy_endpoints
+from stack.app.core.datastore import (
+    initialize_db, 
+    cleanup_db,
+    initialize_checkpointer,
+    get_checkpointer
+)
 
 
-def create_async_engine_with_settings(settings: Settings) -> AsyncEngine:
-    return create_async_engine(settings.INTERNAL_DATABASE_URI, echo=True)
-
-
-def get_lifespan(settings: Settings) -> Callable:
-    @asynccontextmanager
-    async def lifespan(app: FastAPI):
-        app.state.async_engine = create_async_engine_with_settings(settings)
+def get_lifespan() -> Callable:
+    """Get the lifespan context manager for the FastAPI application.
+    
+    Args:
+        settings: Application settings
         
-        from stack.app.core.datastore import initialize_checkpointer, get_checkpointer
+    Returns:
+        An async context manager to handle application lifecycle
+    """
+    @asynccontextmanager
+    async def lifespan(_: FastAPI):
+        """Application lifespan manager that handles startup and shutdown.
+        
+        This context manager:
+        1. Initializes the database connection pool
+        2. Initializes the checkpointer
+        3. Sets up authentication if enabled
+        4. Cleans up all resources on shutdown
+        
+        Args:
+            app: The FastAPI application instance
+        """
+        await initialize_db()
         
         if is_authentication_enabled():
             await get_auth_strategy_endpoints()
 
         await initialize_checkpointer()
-
+        
         try:
             yield
         finally:
-            # Get the checkpointer and close its connection pool if it exists
-            checkpointer = get_checkpointer()
-            if hasattr(checkpointer, 'conn') and hasattr(checkpointer.conn, 'close'):
-                await checkpointer.conn.close()
-            await app.state.async_engine.dispose()
+            
+            await cleanup_db()
+            
+            try:
+                checkpointer = get_checkpointer()
+                if hasattr(checkpointer, 'conn'):
+                    await checkpointer.conn.close()
+            except RuntimeError:
+                # Checkpointer wasn't initialized, nothing to clean up
+                pass
 
     return lifespan
 
@@ -95,7 +118,7 @@ def create_app(settings: Settings):
     _app = FastAPI(
         title=settings.TITLE,
         version=settings.VERSION,
-        lifespan=get_lifespan(settings),
+        lifespan=get_lifespan(),
         middleware=middleware,
         openapi_url="/api/v1/openapi.json",
     )
