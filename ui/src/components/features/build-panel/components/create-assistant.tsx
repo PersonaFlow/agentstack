@@ -13,6 +13,9 @@ import { useToast } from "@/components/ui/use-toast";
 import { useRouter } from "next/navigation";
 import { SquarePlus } from "lucide-react";
 
+const DEFAULT_agent_type = "GPT 4o Mini";
+const DEFAULT_llm_type = "GPT 4o Mini";
+
 const defaultValues = {
   public: false,
   name: "",
@@ -20,8 +23,8 @@ const defaultValues = {
     configurable: {
       interrupt_before_action: false,
       type: "",
-      agent_type: "GPT 4o Mini",
-      llm_type: "GPT 4o Mini",
+      agent_type: DEFAULT_agent_type,
+      llm_type: DEFAULT_llm_type,
       retrieval_description: "",
       system_message: "",
       tools: [],
