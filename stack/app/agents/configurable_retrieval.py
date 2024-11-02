@@ -5,12 +5,13 @@ from langchain_core.messages import AnyMessage
 from langchain_core.runnables import (
     ConfigurableField,
     RunnableBinding,
-    RunnableSerializable
+    RunnableSerializable,
 )
 from langgraph.graph.message import Messages
 from langgraph.pregel import Pregel
 
 from stack.app.agents.tools_agent import get_tools_agent_executor
+
 # from stack.app.agents.xml_agent import get_xml_agent_executor
 # from stack.app.agents.chatbot import get_chatbot_executor
 from stack.app.core.configuration import get_settings
@@ -22,6 +23,7 @@ from stack.app.core.llms import (
     get_ollama_llm,
     get_openai_llm,
 )
+
 # from stack.app.agents.retrieval import get_retrieval_executor
 # from stack.app.core.datastore import get_checkpointer
 from stack.app.agents.tools import (
@@ -62,9 +64,6 @@ Tool = Union[
 ]
 
 DEFAULT_SYSTEM_MESSAGE = "You are a helpful assistant."
-
-
-
 
 
 # def get_chatbot(
@@ -160,4 +159,3 @@ DEFAULT_SYSTEM_MESSAGE = "You are a helpful assistant."
 #         output_type=Dict[str, Any],
 #     )
 # )
-

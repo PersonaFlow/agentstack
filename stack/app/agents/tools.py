@@ -298,10 +298,7 @@ def get_retriever(
 
 
 def get_retrieval_tool(
-    assistant_id: str, 
-    thread_id: str, 
-    description: str, 
-    config: RetrievalConfig
+    assistant_id: str, thread_id: str, description: str, config: RetrievalConfig
 ) -> Tool:
     retriever = get_retriever(
         assistant_id=assistant_id, thread_id=thread_id, config=config
