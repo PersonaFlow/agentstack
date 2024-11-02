@@ -1,3 +1,4 @@
+from enum import Enum
 import logging
 from functools import lru_cache
 from urllib.parse import urlparse
@@ -12,6 +13,59 @@ from stack.app.core.configuration import get_settings
 
 settings = get_settings()
 logger = logging.getLogger(__name__)
+
+class BotType(str, Enum):
+    chatbot = "chatbot"
+    chat_retrieval = "chat_retrieval"
+    agent = "agent"
+
+
+class AgentType(str, Enum):
+    GPT_4O_MINI = "GPT 4o Mini"
+    GPT_4 = "GPT 4 Turbo"
+    GPT_4O = "GPT 4o"
+    AZURE_OPENAI = "GPT 4 (Azure OpenAI)"
+    ANTHROPIC_CLAUDE = "Anthropic Claude"
+    BEDROCK_ANTHROPIC_CLAUDE = "Anthropic Claude (Amazon Bedrock)"
+    GEMINI = "GEMINI"
+    OLLAMA = "Ollama"
+
+
+class LLMType(str, Enum):
+    GPT_4O_MINI = "GPT 4o Mini"
+    GPT_4 = "GPT 4"
+    GPT_4_TURBO = "GPT 4 Turbo"
+    GPT_4O = "GPT 4o"
+    AZURE_OPENAI = "GPT 4 (Azure OpenAI)"
+    ANTHROPIC_CLAUDE = "Anthropic Claude"
+    BEDROCK_ANTHROPIC_CLAUDE = "Anthropic Claude (Amazon Bedrock)"
+    GEMINI = "GEMINI"
+    MIXTRAL = "Mixtral"
+    OLLAMA = "Ollama"
+
+def get_llm(llm_type: LLMType):
+    if llm_type == LLMType.GPT_4O_MINI:
+        llm = get_openai_llm()
+    elif llm_type == LLMType.GPT_4 or llm_type == LLMType.GPT_4_TURBO:
+        llm = get_openai_llm(model="gpt-4-turbo")
+    elif llm_type == LLMType.GPT_4O:
+        llm = get_openai_llm(model="gpt-4o")
+    elif llm_type == LLMType.AZURE_OPENAI:
+        llm = get_openai_llm(azure=True)
+    elif llm_type == LLMType.ANTHROPIC_CLAUDE:
+        llm = get_anthropic_llm()
+    elif llm_type == LLMType.BEDROCK_ANTHROPIC_CLAUDE:
+        llm = get_anthropic_llm(bedrock=True)
+    elif llm_type == LLMType.GEMINI:
+        llm = get_google_llm()
+    elif llm_type == LLMType.MIXTRAL:
+        llm = get_mixtral_fireworks()
+    elif llm_type == LLMType.OLLAMA:
+        llm = get_ollama_llm()
+    else:
+        raise ValueError(f"Unexpected llm type: {llm_type}")
+    return llm
+
 
 
 @lru_cache(maxsize=4)
@@ -42,7 +96,7 @@ def get_openai_llm(model: str = "gpt-4o-mini", azure: bool = False):
             openai_api_base=settings.AZURE_OPENAI_API_BASE,
             openai_api_version=settings.AZURE_OPENAI_API_VERSION,
             openai_api_key=settings.AZURE_OPENAI_API_KEY,
-        )
+        ) # type: ignore
         return llm
 
 
@@ -61,7 +115,7 @@ def get_anthropic_llm(bedrock: bool = False):
             model_name=settings.ANTHROPIC_MODEL_NAME,
             max_tokens_to_sample=2000,
             temperature=0,
-        )
+        ) # type: ignore
     return model
 
 
