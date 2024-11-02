@@ -1,4 +1,3 @@
-# datastore.py
 import structlog
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import (
@@ -37,8 +36,7 @@ async def initialize_db() -> None:
 
     _async_engine = create_async_engine(
         settings.INTERNAL_DATABASE_URI,
-        # echo=settings.ENVIRONMENT != "PRODUCTION",  # Enable SQL logging in non-prod
-        echo=False,
+        echo=False,  # Disable SQL logging - set to true to log every database call for debugging
         pool_size=20,
         max_overflow=10,
         pool_timeout=30,
@@ -129,7 +127,7 @@ async def initialize_checkpointer() -> None:
 
     try:
         logger.info("Creating checkpointer instance...")
-        # Create a connection pool that will be managed by the checkpointer
+
         pool = AsyncConnectionPool(
             conn_string,
             min_size=1,
@@ -137,10 +135,8 @@ async def initialize_checkpointer() -> None:
             kwargs={"autocommit": True, "prepare_threshold": 0},
         )
 
-        # Create the checkpointer with the pool
         _checkpointer = AsyncPostgresSaver(pool)
 
-        # Set up the database tables
         await _checkpointer.setup()
         logger.info("Completed checkpointer setup")
     except Exception as e:
