@@ -35,7 +35,10 @@ export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
 
   const {
     formState: { isDirty },
+    getValues
   } = form;
+
+  console.log(getValues());
 
   if (isLoading) return <Spinner />;
 
@@ -89,7 +92,7 @@ export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
                       (config?.definitions.AgentType as TSchemaField).enum ?? []
                     }
                     formName="config.configurable.agent_type"
-                    title="Agent type"
+                    title="Language Model"
                     placeholder="Select agent type"
                   />
                 ) : (
