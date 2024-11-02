@@ -13,7 +13,8 @@ from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.schema import AIMessage, HumanMessage, StrOutputParser
 from langchain.schema.runnable import RunnableMap
 
-from stack.app.agents.configurable_agent import get_configured_agent, get_llm
+from stack.app.agents.configurable_agent import get_configured_agent
+from stack.app.agents.llm import get_llm
 from stack.app.core.auth.request_validators import AuthenticatedUser
 from stack.app.schema.thread import Thread
 from stack.app.repositories.assistant import (

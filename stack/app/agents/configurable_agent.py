@@ -9,17 +9,15 @@ from langgraph.pregel import Pregel
 
 from stack.app.agents.tools_agent import get_tools_agent_executor
 from stack.app.agents.xml_agent import get_xml_agent_executor
-from stack.app.agents.chatbot import get_chatbot_executor
-from stack.app.core.configuration import get_settings
-from stack.app.schema.assistant import AgentType, LLMType
-from stack.app.core.llms import (
+from stack.app.agents.configurable_retrieval import get_configured_chat_retrieval
+from stack.app.core.configuration import settings
+from stack.app.schema.assistant import AgentType
+from stack.app.agents.llm import (
     get_anthropic_llm,
     get_google_llm,
-    get_mixtral_fireworks,
     get_ollama_llm,
     get_openai_llm,
 )
-from stack.app.agents.retrieval import get_retrieval_executor
 from stack.app.agents.tools import (
     RETRIEVAL_DESCRIPTION,
     TOOLS,
@@ -58,29 +56,6 @@ Tool = Union[
 
 DEFAULT_SYSTEM_MESSAGE = "You are a helpful assistant."
 
-
-def get_llm(llm_type: LLMType):
-    if llm_type == LLMType.GPT_4O_MINI:
-        llm = get_openai_llm()
-    elif llm_type == LLMType.GPT_4 or llm_type == LLMType.GPT_4_TURBO:
-        llm = get_openai_llm(model="gpt-4-turbo")
-    elif llm_type == LLMType.GPT_4O:
-        llm = get_openai_llm(model="gpt-4o")
-    elif llm_type == LLMType.AZURE_OPENAI:
-        llm = get_openai_llm(azure=True)
-    elif llm_type == LLMType.ANTHROPIC_CLAUDE:
-        llm = get_anthropic_llm()
-    elif llm_type == LLMType.BEDROCK_ANTHROPIC_CLAUDE:
-        llm = get_anthropic_llm(bedrock=True)
-    elif llm_type == LLMType.GEMINI:
-        llm = get_google_llm()
-    elif llm_type == LLMType.MIXTRAL:
-        llm = get_mixtral_fireworks()
-    elif llm_type == LLMType.OLLAMA:
-        llm = get_ollama_llm()
-    else:
-        raise ValueError(f"Unexpected llm type: {llm_type}")
-    return llm
 
 
 def get_agent_executor(
@@ -160,7 +135,6 @@ class ConfigurableAgent(RunnableBinding[Messages, Sequence[AnyMessage]]):
         config: Optional[Mapping[str, Any]] = None,
         **others: Any,
     ) -> None:
-        settings = get_settings()
         others.pop("bound", None)
 
         _tools = []
@@ -284,7 +258,7 @@ def get_configured_agent() -> Pregel:
     )
 
     return (
-        initial_agent.configurable_fields(
+        initial_agent.configurable_fields( 
             agent=ConfigurableField(id="agent_type", name="Agent Type"),
             system_message=ConfigurableField(id="system_message", name="Instructions"),
             interrupt_before_action=ConfigurableField(
@@ -313,12 +287,13 @@ def get_configured_agent() -> Pregel:
             ConfigurableField(id="type", name="Bot Type"),
             default_key="agent",
             prefix_keys=True,
+            # chat_retrieval=get_configured_chat_retrieval()
         )
         .with_types(
             input_type=Messages,
             output_type=Sequence[AnyMessage],
-        )
-    )  # type: ignore[return-value]
+        )  # type: ignore[return-value]
+    ) 
 
 
 if __name__ == "__main__":
