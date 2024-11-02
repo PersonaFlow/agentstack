@@ -2,23 +2,28 @@
 
 from typing import List, Dict, Any, Optional, Sequence
 from typing_extensions import TypedDict
-from langchain_core.runnables import RunnableBinding, ConfigurableField, RunnablePassthrough
+from langchain_core.runnables import (
+    RunnableBinding,
+    ConfigurableField,
+    RunnablePassthrough,
+)
 from langchain.schema import Document, BaseMessage
 from langchain_core.messages import AnyMessage
 from langgraph.graph import StateGraph
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-from langchain import hub
 from stack.app.rag.custom_retriever import Retriever
 from tools import Tavily
-from configurable_agent import AgentType, get_llm, DEFAULT_SYSTEM_MESSAGE, RETRIEVAL_DESCRIPTION
+from llm import AgentType, get_llm
 from langgraph.graph.message import Messages
+from stack.app.agents.tools import RETRIEVAL_DESCRIPTION
 import langchain
-from stack.app.agents.configurable_agent import chatbot, chat_retrieval
+
+DEFAULT_SYSTEM_MESSAGE = "You are a helpful assistant."
+
 
 class GraphState(TypedDict):
-    """
-    Represents the state of our CRAG process.
+    """Represents the state of our CRAG process.
 
     Attributes:
         messages: The current conversation messages
@@ -26,15 +31,16 @@ class GraphState(TypedDict):
         generation: LLM generation
         web_search: Whether to add search results
     """
+
     messages: Messages
     documents: List[Document]
     generation: Optional[str]
     web_search: str
 
+
 class ConfigurableCorrectiveRagAgent(RunnableBinding):
-    """
-    A configurable agent that implements the Corrective RAG (CRAG) technique.
-    """
+    """A configurable agent that implements the Corrective RAG (CRAG)
+    technique."""
 
     agent: AgentType
     system_message: str
@@ -46,7 +52,7 @@ class ConfigurableCorrectiveRagAgent(RunnableBinding):
 
     def __init__(
         self,
-        agent: AgentType = AgentType.GPT_4O_MINI,
+        agent_type: AgentType = AgentType.GPT_4O_MINI,
         system_message: str = DEFAULT_SYSTEM_MESSAGE,
         retrieval_description: str = RETRIEVAL_DESCRIPTION,
         assistant_id: Optional[str] = None,
@@ -55,7 +61,7 @@ class ConfigurableCorrectiveRagAgent(RunnableBinding):
         max_corrective_iterations: int = 3,
         **kwargs: Any
     ):
-        self.agent = agent
+        self.agent_type = agent_type
         self.system_message = system_message
         self.retrieval_description = retrieval_description
         self.assistant_id = assistant_id
@@ -63,7 +69,7 @@ class ConfigurableCorrectiveRagAgent(RunnableBinding):
         self.crag_relevance_threshold = crag_relevance_threshold
         self.max_corrective_iterations = max_corrective_iterations
 
-        self.llm = get_llm(agent)
+        self.llm = get_llm(agent_type)
         self.retriever = Retriever(metadata={"namespace": assistant_id or thread_id})
         self.web_search_tool = Tavily()
 
@@ -81,16 +87,26 @@ class ConfigurableCorrectiveRagAgent(RunnableBinding):
         question = state["messages"][-1].content if state["messages"] else ""
         documents = state["documents"]
 
-        grade_prompt = ChatPromptTemplate.from_messages([
-            ("system", "You are a document grader assessing relevance to a question."),
-            ("human", "Question: {question}\n\nDocument: {document}\n\nIs this document relevant?")
-        ])
+        grade_prompt = ChatPromptTemplate.from_messages(
+            [
+                (
+                    "system",
+                    "You are a document grader assessing relevance to a question.",
+                ),
+                (
+                    "human",
+                    "Question: {question}\n\nDocument: {document}\n\nIs this document relevant?",
+                ),
+            ]
+        )
         grader_chain = grade_prompt | self.llm | StrOutputParser()
 
         filtered_docs = []
         web_search = "No"
         for doc in documents:
-            grade = grader_chain.invoke({"question": question, "document": doc.page_content})
+            grade = grader_chain.invoke(
+                {"question": question, "document": doc.page_content}
+            )
             if "yes" in grade.lower():
                 filtered_docs.append(doc)
             else:
@@ -99,7 +115,7 @@ class ConfigurableCorrectiveRagAgent(RunnableBinding):
         return {
             "documents": filtered_docs,
             "messages": state["messages"],
-            "web_search": web_search
+            "web_search": web_search,
         }
 
     def generate(self, state: GraphState) -> Dict[str, Any]:
@@ -120,17 +136,25 @@ class ConfigurableCorrectiveRagAgent(RunnableBinding):
         return {
             "documents": documents,
             "messages": state["messages"],
-            "generation": generation
+            "generation": generation,
         }
 
     def transform_query(self, state: GraphState) -> Dict[str, Any]:
         """Transform the query for better web search results."""
         question = state["messages"][-1].content if state["messages"] else ""
 
-        rewrite_prompt = ChatPromptTemplate.from_messages([
-            ("system", "You are a question rewriter that optimizes queries for web search."),
-            ("human", "Original question: {question}\n\nRewrite this for optimal web search:")
-        ])
+        rewrite_prompt = ChatPromptTemplate.from_messages(
+            [
+                (
+                    "system",
+                    "You are a question rewriter that optimizes queries for web search.",
+                ),
+                (
+                    "human",
+                    "Original question: {question}\n\nRewrite this for optimal web search:",
+                ),
+            ]
+        )
         rewrite_chain = rewrite_prompt | self.llm | StrOutputParser()
 
         new_question = rewrite_chain.invoke({"question": question})
@@ -145,7 +169,9 @@ class ConfigurableCorrectiveRagAgent(RunnableBinding):
         documents = state["documents"]
 
         search_results = self.web_search_tool.invoke({"query": question})
-        web_results = Document(page_content="\n".join([d["content"] for d in search_results]))
+        web_results = Document(
+            page_content="\n".join([d["content"] for d in search_results])
+        )
         documents.append(web_results)
 
         return {
@@ -184,6 +210,7 @@ class ConfigurableCorrectiveRagAgent(RunnableBinding):
 
         return workflow
 
+
 # The configuration for corrective_rag should be added to configurable_agent.py
 corrective_rag = (
     ConfigurableCorrectiveRagAgent(
@@ -196,8 +223,12 @@ corrective_rag = (
     .configurable_fields(
         agent=ConfigurableField(id="agent_type", name="Agent Type"),
         system_message=ConfigurableField(id="system_message", name="Instructions"),
-        crag_relevance_threshold=ConfigurableField(id="relevance_threshold", name="Relevance Threshold"),
-        max_corrective_iterations=ConfigurableField(id="max_iterations", name="Max Iterations"),
+        crag_relevance_threshold=ConfigurableField(
+            id="relevance_threshold", name="Relevance Threshold"
+        ),
+        max_corrective_iterations=ConfigurableField(
+            id="max_iterations", name="Max Iterations"
+        ),
         assistant_id=ConfigurableField(
             id="assistant_id", name="Assistant ID", is_shared=True
         ),
@@ -205,13 +236,6 @@ corrective_rag = (
         retrieval_description=ConfigurableField(
             id="retrieval_description", name="Retrieval Description"
         ),
-    )
-    .configurable_alternatives(
-        ConfigurableField(id="type", name="Bot Type"),
-        default_key="corrective_rag",
-        prefix_keys=True,
-        chatbot=chatbot,
-        chat_retrieval=chat_retrieval,
     )
     .with_types(
         input_type=Messages,

@@ -6,10 +6,9 @@ from langchain_core.runnables import (
     Runnable,
 )
 
-from stack.app.schema.assistant import LLMType
-from stack.app.agents.llm import get_llm
+from stack.app.agents.llm import get_llm, LLMType
 
-from stack.app.agents.retrieval import get_retrieval_executor
+from stack.app.agents.retrieval_executor import get_retrieval_executor
 from stack.app.agents.tools import get_retriever
 
 

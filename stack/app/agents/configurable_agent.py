@@ -7,7 +7,7 @@ from langchain_core.runnables import (
 from langgraph.graph.message import Messages
 from langgraph.pregel import Pregel
 
-from stack.app.agents.tools_agent import get_tools_agent_executor
+from stack.app.agents.tools_agent_executor import get_tools_agent_executor
 from stack.app.agents.xml_agent import get_xml_agent_executor
 from stack.app.agents.configurable_retrieval import get_configured_chat_retrieval
 from stack.app.core.configuration import settings
