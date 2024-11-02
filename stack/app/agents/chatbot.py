@@ -12,6 +12,7 @@ def get_chatbot_executor(
     system_message: str,
 ):
     checkpointer = get_checkpointer()
+
     def _get_messages(messages):
         return [SystemMessage(content=system_message)] + messages
 

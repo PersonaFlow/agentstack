@@ -41,6 +41,7 @@ def get_retrieval_executor(
     system_message: str,
 ):
     checkpoint = get_checkpointer()
+
     class AgentState(TypedDict):
         messages: Annotated[List[BaseMessage], add_messages_liberal]
         msg_count: Annotated[int, operator.add]

@@ -34,6 +34,7 @@ AI_CONN_STR = os.getenv(AI_CONN_STR_ENV_NAME)
 if AI_CONN_STR and AI_CONN_STR != "":
     from azure.monitor.opentelemetry import configure_azure_monitor
     from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+
     configure_azure_monitor(
         connection_string=os.getenv(AI_CONN_STR_ENV_NAME),
         logger_name="personaflow",

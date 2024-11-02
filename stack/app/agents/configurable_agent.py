@@ -134,10 +134,9 @@ def get_agent_executor(
         raise ValueError("Unexpected agent type")
 
 
-
 class ConfigurableAgent(RunnableBinding[Messages, Sequence[AnyMessage]]):
     """A configurable agent that can be used in a RunnableSequence."""
-    
+
     tools: Sequence[Tool]
     agent: AgentType
     system_message: str = DEFAULT_SYSTEM_MESSAGE
@@ -181,7 +180,7 @@ class ConfigurableAgent(RunnableBinding[Messages, Sequence[AnyMessage]]):
             {"recursion_limit": settings.LANGGRAPH_RECURSION_LIMIT}
         )
 
-        super().__init__( # type: ignore[call-arg]
+        super().__init__(  # type: ignore[call-arg]
             tools=tools,
             agent=agent,
             system_message=system_message,
@@ -190,26 +189,30 @@ class ConfigurableAgent(RunnableBinding[Messages, Sequence[AnyMessage]]):
             kwargs=kwargs or {},
             config=config or {},
         )
-        
+
     def _convert_dict_to_tool(self, tool_dict: dict) -> Tool:
-        
         tool_type = AvailableTools(tool_dict["type"])
-        
+
         # Map tool types to their corresponding classes
-        tool_classes: Dict[AvailableTools, Type[Union[
-            ActionServer,
-            Connery,
-            DDGSearch,
-            Arxiv,
-            YouSearch,
-            PubMed,
-            Wikipedia,
-            Tavily,
-            TavilyAnswer,
-            DallE,
-            SecFilings,
-            PressReleases,
-        ]]] = {
+        tool_classes: Dict[
+            AvailableTools,
+            Type[
+                Union[
+                    ActionServer,
+                    Connery,
+                    DDGSearch,
+                    Arxiv,
+                    YouSearch,
+                    PubMed,
+                    Wikipedia,
+                    Tavily,
+                    TavilyAnswer,
+                    DallE,
+                    SecFilings,
+                    PressReleases,
+                ]
+            ],
+        ] = {
             AvailableTools.TAVILY: Tavily,
             AvailableTools.DDG_SEARCH: DDGSearch,
             AvailableTools.ARXIV: Arxiv,
@@ -223,7 +226,7 @@ class ConfigurableAgent(RunnableBinding[Messages, Sequence[AnyMessage]]):
             AvailableTools.CONNERY: Connery,
             AvailableTools.TAVILY_ANSWER: TavilyAnswer,
         }
-        
+
         tool_class = tool_classes.get(tool_type)
         if not tool_class:
             raise ValueError(f"Unsupported tool type: {tool_type}")
@@ -235,7 +238,7 @@ class ConfigurableAgent(RunnableBinding[Messages, Sequence[AnyMessage]]):
             kwargs["config"] = tool_dict["config"]
         if "name" in tool_dict:
             kwargs["name"] = tool_dict["name"]
-        
+
         return cast(Tool, tool_class(**kwargs))
 
     def _create_tool(
@@ -259,13 +262,13 @@ class ConfigurableAgent(RunnableBinding[Messages, Sequence[AnyMessage]]):
             config = tool.config if isinstance(tool, Tool) else tool.get("config", {})
             return get_retrieval_tool(
                 assistant_id, thread_id, retrieval_description, config
-            ) # type: ignore
+            )  # type: ignore
         else:
             tool_obj = (
                 tool if isinstance(tool, Tool) else self._convert_dict_to_tool(tool)
             )
             tool_config = tool_obj.config or {}
-            return TOOLS[tool_obj.type](**tool_config) 
+            return TOOLS[tool_obj.type](**tool_config)
 
 
 def get_configured_agent() -> Pregel:
@@ -279,9 +282,9 @@ def get_configured_agent() -> Pregel:
         thread_id="",
         interrupt_before_action=False,
     )
-    
-    return (initial_agent 
-        .configurable_fields(
+
+    return (
+        initial_agent.configurable_fields(
             agent=ConfigurableField(id="agent_type", name="Agent Type"),
             system_message=ConfigurableField(id="system_message", name="Instructions"),
             interrupt_before_action=ConfigurableField(
@@ -303,8 +306,7 @@ def get_configured_agent() -> Pregel:
             ),
             tools=ConfigurableField(id="tools", name="Tools"),
             retrieval_description=ConfigurableField(
-                id="retrieval_description",
-                name="Retrieval Description"
+                id="retrieval_description", name="Retrieval Description"
             ),
         )
         .configurable_alternatives(
@@ -315,9 +317,11 @@ def get_configured_agent() -> Pregel:
         .with_types(
             input_type=Messages,
             output_type=Sequence[AnyMessage],
-        )) # type: ignore[return-value]
+        )
+    )  # type: ignore[return-value]
 
-if __name__ == "__main__": 
+
+if __name__ == "__main__":
     import asyncio
 
     from langchain.schema.messages import HumanMessage
