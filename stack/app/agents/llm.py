@@ -14,6 +14,7 @@ from stack.app.core.configuration import get_settings
 settings = get_settings()
 logger = logging.getLogger(__name__)
 
+
 class BotType(str, Enum):
     chatbot = "chatbot"
     chat_retrieval = "chat_retrieval"
@@ -43,6 +44,7 @@ class LLMType(str, Enum):
     MIXTRAL = "Mixtral"
     OLLAMA = "Ollama"
 
+
 def get_llm(llm_type: LLMType):
     if llm_type == LLMType.GPT_4O_MINI:
         llm = get_openai_llm()
@@ -65,7 +67,6 @@ def get_llm(llm_type: LLMType):
     else:
         raise ValueError(f"Unexpected llm type: {llm_type}")
     return llm
-
 
 
 @lru_cache(maxsize=4)
@@ -96,7 +97,7 @@ def get_openai_llm(model: str = "gpt-4o-mini", azure: bool = False):
             openai_api_base=settings.AZURE_OPENAI_API_BASE,
             openai_api_version=settings.AZURE_OPENAI_API_VERSION,
             openai_api_key=settings.AZURE_OPENAI_API_KEY,
-        ) # type: ignore
+        )  # type: ignore
         return llm
 
 
@@ -115,7 +116,7 @@ def get_anthropic_llm(bedrock: bool = False):
             model_name=settings.ANTHROPIC_MODEL_NAME,
             max_tokens_to_sample=2000,
             temperature=0,
-        ) # type: ignore
+        )  # type: ignore
     return model
 
 

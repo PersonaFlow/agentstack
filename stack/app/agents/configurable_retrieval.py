@@ -44,38 +44,21 @@ class ConfigurableRetrieval(RunnableBinding):
             bound=chatbot,
             kwargs=kwargs or {},
             config=config or {},
-        ) # type: ignore
+        )  # type: ignore
+
 
 def get_configured_chat_retrieval() -> Runnable:
     initial = ConfigurableRetrieval(
-        llm_type=LLMType.GPT_4O_MINI,
-        system_message=DEFAULT_SYSTEM_MESSAGE
+        llm_type=LLMType.GPT_4O_MINI, system_message=DEFAULT_SYSTEM_MESSAGE
     )
-    return (
-        initial.configurable_fields(
-            llm_type=ConfigurableField(
-                id="llm_type", 
-                name="LLM Type"
-            ),
-            system_message=ConfigurableField(
-                id="system_message", 
-                name="Instructions"
-            ),
-            assistant_id=ConfigurableField(
-                id="assistant_id", 
-                name="Assistant ID",
-                is_shared=True
-            ),
-            thread_id=ConfigurableField(
-                id="thread_id", 
-                name="Thread ID", 
-                is_shared=True
-            ),
-        )
-        .with_types(
-            input_type=Dict[str, Any],
-            output_type=Dict[str, Any],
-        )
+    return initial.configurable_fields(
+        llm_type=ConfigurableField(id="llm_type", name="LLM Type"),
+        system_message=ConfigurableField(id="system_message", name="Instructions"),
+        assistant_id=ConfigurableField(
+            id="assistant_id", name="Assistant ID", is_shared=True
+        ),
+        thread_id=ConfigurableField(id="thread_id", name="Thread ID", is_shared=True),
+    ).with_types(
+        input_type=Dict[str, Any],
+        output_type=Dict[str, Any],
     )
-
-
