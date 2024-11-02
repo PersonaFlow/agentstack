@@ -1,15 +1,9 @@
-from enum import Enum
-from typing import Any, Dict, Mapping, Optional, Sequence, Union, Iterator, AsyncIterator, AsyncGenerator
-from functools import cached_property
-
+from typing import Any, Mapping, Optional, Sequence, Union
 from langchain_core.messages import AnyMessage
 from langchain_core.runnables import (
     ConfigurableField,
     RunnableBinding,
-    RunnableSerializable,
-    RunnableConfig,
 )
-from langchain_core.runnables.utils import Input, Output
 from langgraph.graph.message import Messages
 from langgraph.pregel import Pregel
 
@@ -44,7 +38,6 @@ from stack.app.agents.tools import (
     SecFilings,
     PressReleases,
     get_retrieval_tool,
-    get_retriever,
 )
 
 Tool = Union[
@@ -151,7 +144,6 @@ class ConfigurableAgent(RunnableBinding[Messages, Sequence[AnyMessage]]):
     retrieval_description: str = RETRIEVAL_DESCRIPTION
     interrupt_before_action: bool = False
     assistant_id: Optional[str] = None
-    # thread_id: Optional[str] = None
     thread_id: str = ""
     user_id: Optional[str] = None
 
@@ -159,7 +151,6 @@ class ConfigurableAgent(RunnableBinding[Messages, Sequence[AnyMessage]]):
         self,
         tool: Union[dict, Tool],
         assistant_id: Optional[str],
-        # thread_id: Optional[str],
         thread_id: str,
         retrieval_description: str,
     ) -> Union[Tool, list[Tool]]:
@@ -177,13 +168,13 @@ class ConfigurableAgent(RunnableBinding[Messages, Sequence[AnyMessage]]):
             config = tool.config if isinstance(tool, Tool) else tool.get("config", {})
             return get_retrieval_tool(
                 assistant_id, thread_id, retrieval_description, config
-            )
+            ) # type: ignore
         else:
             tool_obj = (
                 tool if isinstance(tool, Tool) else self._convert_dict_to_tool(tool)
             )
             tool_config = tool_obj.config or {}
-            return TOOLS[tool_obj.type](**tool_config)
+            return TOOLS[tool_obj.type](**tool_config) # type: ignore[no-any-return]
 
 
     def __init__(
@@ -219,7 +210,8 @@ class ConfigurableAgent(RunnableBinding[Messages, Sequence[AnyMessage]]):
         agent_executor = _agent.with_config(
             {"recursion_limit": settings.LANGGRAPH_RECURSION_LIMIT}
         )
-        super().__init__(
+
+        super().__init__( # type: ignore[call-arg]
             tools=tools,
             agent=agent,
             system_message=system_message,
@@ -238,12 +230,11 @@ def get_configured_agent() -> Pregel:
         system_message=DEFAULT_SYSTEM_MESSAGE,
         retrieval_description=RETRIEVAL_DESCRIPTION,
         assistant_id=None,
-        # thread_id=None,
         thread_id="",
         interrupt_before_action=False,
     )
     
-    return (initial_agent
+    return (initial_agent 
         .configurable_fields(
             agent=ConfigurableField(id="agent_type", name="Agent Type"),
             system_message=ConfigurableField(id="system_message", name="Instructions"),
@@ -278,9 +269,9 @@ def get_configured_agent() -> Pregel:
         .with_types(
             input_type=Messages,
             output_type=Sequence[AnyMessage],
-        ))
+        )) # type: ignore[return-value]
 
-if __name__ == "__main__":
+if __name__ == "__main__": 
     import asyncio
 
     from langchain.schema.messages import HumanMessage
