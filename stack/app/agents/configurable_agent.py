@@ -57,7 +57,6 @@ Tool = Union[
 DEFAULT_SYSTEM_MESSAGE = "You are a helpful assistant."
 
 
-
 def get_agent_executor(
     tools: list,
     agent: AgentType,
@@ -258,7 +257,7 @@ def get_configured_agent() -> Pregel:
     )
 
     return (
-        initial_agent.configurable_fields( 
+        initial_agent.configurable_fields(
             agent=ConfigurableField(id="agent_type", name="Agent Type"),
             system_message=ConfigurableField(id="system_message", name="Instructions"),
             interrupt_before_action=ConfigurableField(
@@ -293,7 +292,7 @@ def get_configured_agent() -> Pregel:
             input_type=Messages,
             output_type=Sequence[AnyMessage],
         )  # type: ignore[return-value]
-    ) 
+    )
 
 
 if __name__ == "__main__":
