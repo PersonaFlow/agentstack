@@ -13,6 +13,9 @@ import { useToast } from "@/components/ui/use-toast";
 import { useRouter } from "next/navigation";
 import { SquarePlus } from "lucide-react";
 
+const DEFAULT_agent_type = "GPT 4o Mini";
+const DEFAULT_llm_type = "GPT 4o Mini";
+
 const defaultValues = {
   public: false,
   name: "",
@@ -20,8 +23,8 @@ const defaultValues = {
     configurable: {
       interrupt_before_action: false,
       type: "",
-      agent_type: "GPT 4o Mini",
-      llm_type: "GPT 4o Mini",
+      agent_type: DEFAULT_agent_type,
+      llm_type: DEFAULT_llm_type,
       retrieval_description: "",
       system_message: "",
       tools: [],
@@ -41,8 +44,10 @@ export function CreateAssistant() {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: defaultValues,
+    defaultValues,
   });
+  console.log(defaultValues);
+  console.log('inside create',form.getValues())
 
   const architectureType = form.watch("config.configurable.type");
   const tools = form.watch("config.configurable.tools");
@@ -68,7 +73,7 @@ export function CreateAssistant() {
   }, [architectureType]);
 
   useEffect(() => {
-    if (architectureType !== "agent") {
+    if (architectureType && architectureType !== "agent") {
       // Unregister agent_type
       form.unregister("config.configurable.agent_type");
     }
