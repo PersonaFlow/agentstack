@@ -1,4 +1,4 @@
-from typing import Any, Mapping, Optional, Sequence, Union
+from typing import Any, Mapping, Optional, Sequence, Union, Type, Dict, cast
 from langchain_core.messages import AnyMessage
 from langchain_core.runnables import (
     ConfigurableField,
@@ -147,36 +147,6 @@ class ConfigurableAgent(RunnableBinding[Messages, Sequence[AnyMessage]]):
     thread_id: str = ""
     user_id: Optional[str] = None
 
-    def _create_tool(
-        self,
-        tool: Union[dict, Tool],
-        assistant_id: Optional[str],
-        thread_id: str,
-        retrieval_description: str,
-    ) -> Union[Tool, list[Tool]]:
-        """Helper method to create tool instances."""
-        if isinstance(tool, dict):
-            tool_type = AvailableTools(tool["type"])
-        else:
-            tool_type = tool.type
-
-        if tool_type == AvailableTools.RETRIEVAL:
-            if assistant_id is None or thread_id == "":
-                raise ValueError(
-                    "Both assistant_id and thread_id must be provided if Retrieval tool is used"
-                )
-            config = tool.config if isinstance(tool, Tool) else tool.get("config", {})
-            return get_retrieval_tool(
-                assistant_id, thread_id, retrieval_description, config
-            ) # type: ignore
-        else:
-            tool_obj = (
-                tool if isinstance(tool, Tool) else self._convert_dict_to_tool(tool)
-            )
-            tool_config = tool_obj.config or {}
-            return TOOLS[tool_obj.type](**tool_config) # type: ignore[no-any-return]
-
-
     def __init__(
         self,
         *,
@@ -220,6 +190,82 @@ class ConfigurableAgent(RunnableBinding[Messages, Sequence[AnyMessage]]):
             kwargs=kwargs or {},
             config=config or {},
         )
+        
+    def _convert_dict_to_tool(self, tool_dict: dict) -> Tool:
+        
+        tool_type = AvailableTools(tool_dict["type"])
+        
+        # Map tool types to their corresponding classes
+        tool_classes: Dict[AvailableTools, Type[Union[
+            ActionServer,
+            Connery,
+            DDGSearch,
+            Arxiv,
+            YouSearch,
+            PubMed,
+            Wikipedia,
+            Tavily,
+            TavilyAnswer,
+            DallE,
+            SecFilings,
+            PressReleases,
+        ]]] = {
+            AvailableTools.TAVILY: Tavily,
+            AvailableTools.DDG_SEARCH: DDGSearch,
+            AvailableTools.ARXIV: Arxiv,
+            AvailableTools.YOU_SEARCH: YouSearch,
+            AvailableTools.PUBMED: PubMed,
+            AvailableTools.WIKIPEDIA: Wikipedia,
+            AvailableTools.DALL_E: DallE,
+            AvailableTools.SEC_FILINGS: SecFilings,
+            AvailableTools.PRESS_RELEASES: PressReleases,
+            AvailableTools.ACTION_SERVER: ActionServer,
+            AvailableTools.CONNERY: Connery,
+            AvailableTools.TAVILY_ANSWER: TavilyAnswer,
+        }
+        
+        tool_class = tool_classes.get(tool_type)
+        if not tool_class:
+            raise ValueError(f"Unsupported tool type: {tool_type}")
+
+        # Create tool instance using only the necessary override fields
+        # All constant fields (type, description, multi_use) are handled by the class definition
+        kwargs = {}
+        if "config" in tool_dict:
+            kwargs["config"] = tool_dict["config"]
+        if "name" in tool_dict:
+            kwargs["name"] = tool_dict["name"]
+        
+        return cast(Tool, tool_class(**kwargs))
+
+    def _create_tool(
+        self,
+        tool: Union[dict, Tool],
+        assistant_id: Optional[str],
+        thread_id: str,
+        retrieval_description: str,
+    ) -> Union[Tool, list[Tool]]:
+        """Helper method to create tool instances."""
+        if isinstance(tool, dict):
+            tool_type = AvailableTools(tool["type"])
+        else:
+            tool_type = tool.type
+
+        if tool_type == AvailableTools.RETRIEVAL:
+            if assistant_id is None or thread_id == "":
+                raise ValueError(
+                    "Both assistant_id and thread_id must be provided if Retrieval tool is used"
+                )
+            config = tool.config if isinstance(tool, Tool) else tool.get("config", {})
+            return get_retrieval_tool(
+                assistant_id, thread_id, retrieval_description, config
+            ) # type: ignore
+        else:
+            tool_obj = (
+                tool if isinstance(tool, Tool) else self._convert_dict_to_tool(tool)
+            )
+            tool_config = tool_obj.config or {}
+            return TOOLS[tool_obj.type](**tool_config) 
 
 
 def get_configured_agent() -> Pregel:
