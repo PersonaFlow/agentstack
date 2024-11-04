@@ -371,8 +371,9 @@ export const useIngestFileData = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (
-      payload: z.infer<(typeof t.fileIngestSchema)>,
-    ): Promise<any> => await dataService.ingestFileData(payload),
+      payload: z.infer<typeof t.fileIngestSchema>,
+    ): Promise<t.TFileIngestResponse> =>
+      await dataService.ingestFileData(payload),
     onSuccess: () =>
       queryClient.invalidateQueries({
         queryKey: [QueryKeys.assistantFiles, QueryKeys.assistant],

@@ -128,7 +128,10 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
   const onSubmit = (values: z.infer<typeof fileIngestSchema>) => {
     console.log("values", values);
     ingestFiles.mutate(values, {
-      onSuccess: () => setOpen(false)
+      onSuccess: ({ task_id }) => {
+        
+        setOpen(false);
+      }
     });
   };
 

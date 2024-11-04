@@ -15,7 +15,7 @@ export const purposeSchema = z.union([
     z.literal('assistants'),
     z.literal('threads'),
     z.literal('personas'),
-  ])
+])
 
 export const fileSchema = z.object({
   id: z.string(),
@@ -264,6 +264,10 @@ export interface TAssistant {
 
 export type TCreateAssistantFileRequest = {
   file_id: string;
+};
+
+export type TFileIngestResponse = {
+  task_id: string;
 };
 
 export type TAssistantFile = {
