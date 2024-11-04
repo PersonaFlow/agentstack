@@ -30,6 +30,7 @@ import { fileIngestSchema } from "@/data-provider/types";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useFileStream } from "@/hooks/useFileStream";
 
 // TODO
 // - Get assistant form default getRandomValues 
@@ -99,6 +100,8 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
 
   const { formState: { isDirty } } = form;
 
+  const { startFileStream } = useFileStream();
+
   const [fileUpload, setFileUpload] = useState<File | null>();
   const [values, setValues] = useState<TOption[]>([]);
   const [open, setOpen] = useState(false);
@@ -129,8 +132,8 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
     console.log("values", values);
     ingestFiles.mutate(values, {
       onSuccess: ({ task_id }) => {
-        
         setOpen(false);
+        startFileStream({taskId: task_id});
       }
     });
   };
