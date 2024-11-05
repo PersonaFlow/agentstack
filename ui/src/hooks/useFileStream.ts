@@ -1,6 +1,6 @@
 'use client';
 
-import { TFileIngest, TStreamState } from "@/data-provider/types";
+import { TFileIngest, TStreamProgressState } from "@/data-provider/types";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 import { useCallback, useEffect, useState } from "react";
 
@@ -18,7 +18,9 @@ import { useCallback, useEffect, useState } from "react";
 // curl http://127.0.0.1:9000/api/v1/rag/ingest/{taskId}/progress
 
 export const useFileStream = () => {
-  const [currentState, setCurrentState] = useState<TStreamState | null>(null);
+  const [currentState, setCurrentState] = useState<TStreamProgressState | null>(
+    null,
+  );
   const [controller, setController] = useState<AbortController | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
 
@@ -31,7 +33,7 @@ export const useFileStream = () => {
   const startProgressStream = useCallback(async ({ task_id }: TFileIngest) => {
     const controller = new AbortController();
     setController(controller);
-    setCurrentState({ status: "inflight", messages: [] });
+    setCurrentState({ status: "inflight" });
     setIsStreaming(true);
 
     await fetchEventSource(
@@ -46,17 +48,16 @@ export const useFileStream = () => {
         openWhenHidden: true,
         onmessage(msg) {
           if (msg.event === "data") {
-            const messages = JSON.parse(msg.data);
+            const progressData = JSON.parse(msg.data);
+            const { progress } = progressData;
+            console.log(progressData);
             setCurrentState((currentState) => ({
-              status: "inflight" as TStreamState["status"],
-              messages,
-              run_id: currentState?.run_id,
+              status: "inflight" as TStreamProgressState["status"],
+              progress,
             }));
           } else if (msg.event === "error") {
             setCurrentState((currentState) => ({
               status: "error",
-              messages: currentState?.messages,
-              run_id: currentState?.run_id,
             }));
           }
         },
@@ -64,17 +65,12 @@ export const useFileStream = () => {
           setCurrentState((currentState) => ({
             status:
               currentState?.status === "error" ? currentState.status : "done",
-            messages: currentState?.messages,
-            run_id: currentState?.run_id,
           }));
           setController(null);
         },
         onerror(error) {
           setCurrentState((currentState) => ({
             status: "error",
-            messages: currentState?.messages,
-            run_id: currentState?.run_id,
-            thread_id: currentState?.thread_id,
           }));
           setController(null);
           throw error;
@@ -83,9 +79,11 @@ export const useFileStream = () => {
     );
   }, []);
 
+  console.log(currentState)
+
   return {
     startProgressStream,
-    fileStream: currentState,
+    progressStream: currentState,
     isStreaming,
   };
 };
