@@ -266,7 +266,7 @@ export type TCreateAssistantFileRequest = {
   file_id: string;
 };
 
-export type TFileIngestResponse = {
+export type TFileIngest = {
   task_id: string;
 };
 

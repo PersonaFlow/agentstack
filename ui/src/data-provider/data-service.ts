@@ -179,7 +179,7 @@ export function deleteAssistantFile(
 // --RAG--
 export function ingestFileData(
   payload: z.infer<typeof t.fileIngestSchema>,
-): Promise<t.TFileIngestResponse> {
+): Promise<t.TFileIngest> {
   return request.post(endpoints.ingest(), {
     ...payload,
   });

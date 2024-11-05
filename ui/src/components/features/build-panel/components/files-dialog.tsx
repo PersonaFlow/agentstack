@@ -26,11 +26,10 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/utils/utils";
 import { useSlugRoutes } from "@/hooks/useSlugParams";
-import { fileIngestSchema } from "@/data-provider/types";
+import { fileIngestSchema, TFileIngest } from "@/data-provider/types";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useFileStream } from "@/hooks/useFileStream";
 
 // TODO
 // - Get assistant form default getRandomValues 
@@ -38,6 +37,7 @@ import { useFileStream } from "@/hooks/useFileStream";
 
 type TFilesDialog = {
   classNames: string;
+  startProgressStream: (arg: TFileIngest) => void;
 };
 
 type TOption = {
@@ -73,8 +73,7 @@ const defaultFormValues: z.infer<typeof fileIngestSchema> = {
   },
 };
 
-export default function FilesDialog({ classNames }: TFilesDialog) {
-
+export default function FilesDialog({ classNames, startProgressStream }: TFilesDialog) {
   const { data: fileOptions, isLoading } = useFiles();
 
   const uploadFile = useUploadFile();
@@ -92,15 +91,15 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
     defaultValues: useMemo(() => {
       if (assistantFiles && assistantId) {
         defaultFormValues.namespace = assistantId;
-        defaultFormValues.files = assistantFiles.map(file => file.id);
+        defaultFormValues.files = assistantFiles.map((file) => file.id);
       }
       return defaultFormValues;
-    },[assistantFiles])
+    }, [assistantFiles]),
   });
 
-  const { formState: { isDirty } } = form;
-
-  const { startFileStream } = useFileStream();
+  const {
+    formState: { isDirty },
+  } = form;
 
   const [fileUpload, setFileUpload] = useState<File | null>();
   const [values, setValues] = useState<TOption[]>([]);
@@ -110,8 +109,8 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
   useEffect(() => {
     if (assistantFiles && assistantId) {
       defaultFormValues.namespace = assistantId;
-      defaultFormValues.files = assistantFiles.map(file => file.id);
-      console.log(defaultFormValues)
+      defaultFormValues.files = assistantFiles.map((file) => file.id);
+      console.log(defaultFormValues);
       form.reset(defaultFormValues);
     }
   }, [assistantFiles, assistantId]);
@@ -133,15 +132,13 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
     ingestFiles.mutate(values, {
       onSuccess: ({ task_id }) => {
         setOpen(false);
-        startFileStream({taskId: task_id});
-      }
+        startProgressStream({ task_id });
+      },
     });
   };
 
   const formattedAssistantFiles = fileOptions?.reduce((files, file) => {
-    if (
-      assistantFiles?.some((assistantFile) => assistantFile.id === file.id)
-    ) {
+    if (assistantFiles?.some((assistantFile) => assistantFile.id === file.id)) {
       files.push({ label: file.filename, value: file.id });
     }
     return files;
@@ -216,7 +213,7 @@ export default function FilesDialog({ classNames }: TFilesDialog) {
           <form
             onSubmit={form.handleSubmit(onSubmit, (e) => {
               console.log(e);
-              console.log(form.getValues())
+              console.log(form.getValues());
             })}
           >
             <DialogHeader>
