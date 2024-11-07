@@ -1,24 +1,30 @@
-'use client';
+"use client";
 
 import { useFileStream } from "@/hooks/useFileStream";
 import FilesDialog from "./files-dialog";
 import SelectFiles from "./select-files";
+import Spinner from "@/components/ui/spinner";
 
 export default function FileBuilder() {
   const { startProgressStream, progressStream, isStreaming } = useFileStream();
-  console.log(progressStream)
-    return (
-      <div className="flex flex-col">
-        <FilesDialog
-          classNames="mb-4"
-          startProgressStream={startProgressStream}
-        />
-        <SelectFiles />
-        <div>
-          {
-            progressStream?.progress
-          }
-        </div>
+  console.log(progressStream?.progress);
+  return (
+    <div className="flex flex-col">
+      <FilesDialog
+        classNames="mb-4"
+        startProgressStream={startProgressStream}
+      />
+      <SelectFiles />
+      <div>
+        {progressStream?.status === "error" ? (
+          <p>Something went wrong when ingesting files.</p>
+        ) : progressStream?.status === "inflight" &&
+          !progressStream.progress ? (
+          <Spinner />
+        ) : (
+          <p>{progressStream?.progress}</p>
+        )}
       </div>
-    );
+    </div>
+  );
 }

@@ -1,7 +1,9 @@
 'use client';
 
+import { QueryKeys } from "@/data-provider/query-service";
 import { TFileIngest, TStreamProgressState } from "@/data-provider/types";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
+import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 
 // TODO - figure out how to create one instance of the hook
@@ -23,6 +25,8 @@ export const useFileStream = () => {
   );
   const [controller, setController] = useState<AbortController | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
+
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (currentState?.status === "error" || currentState?.status === "done") {
@@ -67,6 +71,9 @@ export const useFileStream = () => {
               currentState?.status === "error" ? currentState.status : "done",
           }));
           setController(null);
+          queryClient.invalidateQueries({
+            queryKey: [QueryKeys.assistantFiles],
+          });
         },
         onerror(error) {
           setCurrentState((currentState) => ({
