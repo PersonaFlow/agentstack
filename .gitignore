@@ -186,3 +186,6 @@ dist-ssr
 /dist/
 
 models/
+
+.git*
+change-email.sh

@@ -13,7 +13,8 @@ from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.schema import AIMessage, HumanMessage, StrOutputParser
 from langchain.schema.runnable import RunnableMap
 
-from stack.app.agents.configurable_agent import agent, get_llm
+from stack.app.agents.configurable_agent import get_configured_agent
+from stack.app.agents.llm import get_llm
 from stack.app.core.auth.request_validators import AuthenticatedUser
 from stack.app.schema.thread import Thread
 from stack.app.repositories.assistant import (
@@ -111,6 +112,7 @@ async def _run_input_and_config(
 
     try:
         if payload.input is not None:
+            agent = get_configured_agent()
             agent.get_input_schema(config).validate(payload.input)
     except ValidationError as e:
         raise RequestValidationError(e.errors(), body=payload)
@@ -144,7 +146,7 @@ async def stream_run(
     input_, config = await _run_input_and_config(
         payload, assistant_repository, thread_repository, user_id
     )
-
+    agent = get_configured_agent()
     return EventSourceResponse(to_sse(astream_state(agent, input_, config)))
 
 
@@ -168,6 +170,7 @@ async def create_run(
     input_, config = await _run_input_and_config(
         payload, assistant_repository, thread_repository, user_id
     )
+    agent = get_configured_agent()
     background_tasks.add_task(agent.ainvoke, input_, config)
     return {"status": "ok"}
 
@@ -181,6 +184,7 @@ async def create_run(
     description="Return the input schema of the runnable.",
 )
 async def input_schema() -> dict:
+    agent = get_configured_agent()
     return agent.get_input_schema().schema()
 
 
@@ -193,6 +197,7 @@ async def input_schema() -> dict:
     description="Return the output schema of the runnable.",
 )
 async def output_schema() -> dict:
+    agent = get_configured_agent()
     return agent.get_output_schema().schema()
 
 
@@ -205,6 +210,7 @@ async def output_schema() -> dict:
     description="Return the config schema of the runnable.",
 )
 async def config_schema() -> dict:
+    agent = get_configured_agent()
     return agent.config_schema().schema()
 
 

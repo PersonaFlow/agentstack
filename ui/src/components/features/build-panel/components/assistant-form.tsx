@@ -39,6 +39,7 @@ export function AssistantForm({ form, onSubmit }: TAssistantFormProps) {
 
   const {
     formState: { isDirty },
+    getValues
   } = form;
 
   if (isLoading) return <Spinner />;

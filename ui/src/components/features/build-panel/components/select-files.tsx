@@ -36,7 +36,6 @@ export default function SelectFiles() {
         // return { label: fileData?.filename, value: fileData?.id };
         return { label: assistantFile.filename, value: assistantFile.id };
       });
-      console.log("_badgeValues", _badgeValues);
       setBadgeValues(_badgeValues);
     }
   }, [assistantFiles]);

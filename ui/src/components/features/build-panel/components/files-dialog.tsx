@@ -110,7 +110,6 @@ export default function FilesDialog({ classNames, startProgressStream }: TFilesD
     if (assistantFiles && assistantId) {
       defaultFormValues.namespace = assistantId;
       defaultFormValues.files = assistantFiles.map((file) => file.id);
-      console.log(defaultFormValues);
       form.reset(defaultFormValues);
     }
   }, [assistantFiles, assistantId]);
@@ -128,7 +127,6 @@ export default function FilesDialog({ classNames, startProgressStream }: TFilesD
   }, [fileOptions]);
 
   const onSubmit = (values: z.infer<typeof fileIngestSchema>) => {
-    console.log("values", values);
     ingestFiles.mutate(values, {
       onSuccess: ({ task_id }) => {
         setOpen(false);
@@ -211,10 +209,7 @@ export default function FilesDialog({ classNames, startProgressStream }: TFilesD
       <DialogContent>
         <Form {...form}>
           <form
-            onSubmit={form.handleSubmit(onSubmit, (e) => {
-              console.log(e);
-              console.log(form.getValues());
-            })}
+            onSubmit={form.handleSubmit(onSubmit)}
           >
             <DialogHeader>
               <DialogTitle className="mb-3 text-slate-300">
@@ -235,7 +230,6 @@ export default function FilesDialog({ classNames, startProgressStream }: TFilesD
                           defaultValues={formattedAssistantFiles}
                           onValueChange={(selections) => {
                             const files = getFilesFromSelections(selections);
-                            console.log(files);
                             field.onChange(files);
                           }}
                         />

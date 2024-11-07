@@ -54,7 +54,6 @@ export const useFileStream = () => {
           if (msg.event === "data") {
             const progressData = JSON.parse(msg.data);
             const { progress } = progressData;
-            console.log(progressData);
             setCurrentState((currentState) => ({
               status: "inflight" as TStreamProgressState["status"],
               progress,
@@ -85,8 +84,6 @@ export const useFileStream = () => {
       },
     );
   }, []);
-
-  console.log(currentState)
 
   return {
     startProgressStream,
