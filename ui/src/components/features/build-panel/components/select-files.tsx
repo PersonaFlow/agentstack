@@ -25,15 +25,10 @@ export default function SelectFiles() {
   const { data: assistantFiles, isLoading } = useAssistantFiles(
     assistantId as string,
   );
-  // const { data: files, isLoading } = useFiles("assistants");
-
-  // const fileIds = form.watch("file_ids");
 
   useEffect(() => {
     if (assistantFiles && !isLoading) {
       const _badgeValues = assistantFiles.map((assistantFile) => {
-        // const fileData = files?.find((file) => file.id === id);
-        // return { label: fileData?.filename, value: fileData?.id };
         return { label: assistantFile.filename, value: assistantFile.id };
       });
       setBadgeValues(_badgeValues);

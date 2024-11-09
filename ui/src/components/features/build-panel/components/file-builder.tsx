@@ -6,8 +6,7 @@ import SelectFiles from "./select-files";
 import Spinner from "@/components/ui/spinner";
 
 export default function FileBuilder() {
-  const { startProgressStream, progressStream, isStreaming } = useFileStream();
-  console.log(progressStream?.progress);
+  const { startProgressStream, progressStream } = useFileStream();
   return (
     <div className="flex flex-col">
       <FilesDialog
@@ -16,13 +15,11 @@ export default function FileBuilder() {
       />
       <SelectFiles />
       <div>
-        {progressStream?.status === "error" ? (
+        {progressStream?.status === "error" && (
           <p>Something went wrong when ingesting files.</p>
-        ) : progressStream?.status === "inflight" &&
-          !progressStream.progress ? (
+        )}
+        {progressStream?.status === "inflight" && (
           <Spinner />
-        ) : (
-          <p>{progressStream?.progress}</p>
         )}
       </div>
     </div>

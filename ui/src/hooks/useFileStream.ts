@@ -6,19 +6,6 @@ import { fetchEventSource } from "@microsoft/fetch-event-source";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 
-// TODO - figure out how to create one instance of the hook
-// -> then you can display response in file tab
-
-// Todo - figure out what the stream response looks like
-// export type TStreamState = {
-//   status: "inflight" | "error" | "done";
-//   messages?: TMessage[] | Record<string, any>;
-//   run_id?: string;
-//   thread_id?: string;
-// };
-
-// curl http://127.0.0.1:9000/api/v1/rag/ingest/{taskId}/progress
-
 export const useFileStream = () => {
   const [currentState, setCurrentState] = useState<TStreamProgressState | null>(
     null,
@@ -59,15 +46,17 @@ export const useFileStream = () => {
               progress,
             }));
           } else if (msg.event === "error") {
-            setCurrentState((currentState) => ({
+            setCurrentState({
               status: "error",
-            }));
+              progress: "Something went wrong."
+            });
           }
         },
         onclose() {
           setCurrentState((currentState) => ({
             status:
               currentState?.status === "error" ? currentState.status : "done",
+            progress: currentState?.status === "error" ? "Something went wrong." : currentState?.progress
           }));
           setController(null);
           queryClient.invalidateQueries({
@@ -75,9 +64,7 @@ export const useFileStream = () => {
           });
         },
         onerror(error) {
-          setCurrentState((currentState) => ({
-            status: "error",
-          }));
+          setCurrentState({status: "error"});
           setController(null);
           throw error;
         },
