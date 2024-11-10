@@ -14,7 +14,7 @@ type TBadgeValue = {
 };
 
 export default function SelectFiles() {
-  const [badgeValues, setBadgeValues] = useState([]);
+  const [badgeValues, setBadgeValues] = useState<TBadgeValue[]>([]);
 
   const deleteFile = useDeleteAssistantFile();
 
