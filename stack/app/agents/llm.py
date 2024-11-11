@@ -19,6 +19,7 @@ class BotType(str, Enum):
     chatbot = "chatbot"
     chat_retrieval = "chat_retrieval"
     agent = "agent"
+    corrective_rag = "corrective_rag"
 
 
 class AgentType(str, Enum):
@@ -35,20 +36,18 @@ class AgentType(str, Enum):
 class LLMType(str, Enum):
     GPT_4O_MINI = "GPT 4o Mini"
     GPT_4 = "GPT 4"
-    GPT_4_TURBO = "GPT 4 Turbo"
     GPT_4O = "GPT 4o"
     AZURE_OPENAI = "GPT 4 (Azure OpenAI)"
     ANTHROPIC_CLAUDE = "Anthropic Claude"
     BEDROCK_ANTHROPIC_CLAUDE = "Anthropic Claude (Amazon Bedrock)"
     GEMINI = "GEMINI"
-    MIXTRAL = "Mixtral"
     OLLAMA = "Ollama"
 
 
 def get_llm(llm_type: LLMType):
     if llm_type == LLMType.GPT_4O_MINI:
         llm = get_openai_llm()
-    elif llm_type == LLMType.GPT_4 or llm_type == LLMType.GPT_4_TURBO:
+    elif llm_type == LLMType.GPT_4:
         llm = get_openai_llm(model="gpt-4-turbo")
     elif llm_type == LLMType.GPT_4O:
         llm = get_openai_llm(model="gpt-4o")
@@ -60,8 +59,6 @@ def get_llm(llm_type: LLMType):
         llm = get_anthropic_llm(bedrock=True)
     elif llm_type == LLMType.GEMINI:
         llm = get_google_llm()
-    elif llm_type == LLMType.MIXTRAL:
-        llm = get_mixtral_fireworks()
     elif llm_type == LLMType.OLLAMA:
         llm = get_ollama_llm()
     else:
