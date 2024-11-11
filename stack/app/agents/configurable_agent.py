@@ -10,6 +10,7 @@ from langgraph.pregel import Pregel
 from stack.app.agents.tools_agent_executor import get_tools_agent_executor
 from stack.app.agents.xml_agent import get_xml_agent_executor
 from stack.app.agents.configurable_retrieval import get_configured_chat_retrieval
+from stack.app.agents.configurable_crag import get_configured_crag
 from stack.app.core.configuration import settings
 from stack.app.schema.assistant import AgentType
 from stack.app.agents.llm import (
@@ -286,6 +287,7 @@ def get_configured_agent() -> Pregel:
             ConfigurableField(id="type", name="Bot Type"),
             default_key="agent",
             prefix_keys=True,
+            corrective_rag=get_configured_crag()
             # chat_retrieval=get_configured_chat_retrieval()
         )
         .with_types(
@@ -294,19 +296,3 @@ def get_configured_agent() -> Pregel:
         )  # type: ignore[return-value]
     )
 
-
-if __name__ == "__main__":
-    import asyncio
-
-    from langchain.schema.messages import HumanMessage
-
-    async def run():
-        agent = get_configured_agent()
-        async for m in agent.astream_events(
-            HumanMessage(content="whats your name"),
-            config={"configurable": {"user_id": "2", "thread_id": "test1"}},
-            version="v1",
-        ):
-            print(m)
-
-    asyncio.run(run())

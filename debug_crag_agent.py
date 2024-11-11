@@ -48,15 +48,15 @@ assistant_config = {
         "type==corrective_rag/agent_type": "GPT 4o Mini",
         "type==corrective_rag/system_prompt": "You are a helpful assistant.",
         "type==corrective_rag/enable_web_search": True,
-        "type==corrective_rag/relevance_threshold": 0.7,
+        "type==corrective_rag/relevance_threshold": 0.5,
         "type==corrective_rag/max_corrective_iterations": 3,
         "type==corrective_rag/question_rewriter_prompt": (
-            "You are an expert at reformulating questions to be clearer "
-            "and more effective for search."
+            "You are an expert at reformulating questions to be clearer and more effective for search."
         ),
         "user_id": "default",
         "thread_id": str(uuid.uuid4()),
-        "assistant_id": str(uuid.uuid4()),
+        # "assistant_id": str(uuid.uuid4()),
+        "assistant_id": "ba8b90a5-17de-48ff-8f0d-3e0c88344ee8",
     }
 }
 
@@ -148,7 +148,7 @@ def main():
     
     # Set up argument parser
     parser = argparse.ArgumentParser(description='Debug Configurable Agent')
-    parser.add_argument('--query', type=str, default="Tell me about machine learning",
+    parser.add_argument('--query', type=str, default="Tell me about Aligning LLM-Assisted Evaluation of LLM Outputs with Human Preferences",
                       help='Query to send to the agent')
     parser.add_argument('--config', type=str,
                       help='Path to JSON configuration file')

@@ -1,69 +1,80 @@
 #!/usr/bin/env python3
 """
-Debug script for testing the configurable agent.
+Debug script for testing the ConfigurableAgent.
+Place this file in your project root directory and run it from there.
 """
 
 import os
 import sys
+import uuid
 import asyncio
 import json
 import argparse
 from typing import Optional
 import structlog
-from dotenv import load_dotenv, find_dotenv
-
-# Ensure proper path resolution
-try:
-    # Get the absolute path of the script
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    
-    # Get the project root (parent of stack directory)
-    project_root = os.path.abspath(os.path.join(script_dir))
-    
-    # Add project root to Python path if not already there
-    if project_root not in sys.path:
-        sys.path.insert(0, project_root)
-        
-    # Also ensure the stack directory itself is in the path
-    stack_dir = os.path.join(project_root, 'stack')
-    if stack_dir not in sys.path:
-        sys.path.insert(0, stack_dir)
-        
-except Exception as e:
-    print(f"Error setting up paths: {e}")
-    print(f"Current sys.path: {sys.path}")
-    raise
-
-# Now we can safely import our modules
-from stack.app.agents.configurable_agent import get_configured_agent
+from dotenv import load_dotenv
 from langchain.schema.messages import HumanMessage
 
-logger = structlog.get_logger(__name__)
+# Add the project root to Python path
+project_root = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, project_root)
 
-def setup_environment():
-    """Setup environment variables and logging"""
-    # Try to load .env file from several possible locations
-    env_locations = [
-        os.path.join(project_root, '.env'),
-        os.path.join(project_root, '..', '.env'),
-        find_dotenv()
-    ]
-    
-    for env_file in env_locations:
-        if os.path.exists(env_file):
-            load_dotenv(env_file)
-            logger.info(f"Loaded environment from {env_file}")
-            break
-    
-    # Log important environment variables (excluding sensitive ones)
-    logger.info("Environment setup complete", 
-                python_path=sys.path,
-                cwd=os.getcwd())
+from stack.app.core.datastore import initialize_checkpointer, initialize_db, cleanup_db
+from stack.app.core.configuration import get_settings
+from stack.app.agents.configurable_agent import get_configured_agent
+
+logger = structlog.get_logger(__name__)
+settings = get_settings()
+
+# Default test configuration
+DEFAULT_AGENT_CONFIG = {
+    "configurable": {
+        "type": "agent",
+        "tools": [{
+            "name": "Retrieval",
+            "type": "retrieval",
+            "config": {
+                "encoder": {
+                    "provider": "ollama",
+                    "dimensions": 384,
+                    "encoder_model": "all-minilm"
+                },
+                "index_name": "test",
+                "enable_rerank": False
+            },
+            "multi_use": False,
+            "description": "Look up information in uploaded files."
+        }],
+        "llm_type": "GPT 4o Mini",
+        "agent_type": "GPT 4o Mini",
+        "system_message": "You are a helpful assistant.",
+        "retrieval_description": (
+            "Can be used to look up information that was uploaded to this assistant.\n"
+            "If the user is referencing particular files, that is often a good hint "
+            "that information may be here.\n"
+            "If the user asks a vague question, they are likely meaning to look up "
+            "info from this retriever, and you should call it!"
+        ),
+        "interrupt_before_action": False,
+        "user_id": "default",
+        "thread_id": str(uuid.uuid4()),
+        "assistant_id": str(uuid.uuid4()),
+    }
+}
+
+async def setup_infrastructure():
+    """Initialize database and checkpointer."""
+    await initialize_db()
+    await initialize_checkpointer()
+
+async def cleanup_infrastructure():
+    """Cleanup database connections."""
+    await cleanup_db()
 
 async def run_agent(
     query: str,
     config_path: Optional[str] = None,
-    config_dict: Optional[dict] = None
+    config_dict: Optional[dict] = None,
 ) -> None:
     """
     Run the agent with the specified configuration.
@@ -74,38 +85,33 @@ async def run_agent(
         config_dict: Configuration dictionary to use directly
     """
     try:
-        # Load config from file if provided
+        # Initialize infrastructure
+        await setup_infrastructure()
+        
+        # Prepare the message
+        message = HumanMessage(content=query)
+        
+        # Load config
         if config_path:
-            config_path = os.path.abspath(config_path)
-            if not os.path.exists(config_path):
-                raise FileNotFoundError(f"Config file not found: {config_path}")
             with open(config_path, 'r') as f:
                 config = json.load(f)
-        # Use provided config dict if available
         elif config_dict:
             config = config_dict
         else:
-            # Default test configuration for corrective RAG
-            config = {
-                "configurable": {
-                    "type": "corrective_rag",
-                    "type==corrective_rag/agent_type": "GPT 4o Mini",
-                    "type==corrective_rag/system_prompt": "You are a helpful assistant.",
-                    "type==corrective_rag/enable_web_search": True,
-                    "type==corrective_rag/relevance_threshold": 0.7,
-                    "type==corrective_rag/interrupt_before_action": False,
-                    "user_id": os.getenv("DEFAULT_USER_ID", "default"),
-                    "thread_id": os.getenv("TEST_THREAD_ID", "test-thread"),
-                    "assistant_id": os.getenv("TEST_ASSISTANT_ID", "test-assistant")
-                }
-            }
+            config = DEFAULT_AGENT_CONFIG.copy()
+
+        # Ensure thread_id and assistant_id are present if not in config
+        if "thread_id" not in config["configurable"]:
+            config["configurable"]["thread_id"] = str(uuid.uuid4())
+        if "assistant_id" not in config["configurable"]:
+            config["configurable"]["assistant_id"] = str(uuid.uuid4())
 
         logger.info("Starting agent with configuration", config=config)
         
         agent = get_configured_agent()
         
         async for event in agent.astream_events(
-            HumanMessage(content=query),
+            [message],
             config=config,
             version="v1"
         ):
@@ -124,45 +130,30 @@ async def run_agent(
                 print(f"\nEvent: {event}\n")
 
     except Exception as e:
-        logger.error("Error during agent execution", 
-                    error=str(e), 
-                    error_type=type(e).__name__,
-                    exc_info=True)
+        logger.error("Error during agent execution", error=str(e), exc_info=True)
         raise
+    finally:
+        # Ensure we clean up infrastructure even if there's an error
+        await cleanup_infrastructure()
 
 def main():
-    # Setup environment first
-    setup_environment()
+    # Load environment variables
+    load_dotenv()
     
     # Set up argument parser
     parser = argparse.ArgumentParser(description='Debug Configurable Agent')
-    parser.add_argument('--query', type=str, default="Tell me about machine learning",
-                      help='Query to send to the agent')
+    parser.add_argument('--query', type=str, 
+                       default="What can you tell me about machine learning?",
+                       help='Query to send to the agent')
     parser.add_argument('--config', type=str,
-                      help='Path to JSON configuration file')
+                       help='Path to JSON configuration file')
     
     args = parser.parse_args()
-    
-    # Example corrective RAG configuration for reference
-    example_config = {
-        "configurable": {
-            "type": "corrective_rag",
-            "type==corrective_rag/agent_type": "GPT 4o Mini",
-            "type==corrective_rag/system_prompt": "You are a helpful assistant.",
-            "type==corrective_rag/enable_web_search": True,
-            "type==corrective_rag/relevance_threshold": 0.7,
-            "type==corrective_rag/interrupt_before_action": False,
-            "user_id": "default",
-            "thread_id": "d04c3678-c629-4c28-b4e1-5ad6eefe99dc",
-            "assistant_id": "ba8b90a5-17de-48ff-8f0d-3e0c88344ee8"
-        }
-    }
     
     try:
         asyncio.run(run_agent(
             query=args.query,
             config_path=args.config,
-            config_dict=example_config if not args.config else None
         ))
     except KeyboardInterrupt:
         print("\nDebug session interrupted by user")

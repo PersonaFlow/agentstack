@@ -38,8 +38,21 @@ def get_crag_executor(
     )
     rag_chain = rag_prompt | llm | StrOutputParser()
     
+    # grader_prompt = ChatPromptTemplate.from_messages([
+    #     ("system", system_prompt),
+    #     ("human", "Retrieved document: {document}\n\nUser question: {question}")
+    # ])
+
     grader_prompt = ChatPromptTemplate.from_messages([
-        ("system", system_prompt),
+        ("system", """You are an expert at evaluating document relevance.
+            Rate the relevance of retrieved documents to the user's question on a scale of 0.0 to 1.0.
+            - 1.0: Perfectly relevant, directly answers the question
+            - 0.7: Highly relevant, contains most of the needed information
+            - 0.5: Moderately relevant, contains some useful information
+            - 0.3: Slightly relevant, touches on the topic but doesn't address the question
+            - 0.0: Not relevant at all
+
+            Return ONLY the numerical score without any explanation."""),
         ("human", "Retrieved document: {document}\n\nUser question: {question}")
     ])
     
@@ -74,14 +87,22 @@ def get_crag_executor(
         needs_web_search = False
         
         for doc in state["documents"]:
-            score = await relevance_grader.ainvoke({
-                "document": doc.page_content,
-                "question": state["question"]
-            })
-            if float(score) >= relevance_threshold:
-                filtered_docs.append(doc)
-            else:
+            try:
+                # Get relevance score and ensure it's a float
+                score_str = await relevance_grader.ainvoke({
+                    "document": doc.page_content,
+                    "question": state["question"]
+                })
+                score = float(score_str.strip())
+                
+                if score >= relevance_threshold:
+                    filtered_docs.append(doc)
+                else:
+                    needs_web_search = True
+            except ValueError as e:
+                # logger.warning(f"Invalid score returned by grader: {score_str}. Using 0.0")
                 needs_web_search = True
+                continue
                 
         return {
             **state,
@@ -119,7 +140,7 @@ def get_crag_executor(
             web_docs.append(Document(
                 page_content=result["content"],
                 metadata={
-                    "source": result["source"],
+                    "source": result["url"],
                     "score": result.get("relevance_score", 1.0)
                 }
             ))
