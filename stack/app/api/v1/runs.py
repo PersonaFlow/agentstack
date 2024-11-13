@@ -110,14 +110,36 @@ async def _run_input_and_config(
     if settings.ENABLE_LANGFUSE_TRACING:
         config["callbacks"].append(langfuse_tracer)
 
+        # Format input based on assistant type
+    assistant_type = config["configurable"].get("type", "agent")
+    
+    if assistant_type == "corrective_rag":
+        # For CRAG, transform messages into initial state
+        if not payload.input or not isinstance(payload.input, list):
+            raise ValueError("Invalid input format")
+        
+        question = payload.input[0].get("content") if payload.input else ""
+        input_state = {
+            "messages": payload.input,
+            "question": question,
+            "generation": "",
+            "web_search_needed": False,
+            "documents": [],
+            "iteration_count": 0
+        }
+        input_ = input_state
+    else:
+        # For regular agent, use messages directly
+        input_ = payload.input
+
     try:
         if payload.input is not None:
             agent = get_configured_agent()
-            agent.get_input_schema(config).validate(payload.input)
+            agent.get_input_schema(config).validate(input_)
     except ValidationError as e:
         raise RequestValidationError(e.errors(), body=payload)
 
-    return payload.input, config
+    return input_, config
 
 
 @router.post(
