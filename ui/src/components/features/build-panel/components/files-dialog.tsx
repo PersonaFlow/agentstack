@@ -253,7 +253,7 @@ export default function FilesDialog({ classNames, startProgressStream }: TFilesD
                     <Input
                       placeholder="Picture"
                       type="file"
-                      accept="image/*, application/pdf"
+                      accept="application/pdf"
                       onChange={(event) => {
                         handleFileChange(event);
                       }}
