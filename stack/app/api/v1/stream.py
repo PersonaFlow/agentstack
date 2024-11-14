@@ -7,12 +7,92 @@ import orjson
 from langchain_core.messages import AnyMessage, BaseMessage, message_chunk_to_message
 from langchain_core.runnables import Runnable, RunnableConfig
 from stack.app.core.redis import RedisService
-
-
+from .stream_handlers import StreamProcessor
 
 logger = structlog.get_logger(__name__)
 
 MessagesStream = AsyncIterator[Union[list[AnyMessage], str]]
+
+async def astream_state(
+    app: Runnable,
+    input: Union[Sequence[AnyMessage], Dict[str, Any]],
+    config: RunnableConfig,
+) -> MessagesStream:
+    """Stream messages from the runnable."""
+    root_run_id: Optional[str] = None
+    messages: dict[str, BaseMessage] = {}
+    processor = StreamProcessor()
+    
+    async for event in app.astream_events(
+        input, config, version="v1", stream_mode="values", exclude_tags=["nostream"]
+    ):
+        try:
+            if event["event"] == "on_chain_start" and not root_run_id:
+                root_run_id = event["run_id"]
+                yield {
+                    "run_id": root_run_id,
+                    "thread_id": config["configurable"].get("thread_id"),
+                }
+                
+            elif event["event"] == "on_chain_stream" and event["run_id"] == root_run_id:
+                new_messages = processor.process_chunk(event, config, messages)
+                if new_messages:
+                    yield new_messages
+                    
+            elif event["event"] == "on_chat_model_stream":
+                message: BaseMessage = event["data"]["chunk"]
+                if message.id not in messages:
+                    messages[message.id] = message
+                else:
+                    messages[message.id] += message
+                yield [messages[message.id]]
+                
+        except Exception as e:
+            logger.exception(
+                "Error processing stream event",
+                error=str(e),
+                event_type=event.get("event"),
+                exc_info=True
+            )
+            continue
+
+
+def _default(obj) -> Any:
+    if hasattr(obj, "dict") and callable(obj.dict):
+        return obj.dict()
+    raise TypeError(f"Object of type {obj.__class__.__name__} is not JSON serializable")
+
+
+dumps = functools.partial(orjson.dumps, default=_default)
+
+
+async def to_sse(messages_stream: MessagesStream) -> AsyncIterator[dict]:
+    """Consume the stream into an EventSourceResponse."""
+    try:
+        async for chunk in messages_stream:
+            if isinstance(chunk, dict) and "run_id" in chunk:
+                yield {
+                    "event": "metadata",
+                    "data": orjson.dumps(chunk).decode(),
+                }
+            elif isinstance(chunk, list):
+                yield {
+                    "event": "data",
+                    "data": dumps(
+                        [message_chunk_to_message(msg) for msg in chunk]
+                    ).decode(),
+                }
+    except Exception as e:
+        logger.exception(f"error in stream: {e}", exc_info=True)
+        yield {
+            "event": "error",
+            "data": orjson.dumps(
+                {"status_code": 500, "message": f"Internal Server Error: {e}"}
+            ).decode(),
+        }
+
+    yield {"event": "end"}
+
 
 
 async def ingest_task_event_generator(task_id: str, redis_service: RedisService):
@@ -58,101 +138,3 @@ async def ingest_task_event_generator(task_id: str, redis_service: RedisService)
     finally:
         logger.info(f"Event generator for ingestion {task_id} finished")
         yield {"event": "end"}
-
-
-async def astream_state(
-    app: Runnable,
-    input: Union[Sequence[AnyMessage], Dict[str, Any]],
-    config: RunnableConfig,
-) -> MessagesStream:
-    """Stream messages from the runnable."""
-    root_run_id: Optional[str] = None
-    messages: dict[str, BaseMessage] = {}
-    
-    async for event in app.astream_events(
-        input, config, version="v1", stream_mode="values", exclude_tags=["nostream"]
-    ):
-        if event["event"] == "on_chain_start" and not root_run_id:
-            root_run_id = event["run_id"]
-            yield {
-                "run_id": root_run_id,
-                "thread_id": config["configurable"].get("thread_id"),
-            }
-        elif event["event"] == "on_chain_stream" and event["run_id"] == root_run_id:
-            new_messages: list[BaseMessage] = []
-
-            # Get the chunk data
-            chunk_data = event["data"]["chunk"]
-            
-            # Handle CRAG state format
-            if isinstance(chunk_data, dict) and "generation" in chunk_data:
-                # Create a new AI message from the generation
-                if chunk_data["generation"]:
-                    from langchain_core.messages import AIMessage
-                    message = AIMessage(content=chunk_data["generation"])
-                    if message.id not in messages:
-                        messages[message.id] = message
-                        new_messages.append(message)
-            
-            # Handle standard message format
-            else:
-                state_chunk_msgs: Sequence[AnyMessage] = (
-                    chunk_data["messages"] if isinstance(chunk_data, dict) else chunk_data
-                )
-                
-                for msg in state_chunk_msgs:
-                    msg_id = msg["id"] if isinstance(msg, dict) else msg.id
-                    if msg_id in messages and msg == messages[msg_id]:
-                        continue
-                    else:
-                        messages[msg_id] = msg
-                        new_messages.append(msg)
-            
-            if new_messages:
-                yield new_messages
-                
-        elif event["event"] == "on_chat_model_stream":
-            message: BaseMessage = event["data"]["chunk"]
-            if message.id not in messages:
-                messages[message.id] = message
-            else:
-                messages[message.id] += message
-            yield [messages[message.id]]
-
-
-def _default(obj) -> Any:
-    if hasattr(obj, "dict") and callable(obj.dict):
-        return obj.dict()
-    raise TypeError(f"Object of type {obj.__class__.__name__} is not JSON serializable")
-
-
-dumps = functools.partial(orjson.dumps, default=_default)
-
-
-async def to_sse(messages_stream: MessagesStream) -> AsyncIterator[dict]:
-    """Consume the stream into an EventSourceResponse."""
-    try:
-        async for chunk in messages_stream:
-            if isinstance(chunk, dict) and "run_id" in chunk:
-                yield {
-                    "event": "metadata",
-                    "data": orjson.dumps(chunk).decode(),
-                }
-            elif isinstance(chunk, list):
-                yield {
-                    "event": "data",
-                    "data": dumps(
-                        [message_chunk_to_message(msg) for msg in chunk]
-                    ).decode(),
-                }
-    except Exception as e:
-        logger.exception(f"error in stream: {e}", exc_info=True)
-        yield {
-            "event": "error",
-            "data": orjson.dumps(
-                {"status_code": 500, "message": f"Internal Server Error: {e}"}
-            ).decode(),
-        }
-
-    # Send an end event to signal the end of the stream
-    yield {"event": "end"}
