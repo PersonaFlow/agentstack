@@ -45,6 +45,16 @@ type TOption = {
   value: string;
 };
 
+const acceptedImageTypes = [
+  "text/plain",
+  "text/html",
+  "text/markdown",
+  "text/csv",
+  "application/json",
+  "application/rtf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+];
 const defaultFormValues: z.infer<typeof fileIngestSchema> = {
   files: [],
   purpose: "assistants",
@@ -253,7 +263,7 @@ export default function FilesDialog({ classNames, startProgressStream }: TFilesD
                     <Input
                       placeholder="Picture"
                       type="file"
-                      accept="application/pdf"
+                      accept={acceptedImageTypes.join(", ")}
                       onChange={(event) => {
                         handleFileChange(event);
                       }}
