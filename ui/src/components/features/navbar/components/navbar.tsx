@@ -19,7 +19,7 @@ export default function Navbar() {
 
   const router = useRouter();
 
-  const { assistantId, threadId } = useSlugRoutes();
+  const { assistantId, threadId: currentThreadId } = useSlugRoutes();
 
   useEffect(() => {
     if (assistantId && threadsData) {
@@ -51,7 +51,10 @@ export default function Navbar() {
     <div className="flex">
       <div className="flex h-full rounded flex-col items-center bg-transparent">
         {!threadsLoading && (
-          <NewThreadBtn handleClick={onNewThreadClick} disabled={!threadId} />
+          <NewThreadBtn
+            handleClick={onNewThreadClick}
+            disabled={!currentThreadId}
+          />
         )}
         {!threadsLoading &&
           Object.values(filteredThreads).every(
@@ -77,7 +80,11 @@ export default function Navbar() {
                     <h2 className="m-3 text-gray-400">{groupName}</h2>
                     {/* @ts-ignore */}
                     {threads?.map((thread) => (
-                      <ThreadItem key={thread.id} thread={thread} />
+                      <ThreadItem
+                        key={`chat-${thread.id}`}
+                        thread={thread}
+                        currentThreadId={currentThreadId}
+                      />
                     ))}
                   </div>
                 );

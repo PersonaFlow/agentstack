@@ -13,29 +13,32 @@ import { ChangeEvent, useEffect, useState } from "react";
 
 type TThreadItemProps = {
   thread: TThread;
+  currentThreadId: string | undefined;
 };
 
-export default function ThreadItem({ thread }: TThreadItemProps) {
+export default function ThreadItem({
+  thread,
+  currentThreadId,
+}: TThreadItemProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedname] = useState(thread.name || "New thread");
-  const [isSelected, setIsSelected] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
 
-  const {mutate: updateThread, variables: optimisticThread, isPending} = useUpdateThread(thread.id!);
+  const {
+    mutate: updateThread,
+    variables: optimisticThread,
+    isPending,
+  } = useUpdateThread(thread.id!);
   const deleteThread = useDeleteThread(thread.id!);
 
   const router = useRouter();
-  const pathname = usePathname();
   const { toast } = useToast();
   const { assistantId } = useSlugRoutes();
-
-  useEffect(() => {
-    setIsSelected(pathname.includes(thread.id!));
-  }, [pathname, thread.id]);
+  const isCurrentThread = currentThreadId && currentThreadId === thread.id;
 
   const handleItemClick = () => {
-    if (isSelected) return;
+    if (isCurrentThread) return;
     router.push(`/a/${thread.assistant_id}/c/${thread.id}`);
   };
 
@@ -73,10 +76,11 @@ export default function ThreadItem({ thread }: TThreadItemProps) {
 
   const handleEditing = () => {
     if (isEditing) return;
-    setIsEditing((prev) => !prev)
-  }
+    setIsEditing((prev) => !prev);
+  };
 
-  const iconStyles = "cursor-pointer transition-all duration-200 stroke-1 hover:stroke-2 text-slate-400";
+  const iconStyles =
+    "cursor-pointer transition-all duration-200 stroke-1 hover:stroke-2 text-slate-400";
 
   return (
     <a
@@ -85,27 +89,35 @@ export default function ThreadItem({ thread }: TThreadItemProps) {
       onMouseLeave={() => setIsHovering(false)}
       className={cn(
         isDeleting ? "fade-out" : "",
-        isEditing ? "bg-black" : "",
+        isEditing || isCurrentThread ? "bg-black" : "",
         "fade-in flex p-3 gap-2 rounded items-center cursor-pointer transition-all duration-200 hover:bg-black",
       )}
     >
       {!isEditing ? (
-        <span className="truncate">{isPending ? optimisticThread.name : thread.name}</span>
+        <span className="truncate">
+          {isPending ? optimisticThread.name : thread.name ?? "New thread"}
+        </span>
       ) : (
-          <Input
-            className="bg-transparent text-md p-0 m-0 h-full"
-            value={editedName}
-            onChange={handleUpdateName}
-            onBlur={submitUpdatedName}
-            autoFocus
-          />
+        <Input
+          className="bg-transparent text-md p-0 m-0 h-full"
+          value={editedName}
+          onChange={handleUpdateName}
+          onBlur={submitUpdatedName}
+          autoFocus
+        />
       )}
-      <div className={cn(isHovering || isEditing ? "flex ml-auto gap-2 items-center" : "hidden")}>
-          <EditIcon
-            onClick={handleEditing}
-            className={cn(iconStyles, isEditing && "stroke-2")}
-          />
-          <Trash className={iconStyles} onClick={handleDeleteThread} />
+      <div
+        className={cn(
+          isHovering || isEditing
+            ? "flex ml-auto gap-2 items-center"
+            : "hidden",
+        )}
+      >
+        <EditIcon
+          onClick={handleEditing}
+          className={cn(iconStyles, isEditing && "stroke-2")}
+        />
+        <Trash className={iconStyles} onClick={handleDeleteThread} />
       </div>
     </a>
   );
