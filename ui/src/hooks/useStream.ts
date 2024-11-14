@@ -75,7 +75,6 @@ export const useStream = () => {
               thread_id: currentState?.thread_id
             }));
             setController(null);
-            throw error;
           },
         },
       );

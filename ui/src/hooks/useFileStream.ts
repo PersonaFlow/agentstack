@@ -56,7 +56,6 @@ export const useFileStream = () => {
         },
         onerror(error) {
           setCurrentState({status: TFileStreamStatus.error});
-          throw error;
         },
       },
     );
