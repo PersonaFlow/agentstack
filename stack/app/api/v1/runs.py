@@ -24,7 +24,7 @@ from stack.app.repositories.assistant import (
 from stack.app.repositories.thread import ThreadRepository, get_thread_repository
 from stack.app.schema.feedback import FeedbackCreateRequest
 from stack.app.schema.title import TitleRequest
-from stack.app.utils.stream import astream_state, to_sse
+from stack.app.api.v1.stream import astream_state, to_sse
 from sse_starlette import EventSourceResponse
 from stack.app.core.configuration import get_settings
 from stack.app.core.auth.utils import get_header_user_id

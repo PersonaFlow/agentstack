@@ -1,12 +1,13 @@
 import functools
 import asyncio
-from typing import Any, AsyncIterator, Dict, Optional, Sequence, Union, AsyncGenerator
+from typing import Any, AsyncIterator, Dict, Optional, Sequence, Union
 import structlog
 
 import orjson
 from langchain_core.messages import AnyMessage, BaseMessage, message_chunk_to_message
 from langchain_core.runnables import Runnable, RunnableConfig
 from stack.app.core.redis import RedisService
+
 
 
 logger = structlog.get_logger(__name__)
@@ -67,6 +68,7 @@ async def astream_state(
     """Stream messages from the runnable."""
     root_run_id: Optional[str] = None
     messages: dict[str, BaseMessage] = {}
+    
     async for event in app.astream_events(
         input, config, version="v1", stream_mode="values", exclude_tags=["nostream"]
     ):
@@ -79,22 +81,36 @@ async def astream_state(
         elif event["event"] == "on_chain_stream" and event["run_id"] == root_run_id:
             new_messages: list[BaseMessage] = []
 
-            # event["data"]["chunk"] is a Sequence[AnyMessage] or a Dict[str, Any]
-            state_chunk_msgs: Union[Sequence[AnyMessage], Dict[str, Any]] = event[
-                "data"
-            ]["chunk"]
-            if isinstance(state_chunk_msgs, dict):
-                state_chunk_msgs = event["data"]["chunk"]["messages"]
-
-            for msg in state_chunk_msgs:
-                msg_id = msg["id"] if isinstance(msg, dict) else msg.id
-                if msg_id in messages and msg == messages[msg_id]:
-                    continue
-                else:
-                    messages[msg_id] = msg
-                    new_messages.append(msg)
+            # Get the chunk data
+            chunk_data = event["data"]["chunk"]
+            
+            # Handle CRAG state format
+            if isinstance(chunk_data, dict) and "generation" in chunk_data:
+                # Create a new AI message from the generation
+                if chunk_data["generation"]:
+                    from langchain_core.messages import AIMessage
+                    message = AIMessage(content=chunk_data["generation"])
+                    if message.id not in messages:
+                        messages[message.id] = message
+                        new_messages.append(message)
+            
+            # Handle standard message format
+            else:
+                state_chunk_msgs: Sequence[AnyMessage] = (
+                    chunk_data["messages"] if isinstance(chunk_data, dict) else chunk_data
+                )
+                
+                for msg in state_chunk_msgs:
+                    msg_id = msg["id"] if isinstance(msg, dict) else msg.id
+                    if msg_id in messages and msg == messages[msg_id]:
+                        continue
+                    else:
+                        messages[msg_id] = msg
+                        new_messages.append(msg)
+            
             if new_messages:
                 yield new_messages
+                
         elif event["event"] == "on_chat_model_stream":
             message: BaseMessage = event["data"]["chunk"]
             if message.id not in messages:
