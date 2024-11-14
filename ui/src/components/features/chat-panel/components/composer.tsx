@@ -15,11 +15,18 @@ type Props = {
   onSend: () => void;
   value: string;
   disabled?: boolean;
-  onStop: () => void;
+  onStop: ({ clear }: { clear: boolean }) => void;
   isStreaming: boolean;
 };
 
-export function Composer({ onChange, onSend, value, disabled, isStreaming, onStop }: Props) {
+export function Composer({
+  onChange,
+  onSend,
+  value,
+  disabled,
+  isStreaming,
+  onStop,
+}: Props) {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (isStreaming) return;
 
@@ -40,14 +47,25 @@ export function Composer({ onChange, onSend, value, disabled, isStreaming, onSto
           <TooltipTrigger asChild>
             <Input
               endIcon={
-                <Button 
-                  onClick={isStreaming ? onStop : onSend} 
+                <Button
+                  onClick={
+                    isStreaming
+                      ? () => {
+                          onStop({ clear: false });
+                        }
+                      : onSend
+                  }
                   variant="ghost"
-                  disabled={!isStreaming && !value.trim()} 
+                  disabled={!isStreaming && !value.trim()}
                 >
-                  {isStreaming ? 
-                    <StopCircle size={18}/> : 
-                    <Send size={18} className={!value.trim() ? 'opacity-50' : ''}/>}
+                  {isStreaming ? (
+                    <StopCircle size={18} />
+                  ) : (
+                    <Send
+                      size={18}
+                      className={!value.trim() ? "opacity-50" : ""}
+                    />
+                  )}
                 </Button>
               }
               onChange={onChange}
