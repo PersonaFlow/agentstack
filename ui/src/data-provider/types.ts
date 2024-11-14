@@ -108,7 +108,7 @@ export enum TFileStreamStatus {
   done = "done",
 }
 
-export type TStreamProgressState = {
+export type TFileStreamProgressState = {
   status: "inflight" | "error" | "done";
   progress?: string;
 };

@@ -1,15 +1,18 @@
 'use client';
 
 import { QueryKeys } from "@/data-provider/query-service";
-import { TFileIngest, TFileStreamStatus, TStreamProgressState } from "@/data-provider/types";
+import {
+  TFileIngest,
+  TFileStreamStatus,
+  TFileStreamProgressState,
+} from "@/data-provider/types";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 
 export const useFileStream = () => {
-  const [currentState, setCurrentState] = useState<TStreamProgressState | null>(
-    null,
-  );
+  const [currentState, setCurrentState] =
+    useState<TFileStreamProgressState | null>(null);
 
   const queryClient = useQueryClient();
 
