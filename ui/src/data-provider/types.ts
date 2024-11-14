@@ -55,8 +55,14 @@ export type TConfigType = {
   enum: string[];
 };
 
+export enum TStreamStatus {
+  INFLIGHT = "inflight",
+  ERROR = "error",
+  DONE = "done",
+}
+
 export type TStreamState = {
-  status: "inflight" | "error" | "done";
+  status: TStreamStatus;
   messages?: TMessage[] | Record<string, any>;
   run_id?: string;
   thread_id?: string;
