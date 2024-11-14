@@ -33,7 +33,7 @@ export enum QueryKeys {
   file = "file",
   healthCheck = "healthCheck",
   fileContent = "fileContent",
-  conversation = "conversation",
+  threadState = "threadState",
 }
 
 // --Runs--
@@ -71,7 +71,8 @@ export const useGenerateTitle = () => {
   return useMutation({
     mutationFn: async (payload: t.TGenerateTitle): Promise<t.TThread> =>
       await dataService.generateTitle(payload),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QueryKeys.userThreads]})
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: [QueryKeys.userThreads] }),
   });
 };
 
@@ -195,9 +196,11 @@ export const useUpdateThread = (threadId: string) => {
       queryClient.invalidateQueries({ queryKey: [threadId] });
     },
     onSettled: async () => {
-      return await Promise.all([queryClient.invalidateQueries({ queryKey: [QueryKeys.threads] }),
-      queryClient.invalidateQueries({ queryKey: [QueryKeys.userThreads] }),
-      queryClient.invalidateQueries({ queryKey: [threadId] })])
+      return await Promise.all([
+        queryClient.invalidateQueries({ queryKey: [QueryKeys.threads] }),
+        queryClient.invalidateQueries({ queryKey: [QueryKeys.userThreads] }),
+        queryClient.invalidateQueries({ queryKey: [threadId] }),
+      ]);
     },
   });
 };
@@ -214,12 +217,15 @@ export const useDeleteThread = (threadId: string) => {
   });
 };
 
-export const useThreadState = (threadId: string, enabled?: { enabled?: boolean }) => {
+export const useThreadState = (
+  threadId: string,
+  enabled?: { enabled?: boolean },
+) => {
   return useQuery<t.TThreadState, Error>({
-    queryKey: [QueryKeys.conversation, threadId],
+    queryKey: [QueryKeys.threadState, threadId],
     queryFn: async (): Promise<t.TThreadState> =>
       await dataService.getThreadState(threadId),
-    ...enabled
+    ...enabled,
   });
 };
 
@@ -278,15 +284,19 @@ export const useCreateAssistant = () => {
   });
 };
 
+type TUseAssisstantQueryOptions = UseQueryOptions<t.TAssistant>;
+
 export const useAssistant = (
   assistantId: string,
-  enabled?: { enabled?: boolean },
+  options?: Omit<TUseAssisstantQueryOptions, "queryKey"> &
+    Partial<Pick<TUseAssisstantQueryOptions, "queryKey">>,
 ) => {
   return useQuery<t.TAssistant, Error>({
     queryKey: [QueryKeys.assistant, assistantId],
     queryFn: async (): Promise<t.TAssistant> =>
       await dataService.getAssistant(assistantId),
-    ...enabled,
+    refetchOnMount: false,
+    ...options,
   });
 };
 
@@ -298,7 +308,9 @@ export const useUpdateAssistant = (assistantId: string) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKeys.configSchema] });
       queryClient.invalidateQueries({ queryKey: [QueryKeys.assistants] });
-      queryClient.invalidateQueries({ queryKey: [QueryKeys.assistant, assistantId] });
+      queryClient.invalidateQueries({
+        queryKey: [QueryKeys.assistant, assistantId],
+      });
     },
   });
 };
@@ -383,7 +395,7 @@ export const useQueryData = (payload: t.TQuery) => {
 export const useUploadFile = () => {
   const queryClient = useQueryClient();
   return useMutation<t.TFile, Error, FormData>({
-//    @ts-ignore to be able to build
+    //    @ts-ignore to be able to build
     mutationFn: async (payload: FormData) =>
       await dataService.uploadFile(payload),
     onSuccess: () => {
@@ -410,11 +422,11 @@ export const useFile = (fileId: string) => {
 export const useDeleteFile = () => {
   const queryClient = useQueryClient();
   return useMutation<t.TDeleteFileResponse, Error>({
-//    @ts-ignore to be able to build
+    //    @ts-ignore to be able to build
     mutationFn: async (fileId: string): Promise<t.TDeleteFileResponse> =>
       await dataService.deleteFile(fileId),
     onSuccess: () => {
-//      @ts-ignore to be able to build
+      //      @ts-ignore to be able to build
       queryClient.invalidateQueries({ queryKey: [fileId] });
       queryClient.invalidateQueries({ queryKey: [QueryKeys.files] });
     },
