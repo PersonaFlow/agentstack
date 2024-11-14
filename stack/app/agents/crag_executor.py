@@ -30,7 +30,6 @@ def get_crag_executor(
     enable_web_search: bool = True,
     relevance_threshold: float = 0.7,
 ):
-    """Get a CRAG executor."""
     
     # Create the base chains
     rag_prompt = ChatPromptTemplate.from_template(

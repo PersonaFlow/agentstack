@@ -6,8 +6,7 @@ from langgraph.graph.message import Messages
 
 from .crag_executor import get_crag_executor
 from .llm import AgentType, get_llm
-from .tools import AvailableTools, TOOLS
-from .tools import get_retriever
+from .tools import AvailableTools, TOOLS, get_retriever, RetrievalConfigModel
 
 class ConfigurableCorrectiveRAGAgent(RunnableBinding):
     """A configurable Corrective RAG agent that can be used in a RunnableSequence."""
@@ -33,7 +32,7 @@ class ConfigurableCorrectiveRAGAgent(RunnableBinding):
         relevance_threshold: float = 0.7,
         assistant_id: Optional[str] = None,
         thread_id: str = "",
-        retrieval_config: Optional[dict] = None,
+        # retrieval_config: Optional[dict] = None,
         kwargs: Optional[Mapping[str, Any]] = None,
         config: Optional[Mapping[str, Any]] = None,
         **others: Any,
@@ -45,15 +44,17 @@ class ConfigurableCorrectiveRAGAgent(RunnableBinding):
             web_search_getter = TOOLS[AvailableTools.TAVILY]
             web_search_tool = web_search_getter()
 
-        tool_config = None
-        if config and "tools" in config.get("configurable", {}):
-            for tool in config["configurable"]["tools"]:
-                if tool["type"] == "retrieval":
-                    tool_config = tool.get("config")
-                    break
+        # tool_config = None
+        # if config and "tools" in config.get("configurable", {}):
+        #     for tool in config["configurable"]["tools"]:
+        #         if tool["type"] == "retrieval":
+        #             tool_config = tool.get("config")
+        #             break
         
-        # Use the tool config, passed retrieval_config, or None (fallback to defaults)
-        retrieval_config = tool_config or retrieval_config
+        # # Use the tool config, passed retrieval_config, or None (fallback to defaults)
+        # retrieval_config = tool_config or retrieval_config
+
+        retrieval_config = RetrievalConfigModel().to_dict()
 
         retriever = get_retriever(
             assistant_id=assistant_id,
