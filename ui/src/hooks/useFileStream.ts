@@ -1,31 +1,23 @@
 'use client';
 
 import { QueryKeys } from "@/data-provider/query-service";
-import { TFileIngest, TStreamProgressState } from "@/data-provider/types";
+import { TFileIngest, TFileStreamStatus, TStreamProgressState } from "@/data-provider/types";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 import { useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 export const useFileStream = () => {
   const [currentState, setCurrentState] = useState<TStreamProgressState | null>(
     null,
   );
-  const [controller, setController] = useState<AbortController | null>(null);
-  const [isStreaming, setIsStreaming] = useState(false);
 
   const queryClient = useQueryClient();
 
-  useEffect(() => {
-    if (currentState?.status === "error" || currentState?.status === "done") {
-      setIsStreaming(false);
-    }
-  }, [currentState]);
+  const isStreaming = currentState?.status === TFileStreamStatus.inflight;
 
   const startProgressStream = useCallback(async ({ task_id }: TFileIngest) => {
     const controller = new AbortController();
-    setController(controller);
-    setCurrentState({ status: "inflight" });
-    setIsStreaming(true);
+    setCurrentState({ status: TFileStreamStatus.inflight });
 
     await fetchEventSource(
       `${process.env.NEXT_PUBLIC_BASE_API_URL}/api/v1/rag/ingest/${task_id}/progress`,
@@ -41,13 +33,13 @@ export const useFileStream = () => {
           if (msg.event === "data") {
             const progressData = JSON.parse(msg.data);
             const { progress } = progressData;
-            setCurrentState((currentState) => ({
-              status: "inflight" as TStreamProgressState["status"],
+            setCurrentState(() => ({
+              status: TFileStreamStatus.inflight,
               progress,
             }));
-          } else if (msg.event === "error") {
+          } else if (msg.event === TFileStreamStatus.error) {
             setCurrentState({
-              status: "error",
+              status: TFileStreamStatus.error,
               progress: "Something went wrong."
             });
           }
@@ -55,17 +47,15 @@ export const useFileStream = () => {
         onclose() {
           setCurrentState((currentState) => ({
             status:
-              currentState?.status === "error" ? currentState.status : "done",
-            progress: currentState?.status === "error" ? "Something went wrong." : currentState?.progress
+              currentState?.status === TFileStreamStatus.error ? currentState.status : TFileStreamStatus.done,
+            progress: currentState?.status === TFileStreamStatus.error ? "Something went wrong." : currentState?.progress
           }));
-          setController(null);
           queryClient.invalidateQueries({
             queryKey: [QueryKeys.assistantFiles],
           });
         },
         onerror(error) {
-          setCurrentState({status: "error"});
-          setController(null);
+          setCurrentState({status: TFileStreamStatus.error});
           throw error;
         },
       },

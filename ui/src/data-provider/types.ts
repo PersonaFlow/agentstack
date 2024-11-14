@@ -102,6 +102,12 @@ export type TConfigType = {
   enum: string[];
 };
 
+export enum TFileStreamStatus {
+  inflight = "inflight",
+  error = "error",
+  done = "done",
+}
+
 export type TStreamProgressState = {
   status: "inflight" | "error" | "done";
   progress?: string;

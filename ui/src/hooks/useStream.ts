@@ -1,4 +1,4 @@
-import { TMessage, TStreamState } from "@/data-provider/types";
+import { TFileStreamStatus, TMessage, TStreamState } from "@/data-provider/types";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 import { useCallback, useEffect, useState } from "react";
 
@@ -12,20 +12,14 @@ type TStartStreamProps = {
 export const useStream = () => {
   const [currentState, setCurrentState] = useState<TStreamState | null>(null);
   const [controller, setController] = useState<AbortController | null>(null);
-  const [isStreaming, setIsStreaming] = useState(false);
 
-  useEffect(() => {
-    if (currentState?.status === 'error' || currentState?.status === 'done') {
-      setIsStreaming(false);
-    }
-  }, [currentState]);
+  const isStreaming = currentState?.status === TFileStreamStatus.inflight;
 
   const startStream = useCallback(
     async ({ input, thread_id, assistant_id, user_id }: TStartStreamProps) => {
       const controller = new AbortController();
       setController(controller);
-      setCurrentState({ status: "inflight", messages: [] });
-      setIsStreaming(true);
+      setCurrentState({ status: TFileStreamStatus.inflight, messages: [] });
 
       await fetchEventSource(
         `${process.env.NEXT_PUBLIC_BASE_API_URL}/api/v1/runs/stream`,
@@ -42,7 +36,7 @@ export const useStream = () => {
             if (msg.event === "data") {
               const messages = JSON.parse(msg.data);
               setCurrentState((currentState) => ({
-                status: "inflight" as TStreamState["status"],
+                status: TFileStreamStatus.inflight,
                 messages: mergeMessagesById(currentState?.messages, messages),
                 run_id: currentState?.run_id,
                 thread_id: currentState?.thread_id
@@ -50,7 +44,7 @@ export const useStream = () => {
             } else if (msg.event === "metadata") {
               const { run_id, thread_id } = JSON.parse(msg.data);
               setCurrentState((currentState) => ({
-                status: "inflight",
+                status: TFileStreamStatus.inflight,
                 messages: currentState?.messages,
                 run_id: run_id,
                 thread_id: thread_id
