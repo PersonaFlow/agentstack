@@ -14,8 +14,6 @@ type TBadgeValue = {
 };
 
 export default function SelectFiles() {
-  const [badgeValues, setBadgeValues] = useState<TBadgeValue[]>([]);
-
   const deleteFile = useDeleteAssistantFile();
 
   const { assistantId } = useSlugRoutes();
@@ -26,14 +24,9 @@ export default function SelectFiles() {
     assistantId as string,
   );
 
-  useEffect(() => {
-    if (assistantFiles && !isLoading) {
-      const _badgeValues = assistantFiles.map((assistantFile) => {
-        return { label: assistantFile.filename, value: assistantFile.id };
-      });
-      setBadgeValues(_badgeValues);
-    }
-  }, [assistantFiles]);
+  const badgeValues = assistantFiles?.map((assistantFile) => {
+    return { label: assistantFile.filename, value: assistantFile.id };
+  });
 
   const handleClick = ({value: fileId}: TBadgeValue) => {
 
@@ -53,7 +46,7 @@ export default function SelectFiles() {
 
   return (
     <div className="flex gap-2 flex-wrap">
-      {badgeValues.map((badgeValue: TBadgeValue, index: number) => {
+      {badgeValues?.map((badgeValue: TBadgeValue, index: number) => {
         return (
           <Badge
             key={`${index} - ${badgeValue.label}`}
