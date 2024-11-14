@@ -12,7 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus } from "lucide-react";
+import { Info, Plus } from "lucide-react";
 import MultiSelect from "@/components/ui/multiselect";
 import { useAssistant, useAssistantFiles, useFiles, useIngestFileData, useUploadFile } from "@/data-provider/query-service";
 import Spinner from "@/components/ui/spinner";
@@ -208,36 +208,44 @@ export default function FilesDialog({ classNames, startProgressStream }: TFilesD
       </DialogTrigger>
       <DialogContent>
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-          >
+          <form onSubmit={form.handleSubmit(onSubmit)}>
             <DialogHeader>
               <DialogTitle className="mb-3 text-slate-300">
                 Manage Files
               </DialogTitle>
             </DialogHeader>
             <DialogDescription>
-              <FormField
-                control={form.control}
-                name="files"
-                render={({ field }) => {
-                  return (
-                    <FormItem className="flex flex-col">
-                      <FormControl>
-                        <MultiSelect
-                          values={values}
-                          placecholder="Select a file..."
-                          defaultValues={formattedAssistantFiles}
-                          onValueChange={(selections) => {
-                            const files = getFilesFromSelections(selections);
-                            field.onChange(files);
-                          }}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  );
-                }}
-              />
+              {fileOptions?.length === 0 ? (
+                <div className="flex gap-2 my-2 items-center">
+                  <Info />
+                  <h1 className="mb-3 text-slate-300 mb-0">
+                    No files uploaded. Upload new files below to save to
+                    assistant.
+                  </h1>
+                </div>
+              ) : (
+                <FormField
+                  control={form.control}
+                  name="files"
+                  render={({ field }) => {
+                    return (
+                      <FormItem className="flex flex-col">
+                        <FormControl>
+                          <MultiSelect
+                            values={values}
+                            placecholder="Search files..."
+                            defaultValues={formattedAssistantFiles}
+                            onValueChange={(selections) => {
+                              const files = getFilesFromSelections(selections);
+                              field.onChange(files);
+                            }}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    );
+                  }}
+                />
+              )}
               <Card className="bg-slate-200">
                 <CardContent className="p-6 space-y-4">
                   <div className="border-2 border-dashed border-gray-700 rounded-lg flex flex-col gap-1 p-6 items-center">
