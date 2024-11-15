@@ -27,7 +27,9 @@ export function Composer({ onChange, onSend, value, disabled, isStreaming, onSto
       if (e.shiftKey) return;
 
       e.preventDefault();
-      onSend();
+      if (value.trim()) {
+        onSend();
+      }
     }
   };
 
@@ -37,9 +39,17 @@ export function Composer({ onChange, onSend, value, disabled, isStreaming, onSto
         <Tooltip delayDuration={0}>
           <TooltipTrigger asChild>
             <Input
-              endIcon={<Button onClick={isStreaming ? onStop : onSend} variant="ghost">
-                {isStreaming ? <StopCircle size={18}/> : <Send size={18}/>}
-              </Button>}
+              endIcon={
+                <Button 
+                  onClick={isStreaming ? onStop : onSend} 
+                  variant="ghost"
+                  disabled={!isStreaming && !value.trim()} 
+                >
+                  {isStreaming ? 
+                    <StopCircle size={18}/> : 
+                    <Send size={18} className={!value.trim() ? 'opacity-50' : ''}/>}
+                </Button>
+              }
               onChange={onChange}
               value={value}
               onKeyDown={handleKeyDown}

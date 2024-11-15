@@ -1,45 +1,59 @@
 import { TMessage, TStreamState } from "@/data-provider/types";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { mergeMessagesById } from "./useStream";
 import { useThreadState } from "@/data-provider/query-service";
 import { useAtom } from "jotai";
 import { messagesAtom } from "@/store";
 
+function usePrevious<T>(value: T): T | undefined {
+  const ref = useRef<T>();
+  useEffect(() => {
+    ref.current = value;
+  });
+  return ref.current;
+}
+
 export function useChatMessages(
   threadId: string | null,
   stream: TStreamState | null,
 ) {
-  const [streamedMessages, setStreamedMessages] = useAtom(messagesAtom)
-
+  const [streamedMessages, setStreamedMessages] = useAtom(messagesAtom);
+  const prevStreamStatus = usePrevious(stream?.status);
+  
   const { data: threadData, refetch, isFetched } = useThreadState(threadId as string, {
     enabled: !!threadId
   });
 
-  // Refetch messages after streaming
+  // Only refetch when transitioning from inflight to non-inflight
   useEffect(() => {
-    if (stream?.status !== "inflight" && threadId) {
+    if (prevStreamStatus === "inflight" && 
+        stream?.status !== "inflight" && 
+        threadId) {
       refetch();
     }
-  }, [stream?.status, threadId, refetch]);
+  }, [stream?.status, threadId, refetch, prevStreamStatus]);
 
-  // Stop persisting streamed messages after streaming and message refetch
+  // Clear streamed messages after fetching thread state
   useEffect(() => {
     if (isFetched) {
-      setStreamedMessages([])
+      setStreamedMessages([]);
     }
-  },[isFetched])
+  }, [isFetched, setStreamedMessages]);
 
+  // Update streamed messages during streaming
   useEffect(() => {
     if (stream?.messages) {
-      setStreamedMessages(stream.messages as TMessage[])
+      setStreamedMessages(stream.messages as TMessage[]);
     }
-  }, [stream?.messages])
+  }, [stream?.messages, setStreamedMessages]);
 
   const messages = threadData?.values ? threadData.values : null;
+  const next = threadData?.next || [];
 
   return {
     messages: mergeMessagesById(messages, streamedMessages),
-    next: threadData?.next || [],
+    next,
     refreshMessages: refetch
   };
 }
+

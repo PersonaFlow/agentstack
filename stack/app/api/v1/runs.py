@@ -62,7 +62,7 @@ class CreateRunPayload(BaseModel):
 
     assistant_id: Optional[str] = None
     thread_id: Optional[str] = None
-    input: list[dict]
+    input: Optional[list[dict]] = None
     config: Optional[RunnableConfig] = None
 
 
