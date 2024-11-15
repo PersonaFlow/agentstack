@@ -1,6 +1,7 @@
 import request from "./requests";
 import * as endpoints from "./endpoints";
 import * as t from "./types";
+import { z } from "zod";
 
 // --Runs--
 export function run(payload: t.TRunRequest): Promise<t.TRunResponse> {
@@ -176,7 +177,9 @@ export function deleteAssistantFile(
 }
 
 // --RAG--
-export function ingestFileData(payload: t.TIngestFileDataRequest): Promise<{}> {
+export function ingestFileData(
+  payload: z.infer<typeof t.fileIngestSchema>,
+): Promise<t.TFileIngest> {
   return request.post(endpoints.ingest(), {
     ...payload,
   });
@@ -193,8 +196,8 @@ export function uploadFile(payload: FormData): Promise<FormData> {
   return request.postMultiPart(endpoints.file(), payload);
 }
 
-export function getFiles(purpose?: string): Promise<t.TFile[]> {
-  return request.get(endpoints.files(purpose));
+export function getFiles(): Promise<t.TFile[]> {
+  return request.get(endpoints.files);
 }
 
 export function getFile(fileId: string): Promise<t.TFile> {

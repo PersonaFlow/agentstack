@@ -11,6 +11,53 @@ export const toolSchema = z.object({
   }),
 });
 
+export const purposeSchema = z.union([
+    z.literal('assistants'),
+    z.literal('threads'),
+    z.literal('personas'),
+])
+
+export const fileSchema = z.object({
+  id: z.string(),
+  user_id: z.string().optional(),
+  purpose: purposeSchema,
+  filename: z.string(),
+  bytes: z.number(),
+  mime_type: z.string(),
+  source: z.string(),
+  kwargs: z.object({}),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+
+export const fileIngestSchema = z.object({
+  files: z.array(z.string()),
+  purpose: purposeSchema,
+  namespace: z.string(),
+  document_processor: z.object({
+    summarize: z.boolean(),
+    encoder: z.object({
+      provider: z.string(),
+      encoder_model: z.string(),
+      dimensions: z.number(),
+      score_threshold: z.number(),
+    }),
+    unstructured: z.object({
+      partition_strategy: z.string(),
+      hi_res_model_name: z.string(),
+      process_tables: z.boolean(),
+    }),
+    splitter: z.object({
+      name: z.string(),
+      min_tokens: z.number(),
+      max_tokens: z.number(),
+      rolling_window_size: z.number(),
+      prefix_titles: z.boolean(),
+      prefix_summary: z.boolean(),
+    }),
+  }),
+});
+
 export const formSchema = z.object({
   public: z.boolean(),
   name: z.string().min(1, { message: "Name is required" }),
@@ -53,6 +100,17 @@ export type TConfigurable = {
 
 export type TConfigType = {
   enum: string[];
+};
+
+export enum TFileStreamStatus {
+  inflight = "inflight",
+  error = "error",
+  done = "done",
+}
+
+export type TFileStreamProgressState = {
+  status: "inflight" | "error" | "done";
+  progress?: string;
 };
 
 export type TStreamState = {
@@ -219,6 +277,10 @@ export type TCreateAssistantFileRequest = {
   file_id: string;
 };
 
+export type TFileIngest = {
+  task_id: string;
+};
+
 export type TAssistantFile = {
   file_id: string;
   asssistant_id: string;
@@ -298,14 +360,14 @@ export type TIngestFileDataRequest = {
   files: string[];
   purpose: TPurpose;
   namespace: string;
-  vector_database: TVectorDatabase;
+  vector_database?: TVectorDatabase;
   document_processor: {
     summarize: boolean;
     encoder: TEncoder;
     unstructured: TUnstructured;
     splitter: TSplitter;
   };
-  webhook_url: string;
+  webhook_url?: string;
 };
 
 export type TQuery = {

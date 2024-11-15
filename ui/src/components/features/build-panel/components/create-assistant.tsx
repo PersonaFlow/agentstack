@@ -46,8 +46,6 @@ export function CreateAssistant() {
     resolver: zodResolver(formSchema),
     defaultValues,
   });
-  console.log(defaultValues);
-  console.log('inside create',form.getValues())
 
   const architectureType = form.watch("config.configurable.type");
   const tools = form.watch("config.configurable.tools");
