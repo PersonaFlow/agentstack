@@ -3,36 +3,8 @@ import uuid
 from typing import Optional
 from enum import Enum
 from datetime import datetime
-from stack.app.agents.tools import AvailableTools, ToolConfig
-
-
-class BotType(str, Enum):
-    chatbot = "chatbot"
-    chat_retrieval = "chat_retrieval"
-    agent = "agent"
-
-
-class AgentType(str, Enum):
-    GPT_4O_MINI = "GPT 4o Mini"
-    GPT_4 = "GPT 4 Turbo"
-    GPT_4O = "GPT 4o"
-    AZURE_OPENAI = "GPT 4 (Azure OpenAI)"
-    ANTHROPIC_CLAUDE = "Anthropic Claude"
-    BEDROCK_ANTHROPIC_CLAUDE = "Anthropic Claude (Amazon Bedrock)"
-    GEMINI = "GEMINI"
-    OLLAMA = "Ollama"
-
-
-class LLMType(str, Enum):
-    GPT_4O_MINI = "GPT 4o Mini"
-    GPT_4 = "GPT 4"
-    GPT_4O = "GPT 4o"
-    AZURE_OPENAI = "GPT 4 (Azure OpenAI)"
-    ANTHROPIC_CLAUDE = "Anthropic Claude"
-    BEDROCK_ANTHROPIC_CLAUDE = "Anthropic Claude (Amazon Bedrock)"
-    GEMINI = "GEMINI"
-    MIXTRAL = "Mixtral"
-    OLLAMA = "Ollama"
+from stack.app.agents.tools import AvailableTools
+from stack.app.agents.llm import LLMType, BotType, AgentType
 
 
 class Tool(BaseModel):
@@ -47,7 +19,7 @@ class Tool(BaseModel):
         title="Tool Name",
         description="The name of the tool.",
     )
-    config: Optional[ToolConfig] = Field(
+    config: Optional[dict] = Field(
         title="Tool Configuration",
         description="A field for additional configuration of the tool.",
     )

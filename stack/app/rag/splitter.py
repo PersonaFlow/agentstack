@@ -126,10 +126,12 @@ class UnstructuredSemanticSplitter:
     ):
         chunks_with_title.append(
             {
-                "title": title,
                 "page_content": page_content,
-                "chunk_index": chunk_index,
-                "metadata": metadata,
+                "metadata": {
+                    **metadata,
+                    "title": title,
+                    "chunk_index": chunk_index,
+                },
             }
         )
 

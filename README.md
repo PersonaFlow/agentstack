@@ -1,5 +1,4 @@
 <p align="center">
-  <img src="assets/PersonaFlowIcon-512.png" height="256">
   <h1 align="center">AgentStack</h1>
   <h2 align="center"><b><i>Build, deploy, and scale AI agents with ease.</i></b></h2>
 </p>
@@ -11,7 +10,9 @@
   </a>
 </p>
 
-**WARNING: This project is currently undergoing development that may introduce breaking changes.**
+<p align="center">
+  <img src="assets/screenshot.png" height="512">
+</p>
 
 The PersonaFlow platform aims to provide highly personalized user experiences fueled by Generative AI. With a focus on scalability and efficiency, AgentStack offers a suite of tools and APIs to create complex, database-backed configurable agents backed by an API.
 
@@ -37,7 +38,7 @@ Much of the API and business language is modeled after the OpenAI Assistants API
 
  <p align="center" style="color:green"><b><i>Note: This project is in the very early stages of development and testing. Breaking changes should therefore be expected until the first stable release.</i></b></p>
 
-> Web site and documentation are in the works, but in the meantime you can find the API documentation [on SwaggerHub](https://app.swaggerhub.com/apis-docs/DanOrlando/personaflow/0.1.0).
+>OpenAPI spec can be found [on SwaggerHub](https://app.swaggerhub.com/apis-docs/DanOrlando/personaflow/0.1.0).
 
 # Roadmap
 

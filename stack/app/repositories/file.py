@@ -29,34 +29,41 @@ class FileRepository(BaseRepository):
 
     async def create_file(self, data: dict, file_content: bytes) -> File:
         try:
-            # Guess the mime type and file extension
-            mime_type = guess_mime_type(data.get("filename", ""), file_content)
-            file_extension = guess_file_extension(
-                data.get("filename", ""), file_content
-            )
+            original_filename = data.get("filename")
+            if not original_filename:
+                raise ValueError("Filename is required")
 
-            # Update the data dictionary with the guessed mime type
+            # Guess the mime type using the original filename
+            mime_type = guess_mime_type(original_filename, file_content)
+
+            # Get the file extension from the original filename
+            _, file_extension = os.path.splitext(original_filename)
+            if not file_extension:
+                file_extension = (
+                    f".{guess_file_extension(original_filename, file_content)}"
+                )
+
             data["mime_type"] = mime_type
 
+            file_id = uuid.uuid4()
+            # Create the new filename using the UUID and original extension
+            new_filename = f"{file_id}{file_extension}"
+            file_path = os.path.join(settings.FILE_DATA_DIRECTORY, new_filename)
+            data["id"] = file_id
+            data["source"] = file_path
+
+            # Create the file record in the database
             file = await self.create(model=File, values=data)
             await self.postgresql_session.commit()
 
             # Create the file data directory if it doesn't exist
             os.makedirs(settings.FILE_DATA_DIRECTORY, exist_ok=True)
 
-            # Save the file content to the local file system using the generated UUID
-            local_file_name = f"{file.id}.{file_extension}"
-            file_path = os.path.join(settings.FILE_DATA_DIRECTORY, local_file_name)
-
             with open(file_path, "wb") as f:
                 f.write(file_content)
 
-            # update the file record with the "source" field set to file_path
-            update_file = await self.update(
-                model=File, values={"source": file_path}, object_id=file.id
-            )
-            await self.postgresql_session.commit()
-            return update_file
+            return file
+
         except SQLAlchemyError as e:
             await self.postgresql_session.rollback()
             logger.exception(
@@ -67,6 +74,13 @@ class FileRepository(BaseRepository):
             raise HTTPException(
                 status_code=400, detail=f"Failed to create file: {e}."
             ) from e
+        except ValueError as e:
+            logger.exception(
+                f"Failed to create file due to a value error: {e}.",
+                exc_info=True,
+                file_data=data,
+            )
+            raise HTTPException(status_code=400, detail=str(e)) from e
 
     @staticmethod
     def _get_retrieve_query() -> select:

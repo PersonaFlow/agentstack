@@ -1,7 +1,7 @@
 from enum import Enum
 from functools import lru_cache
-from typing import Optional
-
+from typing import Optional, Any
+import structlog
 from langchain.pydantic_v1 import BaseModel, Field
 from langchain.tools.retriever import create_retriever_tool
 from langchain_community.agent_toolkits.connery import ConneryToolkit
@@ -23,8 +23,10 @@ from langchain_community.utilities.dalle_image_generator import DallEAPIWrapper
 from langchain_community.utilities.tavily_search import TavilySearchAPIWrapper
 from langchain_core.tools import Tool
 from langchain_robocorp import ActionServerToolkit
-from typing_extensions import TypedDict
+from typing_extensions import TypedDict, NotRequired
 from stack.app.rag.custom_retriever import Retriever
+from stack.app.core.configuration import settings
+from stack.app.schema.rag import VectorDatabase, EncoderConfig
 
 
 class DDGInput(BaseModel):
@@ -83,6 +85,57 @@ class BaseTool(BaseModel):
         default=False,
         title="Multi-Use",
         description="Whether or not this is a multi-use tool.",
+    )
+
+
+class RetrievalConfigDict(ToolConfig):
+    index_name: NotRequired[str]
+    encoder: NotRequired[dict]
+    vector_database: NotRequired[dict]
+    enable_rerank: NotRequired[bool]
+
+
+# Pydantic model for validation of the retrieval config
+class RetrievalConfigModel(BaseModel):
+    index_name: Optional[str] = Field(
+        default=settings.VECTOR_DB_COLLECTION_NAME,
+        description="Name of the vector database collection to query from",
+    )
+    encoder: Optional[EncoderConfig] = Field(
+        default_factory=EncoderConfig, description="Embeddings provider configuration"
+    )
+    vector_database: Optional[VectorDatabase] = Field(
+        default_factory=VectorDatabase, description="Vector database configuration"
+    )
+    enable_rerank: Optional[bool] = Field(
+        default=settings.ENABLE_RERANK_BY_DEFAULT,
+        description="Enable reranking of results",
+    )
+
+    class Config:
+        arbitrary_types_allowed = True
+
+    def to_dict(self) -> RetrievalConfigDict:
+        return {
+            "index_name": self.index_name,
+            "encoder": self.encoder.model_dump() if self.encoder else None,
+            "vector_database": self.vector_database.model_dump()
+            if self.vector_database
+            else None,
+            "enable_rerank": self.enable_rerank,
+        }
+
+
+class RetrievalConfig(ToolConfig, RetrievalConfigDict):
+    pass
+
+
+class Retrieval(BaseTool):
+    type: AvailableTools = Field(AvailableTools.RETRIEVAL, const=True)
+    name: str = Field("Retrieval", const=True)
+    description: str = Field("Look up information in uploaded files.", const=True)
+    config: RetrievalConfig = Field(
+        default_factory=lambda: RetrievalConfigModel().to_dict()
     )
 
 
@@ -198,12 +251,6 @@ class TavilyAnswer(BaseTool):
     )
 
 
-class Retrieval(BaseTool):
-    type: AvailableTools = Field(AvailableTools.RETRIEVAL, const=True)
-    name: str = Field("Retrieval", const=True)
-    description: str = Field("Look up information in uploaded files.", const=True)
-
-
 class DallE(BaseTool):
     type: AvailableTools = Field(AvailableTools.DALL_E, const=True)
     name: str = Field("Generate Image (Dall-E)", const=True)
@@ -218,23 +265,47 @@ If the user is referencing particular files, that is often a good hint that info
 If the user asks a vague question, they are likely meaning to look up info from this retriever, and you should call it!"""
 
 
-def get_retriever(assistant_id: str, thread_id: str):
+def get_retriever(
+    assistant_id: str, thread_id: str, config: Optional[dict] = None
+) -> Retriever:
+    logger = structlog.get_logger()
     if not assistant_id or not thread_id:
         return
+
     namespace = assistant_id if assistant_id is not None else thread_id
-    metadata: dict = {}
-    metadata["namespace"] = namespace
-    retriever = Retriever(
-        metadata=metadata,
+    metadata: dict = {"namespace": namespace}
+
+    # Always include defaults
+    metadata["vector_database"] = VectorDatabase().model_dump()
+    metadata["encoder"] = EncoderConfig().model_dump()
+    metadata["enable_rerank"] = settings.ENABLE_RERANK_BY_DEFAULT
+    metadata["index_name"] = settings.VECTOR_DB_COLLECTION_NAME
+
+    if config:
+        logger.debug("Retriever config", config=config)
+        metadata.update({k: v for k, v in config.items() if v is not None})
+
+        if metadata.get("encoder"):
+            # Need to convert dict to EncoderConfig for validation then back to dict
+            encoder_config = EncoderConfig(**metadata["encoder"])
+            metadata["encoder"] = encoder_config.model_dump()
+
+        if metadata.get("vector_database"):
+            vector_db_config = VectorDatabase(**metadata["vector_database"])
+            metadata["vector_database"] = vector_db_config.model_dump()
+
+    return Retriever(metadata=metadata)
+
+
+def get_retrieval_tool(
+    assistant_id: str, thread_id: str, description: str, config: RetrievalConfig
+) -> Tool:
+    retriever = get_retriever(
+        assistant_id=assistant_id, thread_id=thread_id, config=config
     )
-    return retriever
-
-
-@lru_cache(maxsize=5)
-def get_retrieval_tool(assistant_id: str, thread_id: str, description: str):
     return create_retriever_tool(
-        get_retriever(assistant_id, thread_id),
-        "Retriever",
+        retriever,
+        "Retrieval",
         description,
     )
 

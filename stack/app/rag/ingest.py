@@ -11,7 +11,7 @@ settings = get_settings()
 
 
 async def get_ingest_tasks_from_config(
-    files_to_ingest: list[FileSchema],
+    files_to_ingest: list[tuple[FileSchema, bytes]],
     config: IngestRequestPayload,
 ) -> list:
     vector_db_creds = config.vector_database
@@ -29,6 +29,8 @@ async def get_ingest_tasks_from_config(
         dimensions=document_processor_config.encoder.dimensions,
         files=files_to_ingest,
         namespace=namespace,
+        purpose=config.purpose,
+        parser_config=document_processor_config.parser_config,
     )
 
     chunks = await embedding_service.generate_chunks(config=document_processor_config)

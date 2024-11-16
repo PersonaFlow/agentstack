@@ -58,10 +58,6 @@ function EditAssistantForm({
 
   const { toast } = useToast();
 
-  const { systemMessage, retrievalDescription } = useConfigSchema(
-    architectureType ?? "",
-  );
-
   const { availableTools } = useAvailableTools();
 
   useEffect(() => {
@@ -69,18 +65,6 @@ function EditAssistantForm({
       form.reset(selectedAssistant);
     }
   }, [selectedAssistant]);
-
-  useEffect(() => {
-    if (architectureType) {
-      // @ts-ignore
-      form.setValue("config.configurable.system_message", systemMessage);
-      form.setValue(
-        "config.configurable.retrieval_description",
-        // @ts-ignore
-        retrievalDescription,
-      );
-    }
-  }, [architectureType]);
 
   useEffect(() => {
     if (architectureType !== "agent") {
@@ -96,10 +80,10 @@ function EditAssistantForm({
       const retrievalTool = availableTools?.find(
         (tool) => tool.type === RetrievalType,
       );
-      const containsCodeInterpreter = tools.includes("Code interpretor");
+      // const containsCodeInterpreter = tools.includes("Code interpretor");
       // if (containsCodeInterpreter) retrievalTools.push("Code interpreter");
       if (retrievalTool) {
-        form.setValue("config.configurable.tools", [retrievalTool.toString()]);
+        form.setValue("config.configurable.tools", [retrievalTool]);
       }
     }
   }, [architectureType]);

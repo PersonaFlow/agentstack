@@ -5,7 +5,6 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { FileIcon } from "@radix-ui/react-icons";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -13,24 +12,32 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { UseFormReturn } from "react-hook-form";
-import { Plus, SquarePlus } from "lucide-react";
+import { Info, Plus } from "lucide-react";
 import MultiSelect from "@/components/ui/multiselect";
-import { useFiles, useUploadFile } from "@/data-provider/query-service";
+import { useAssistant, useAssistantFiles, useFiles, useIngestFileData, useUploadFile } from "@/data-provider/query-service";
 import Spinner from "@/components/ui/spinner";
-import { useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import {
+  Form,
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
 } from "@/components/ui/form";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/utils/utils";
+import { useSlugRoutes } from "@/hooks/useSlugParams";
+import { fileIngestSchema, TFileIngest } from "@/data-provider/types";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+// TODO
+// - Get assistant form default getRandomValues 
+// - Get file default values
 
 type TFilesDialog = {
-  form: UseFormReturn<any>;
   classNames: string;
+  startProgressStream: (arg: TFileIngest) => void;
 };
 
 type TOption = {
@@ -38,36 +45,114 @@ type TOption = {
   value: string;
 };
 
-export default function FilesDialog({ form, classNames }: TFilesDialog) {
-  const [fileUpload, setFileUpload] = useState<File | null>();
-  const [values, setValues] = useState<TOption[]>([]);
-  const { data: files, isLoading } = useFiles("assistants");
+const acceptedImageTypes = [
+  "text/plain",
+  "text/html",
+  "text/markdown",
+  "text/csv",
+  "application/json",
+  "application/rtf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+];
+const defaultFormValues: z.infer<typeof fileIngestSchema> = {
+  files: [],
+  purpose: "assistants",
+  namespace: "",
+  document_processor: {
+    summarize: false,
+    encoder: {
+      provider: "openai",
+      encoder_model: "text-embedding-3-small",
+      dimensions: 1536,
+      score_threshold: 0.75,
+    },
+    unstructured: {
+      partition_strategy: "auto",
+      hi_res_model_name: "detectron2_onnx",
+      process_tables: false,
+    },
+    splitter: {
+      name: "semantic",
+      min_tokens: 30,
+      max_tokens: 280,
+      rolling_window_size: 1,
+      prefix_titles: true,
+      prefix_summary: false,
+    },
+  },
+};
+
+export default function FilesDialog({ classNames, startProgressStream }: TFilesDialog) {
+  const { data: fileOptions, isLoading } = useFiles();
 
   const uploadFile = useUploadFile();
 
-  const { file_ids } = form.getValues();
+  const { assistantId } = useSlugRoutes();
 
-  const {toast} = useToast();
+  const { data: assistantFiles } = useAssistantFiles(assistantId as string);
 
-  const formattedAssistantFiles = files?.reduce((files, file) => {
-    if (file_ids.includes(file.id)) {
-      files.push({ label: file.filename, value: file.id });
-    }
-    return files;
-  }, [] as TOption[]);
+  const { toast } = useToast();
 
+  const ingestFiles = useIngestFileData();
+
+  const form = useForm<z.infer<typeof fileIngestSchema>>({
+    resolver: zodResolver(fileIngestSchema),
+    defaultValues: useMemo(() => {
+      if (assistantFiles && assistantId) {
+        defaultFormValues.namespace = assistantId;
+        defaultFormValues.files = assistantFiles.map((file) => file.id);
+      }
+      return defaultFormValues;
+    }, [assistantFiles]),
+  });
+
+  const {
+    formState: { isDirty },
+  } = form;
+
+  const [fileUpload, setFileUpload] = useState<File | null>();
+  const [values, setValues] = useState<TOption[]>([]);
+  const [open, setOpen] = useState(false);
+
+  //Update form defaultValues
   useEffect(() => {
-    if (files) {
-      const formattedFileData = files.map((file) => ({
+    if (assistantFiles && assistantId) {
+      defaultFormValues.namespace = assistantId;
+      defaultFormValues.files = assistantFiles.map((file) => file.id);
+      form.reset(defaultFormValues);
+    }
+  }, [assistantFiles, assistantId]);
+
+  // Format files for MultiSelect
+  useEffect(() => {
+    if (fileOptions) {
+      const formattedFileData = fileOptions.map((file) => ({
         label: file.filename,
         value: file.id,
       }));
 
       setValues(formattedFileData);
     }
-  }, [files]);
+  }, [fileOptions]);
 
-  const getFileIds = (selections: TOption[]) =>
+  const onSubmit = (values: z.infer<typeof fileIngestSchema>) => {
+    ingestFiles.mutate(values, {
+      onSuccess: ({ task_id }) => {
+        setOpen(false);
+        startProgressStream({ task_id });
+      },
+    });
+  };
+
+  const formattedAssistantFiles = fileOptions?.reduce((files, file) => {
+    if (assistantFiles?.some((assistantFile) => assistantFile.id === file.id)) {
+      files.push({ label: file.filename, value: file.id });
+    }
+    return files;
+  }, [] as TOption[]);
+
+  const getFilesFromSelections = (selections: TOption[]) =>
     selections.map((selection) => selection.value);
 
   const handleUpload = () => {
@@ -96,87 +181,118 @@ export default function FilesDialog({ form, classNames }: TFilesDialog) {
     }
   };
 
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files) {
+      const selectedFiles = Array.from(event.target.files);
+      const duplicateFiles = selectedFiles.filter((file) =>
+        fileOptions?.some(
+          (uploadedFile) =>
+            uploadedFile.filename === file.name &&
+            uploadedFile.bytes === file.size,
+        ),
+      );
+      if (duplicateFiles.length > 0) {
+        return toast({
+          variant: "destructive",
+          title: "Cannot add duplicate files.",
+        });
+      }
+      setFileUpload(event.target.files[0]);
+    }
+  };
+
   if (isLoading) return <Spinner />;
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
-        className={cn(buttonVariants({ variant: "outline" }), "gap-2", classNames)}
+        className={cn(
+          buttonVariants({ variant: "outline" }),
+          "gap-2",
+          classNames,
+        )}
         type="button"
       >
         <Plus />
         Manage Files
       </DialogTrigger>
       <DialogContent>
-        <DialogHeader>
-          <DialogTitle className="mb-3 text-slate-300">Add Files</DialogTitle>
-          <hr className="border-slate-400 pb-2" />
-          <DialogDescription>
-            <FormField
-              control={form.control}
-              name="file_ids"
-              render={({ field }) => {
-                return (
-                  <FormItem className="flex flex-col">
-                    <FormControl>
-                      <MultiSelect
-                        values={values}
-                        placecholder="Select a file..."
-                        defaultValues={formattedAssistantFiles}
-                        onValueChange={(selections) => {
-                          const fileIds = getFileIds(selections);
-                          console.log(fileIds);
-                          field.onChange(fileIds);
-                        }}
-                      />
-                    </FormControl>
-                  </FormItem>
-                );
-              }}
-            />
-            <Card className="bg-slate-200">
-              <CardContent className="p-6 space-y-4">
-                <div className="border-2 border-dashed border-gray-700 rounded-lg flex flex-col gap-1 p-6 items-center">
-                  <FileIcon className="w-12 h-12" />
-                  <span className="text-sm font-medium text-gray-500">
-                    Drag and drop a file or click to browse
-                  </span>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <DialogHeader>
+              <DialogTitle className="mb-3 text-slate-300">
+                Manage Files
+              </DialogTitle>
+            </DialogHeader>
+            <DialogDescription>
+              {fileOptions?.length === 0 ? (
+                <div className="flex gap-2 my-2 items-center">
+                  <Info />
+                  <h1 className="mb-3 text-slate-300 mb-0">
+                    No files uploaded. Upload new files below to save to
+                    assistant.
+                  </h1>
                 </div>
-                <div className="space-y-2 text-sm">
-                  <Label>File upload</Label>
-                  <Input
-                    placeholder="Picture"
-                    type="file"
-                    accept="image/*, application/pdf"
-                    onChange={(event) => {
-                      if (event.target.files) {
-                        setFileUpload(event.target.files[0]);
-                      }
-                    }}
-                  />
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button
-                  variant="default"
-                  disabled={!fileUpload}
-                  size="lg"
-                  type="button"
-                  onClick={handleUpload}
-                >
-                  Upload file
-                </Button>
-              </CardFooter>
-            </Card>
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button size="lg" type="button">
-              Close
+              ) : (
+                <FormField
+                  control={form.control}
+                  name="files"
+                  render={({ field }) => {
+                    return (
+                      <FormItem className="flex flex-col">
+                        <FormControl>
+                          <MultiSelect
+                            values={values}
+                            placecholder="Search files..."
+                            defaultValues={formattedAssistantFiles}
+                            onValueChange={(selections) => {
+                              const files = getFilesFromSelections(selections);
+                              field.onChange(files);
+                            }}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    );
+                  }}
+                />
+              )}
+              <Card className="bg-slate-200">
+                <CardContent className="p-6 space-y-4">
+                  <div className="space-y-2 text-sm">
+                    <Label>File upload</Label>
+                    <Input
+                      placeholder="Picture"
+                      type="file"
+                      accept={acceptedImageTypes.join(", ")}
+                      onChange={(event) => {
+                        handleFileChange(event);
+                      }}
+                    />
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <Button
+                    variant="default"
+                    disabled={!fileUpload}
+                    size="lg"
+                    type="button"
+                    onClick={handleUpload}
+                  >
+                    Upload new file
+                  </Button>
+                </CardFooter>
+              </Card>
+            </DialogDescription>
+            <Button
+              size="lg"
+              type="submit"
+              className="mt-4 ml-auto"
+              disabled={!isDirty}
+            >
+              Save Files to Assistant
             </Button>
-          </DialogClose>
-        </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

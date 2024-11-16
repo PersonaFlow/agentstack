@@ -9,12 +9,6 @@ from stack.app.vectordbs import BaseVectorDatabase, get_vector_service
 
 from stack.app.core.configuration import get_settings
 
-STRUCTURED_DATA = [
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    "text/csv",
-    "application/json",
-]
-
 logger = structlog.get_logger()
 settings = get_settings()
 

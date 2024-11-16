@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-query";
 import * as dataService from "./data-service";
 import * as t from "./types";
+import { z } from "zod";
 
 export enum QueryKeys {
   stream = "stream",
@@ -345,12 +346,14 @@ export const useAssistantFiles = (
 
 export const useDeleteAssistantFile = () => {
   const queryClient = useQueryClient();
-  return useMutation<t.TAssistant>({
-    // @ts-ignore to be able to build
-    mutationFn: async (
-      assistantId: string,
-      fileId: string,
-    ): Promise<t.TAssistant> =>
+  return useMutation({
+    mutationFn: async ({
+      assistantId,
+      fileId,
+    }: {
+      assistantId: string;
+      fileId: string;
+    }): Promise<t.TAssistant> =>
       dataService.deleteAssistantFile(assistantId, fileId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKeys.assistantFiles] });
@@ -364,11 +367,16 @@ export const useDeleteAssistantFile = () => {
 
 // --RAG--
 
-// todo: update return type
-export const useIngestFileData = (payload: t.TIngestFileDataRequest) => {
-  return useMutation<{}, Error>({
-    mutationFn: async (): Promise<{}> =>
-      await dataService.ingestFileData(payload),
+export const useIngestFileData = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (
+      payload: z.infer<typeof t.fileIngestSchema>,
+    ): Promise<t.TFileIngest> => await dataService.ingestFileData(payload),
+    onSuccess: () =>
+      queryClient.invalidateQueries({
+        queryKey: [QueryKeys.assistantFiles, QueryKeys.assistant],
+      }),
   });
 };
 
@@ -392,11 +400,11 @@ export const useUploadFile = () => {
   });
 };
 
-export const useFiles = (purpose?: t.TPurpose) => {
+export const useFiles = () => {
   return useQuery<t.TFile[], Error>({
-    queryKey: [QueryKeys.files, purpose],
+    queryKey: [QueryKeys.files],
     queryFn: async (): Promise<t.TFile[]> =>
-      await dataService.getFiles(purpose),
+      await dataService.getFiles(),
   });
 };
 
