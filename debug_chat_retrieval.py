@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Debug script for testing the configurable agent.
+Debug script for testing the ConfigurableRetrieval architecture.
 Place this file in your project root directory and run it from there.
 """
 
@@ -14,7 +14,6 @@ from typing import Optional
 import structlog
 from dotenv import load_dotenv
 from langchain.schema.messages import HumanMessage
-from psycopg_pool import AsyncConnectionPool
 
 # Add the project root to Python path
 project_root = os.path.dirname(os.path.abspath(__file__))
@@ -27,36 +26,25 @@ from stack.app.agents.configurable_agent import get_configured_agent
 logger = structlog.get_logger(__name__)
 settings = get_settings()
 
-assistant_config = {
+# Default test configuration for chat retrieval
+DEFAULT_AGENT_CONFIG = {
     "configurable": {
-        "type": "corrective_rag",
-        # "tools": [{
-        #     "name": "Retrieval",
-        #     "type": "retrieval",
-        #     "config": {
-        #         "encoder": {
-        #             "provider": "ollama",
-        #             "dimensions": 384,
-        #             "encoder_model": "all-minilm"
-        #         },
-        #         "index_name": "test",
-        #         "enable_rerank": False
-        #     },
-        #     "multi_use": False,
-        #     "description": "Look up information in uploaded files."
-        # }],
-        "type==corrective_rag/agent_type": "GPT 4o Mini",
-        "type==corrective_rag/system_prompt": "You are a helpful assistant.",
-        "type==corrective_rag/enable_web_search": True,
-        "type==corrective_rag/relevance_threshold": 0.5,
-        "type==corrective_rag/max_corrective_iterations": 3,
-        "type==corrective_rag/question_rewriter_prompt": (
-            "You are an expert at reformulating questions to be clearer and more effective for search."
-        ),
+        "type": "chat_retrieval",
+        "llm_type": "GPT 4o Mini",
+        "system_message": "You are a helpful assistant.",
+        "retrieval_description": "Can be used to look up information that was uploaded to this assistant.",
         "user_id": "default",
         "thread_id": str(uuid.uuid4()),
-        # "assistant_id": str(uuid.uuid4()),
-        "assistant_id": "ba8b90a5-17de-48ff-8f0d-3e0c88344ee8",
+        "assistant_id": "2cb8752f-1b2b-4400-8b7a-7dd195f420d6",
+        "retrieval_config": {
+            "index_name": "test",  
+            "encoder": {
+                "provider": "ollama",
+                "encoder_model": "all-minilm",
+                "dimensions": 384
+            },
+            "enable_rerank": False
+        }
     }
 }
 
@@ -69,48 +57,26 @@ async def cleanup_infrastructure():
     """Cleanup database connections."""
     await cleanup_db()
 
-async def run_agent(
-    query: str,
-    config_path: Optional[str] = None,
-    config_dict: Optional[dict] = None
-) -> None:
+async def run_agent(query: str) -> None:
     """
     Run the agent with the specified configuration.
     
     Args:
         query: The query to send to the agent
-        config_path: Path to a JSON configuration file
-        config_dict: Configuration dictionary to use directly
     """
     try:
         # Initialize infrastructure
         await setup_infrastructure()
         
-        # Prepare the message
+        # Prepare the message and initial state
         message = HumanMessage(content=query)
-        
-        # Initialize state
         initial_state = {
             "messages": [message],
-            "question": query,
-            "generation": "",
-            "web_search_needed": False,
-            "documents": [],
-            "iteration_count": 0
+            "msg_count": 0
         }
+        
+        config = DEFAULT_AGENT_CONFIG.copy()
 
-        # Load config from file if provided
-        if config_path:
-            with open(config_path, 'r') as f:
-                config = json.load(f)
-        # Use provided config dict if available
-        elif config_dict:
-            config = config_dict
-        else:
-            # Default test configuration for corrective RAG
-            config = assistant_config
-            # Merge the input state into the configurable section
-            config["configurable"].update(initial_state)
 
         logger.info("Starting agent with configuration", config=config)
         
@@ -147,21 +113,15 @@ def main():
     load_dotenv()
     
     # Set up argument parser
-    parser = argparse.ArgumentParser(description='Debug Configurable Agent')
-    parser.add_argument('--query', type=str, default="Use ONLY content from the retrieval tool to tell me about Aligning LLM-Assisted Evaluation of LLM Outputs with Human Preferences",
-                      help='Query to send to the agent')
-    parser.add_argument('--config', type=str,
-                      help='Path to JSON configuration file')
+    parser = argparse.ArgumentParser(description='Debug Chat Retrieval Agent')
+    parser.add_argument('--query', type=str, 
+                       default="Tell me about Aligning LLM-Assisted Evaluation of LLM Outputs with Human Preferences",
+                       help='Query to send to the agent')
     
     args = parser.parse_args()
     
-    
     try:
-        asyncio.run(run_agent(
-            query=args.query,
-            config_path=args.config,
-            config_dict=args.config
-        ))
+        asyncio.run(run_agent(query=args.query))
     except KeyboardInterrupt:
         print("\nDebug session interrupted by user")
     except Exception as e:
