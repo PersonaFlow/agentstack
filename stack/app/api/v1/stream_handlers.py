@@ -43,6 +43,17 @@ class ToolsAgentMessageHandler(MessageHandler):
             return messages
         return [messages]
 
+class ChatRetrievalMessageHandler(MessageHandler):
+    """Handles chat retrieval message format."""
+    
+    def extract_messages(self, chunk_data: Any) -> List[BaseMessage]:
+        """Extract messages from the chat retrieval format."""
+        if not isinstance(chunk_data, dict):
+            return []
+            
+        messages = chunk_data.get("messages", [])
+        return messages if isinstance(messages, list) else [messages]
+
 class CRAGMessageHandler(MessageHandler):
     """Handles CRAG state format with generation field."""
     
@@ -71,6 +82,7 @@ class StreamProcessor:
         self._handlers: HandlerRegistry = {
             "tools_agent": ToolsAgentMessageHandler(),
             "corrective_rag": CRAGMessageHandler(),
+            "chat_retrieval": ChatRetrievalMessageHandler(),
             # Add more handlers here as new architectures are added
         }
         

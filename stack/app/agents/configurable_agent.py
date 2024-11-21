@@ -287,8 +287,8 @@ def get_configured_agent() -> Pregel:
             ConfigurableField(id="type", name="Bot Type"),
             default_key="agent",
             prefix_keys=True,
-            corrective_rag=get_configured_crag()
-            # chat_retrieval=get_configured_chat_retrieval()
+            corrective_rag=get_configured_crag(),
+            chat_retrieval=get_configured_chat_retrieval()
         )
         .with_types(
             input_type=Messages,
