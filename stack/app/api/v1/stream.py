@@ -50,43 +50,80 @@ async def astream_state(
     input: Union[Sequence[AnyMessage], Dict[str, Any]],
     config: RunnableConfig,
 ) -> MessagesStream:
-    """Stream messages from the runnable."""
+    """Stream messages from the runnable with error handling and state management."""
     root_run_id: Optional[str] = None
     messages: dict[str, BaseMessage] = {}
     processor = StreamProcessor()
     
-    async for event in app.astream_events(
-        input, config, version="v1", stream_mode="values", exclude_tags=["nostream"]
-    ):
-        try:
-            if event["event"] == "on_chain_start" and not root_run_id:
-                root_run_id = event["run_id"]
-                yield {
-                    "run_id": root_run_id,
-                    "thread_id": config["configurable"].get("thread_id"),
-                }
-                
-            elif event["event"] == "on_chain_stream" and event["run_id"] == root_run_id:
-                new_messages = processor.process_chunk(event, config, messages)
-                if new_messages:
-                    yield new_messages
+    # Get the architecture type from config
+    architecture_type = config.get("configurable", {}).get("type", "agent")
+    
+    try:
+        async for event in app.astream_events(
+            input, 
+            config, 
+            version="v1", 
+            stream_mode="values",
+            exclude_tags=["nostream"]
+        ):
+            try:
+                if event["event"] == "on_chain_start" and not root_run_id:
+                    root_run_id = event["run_id"]
+                    # Emit initial metadata
+                    yield {
+                        "run_id": root_run_id,
+                        "thread_id": config["configurable"].get("thread_id"),
+                        "architecture": architecture_type,  # Include architecture type for frontend handling
+                    }
                     
-            elif event["event"] == "on_chat_model_stream":
-                message: BaseMessage = event["data"]["chunk"]
-                if message.id not in messages:
-                    messages[message.id] = message
-                else:
-                    messages[message.id] += message
-                yield [messages[message.id]]
+                elif event["event"] == "on_chain_stream" and event["run_id"] == root_run_id:
+                    new_messages = processor.process_chunk(event, config, messages)
+                    if new_messages:
+                        yield new_messages
+                        
+                elif event["event"] == "on_chat_model_stream":
+                    message: BaseMessage = event["data"]["chunk"]
+                    if message.id not in messages:
+                        messages[message.id] = message
+                    else:
+                        messages[message.id] += message
+                    yield [messages[message.id]]
+                    
+                elif event["event"] == "on_chain_error":
+                    error_msg = event.get("error", {}).get("message", "Unknown error occurred")
+                    logger.error(
+                        "Chain error during streaming",
+                        error=error_msg,
+                        run_id=root_run_id,
+                        exc_info=True
+                    )
+                    yield {
+                        "error": True,
+                        "message": f"Error during processing: {error_msg}"
+                    }
+                    
+            except Exception as chunk_error:
+                logger.error(
+                    "Error processing stream chunk",
+                    error=str(chunk_error),
+                    event_type=event.get("event"),
+                    exc_info=True
+                )
+                continue
                 
-        except Exception as e:
-            logger.exception(
-                "Error processing stream event",
-                error=str(e),
-                event_type=event.get("event"),
-                exc_info=True
-            )
-            continue
+    except Exception as stream_error:
+        logger.error(
+            "Fatal error in stream",
+            error=str(stream_error),
+            exc_info=True
+        )
+        yield {
+            "error": True,
+            "message": f"Stream error: {str(stream_error)}"
+        }
+    finally:
+        # Always emit an end event
+        yield {"event": "end"}
 
 
 def _default(obj) -> Any:
