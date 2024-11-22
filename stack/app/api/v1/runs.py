@@ -28,6 +28,7 @@ from stack.app.api.v1.stream import astream_state, to_sse
 from sse_starlette import EventSourceResponse
 from stack.app.core.configuration import get_settings
 from stack.app.core.auth.utils import get_header_user_id
+from .state_registry import state_registry
 
 
 settings = get_settings()
@@ -168,6 +169,12 @@ async def stream_run(
     input_, config = await _run_input_and_config(
         payload, assistant_repository, thread_repository, user_id
     )
+
+    # Get architecture handler and format initial state
+    architecture_type = config["configurable"].get("type", "agent")
+    architecture = state_registry.get_architecture(architecture_type)
+    input_ = architecture.format_initial_state(input_)
+
     agent = get_configured_agent()
     return EventSourceResponse(to_sse(astream_state(agent, input_, config)))
 

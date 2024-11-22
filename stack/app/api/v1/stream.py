@@ -7,11 +7,43 @@ import orjson
 from langchain_core.messages import AnyMessage, BaseMessage, message_chunk_to_message
 from langchain_core.runnables import Runnable, RunnableConfig
 from stack.app.core.redis import RedisService
-from .stream_handlers import StreamProcessor
+from .state_registry import state_registry
 
 logger = structlog.get_logger(__name__)
 
 MessagesStream = AsyncIterator[Union[list[AnyMessage], str]]
+
+class StreamProcessor:
+    """Processes stream events and handles message extraction."""
+    
+    def process_chunk(
+        self,
+        event: Dict[str, Any],
+        config: Dict[str, Any],
+        messages: Dict[str, BaseMessage]
+    ) -> list[BaseMessage]:
+        """Process a chunk and extract new messages."""
+        chunk_data = event["data"]["chunk"]
+        architecture_type = config.get("configurable", {}).get("type", "agent")
+        
+        # Get the appropriate architecture handler
+        architecture = state_registry.get_architecture(architecture_type)
+        
+        # Format state if needed
+        if isinstance(chunk_data, list) and event["event"] == "on_chain_start":
+            chunk_data = architecture.format_initial_state(chunk_data)
+            
+        # Extract messages using the architecture handler
+        new_messages: list[BaseMessage] = []
+        extracted_messages = architecture.extract_messages(chunk_data)
+        
+        for msg in extracted_messages:
+            msg_id = msg.id
+            if msg_id not in messages or messages[msg_id] != msg:
+                messages[msg_id] = msg
+                new_messages.append(msg)
+                
+        return new_messages
 
 async def astream_state(
     app: Runnable,
