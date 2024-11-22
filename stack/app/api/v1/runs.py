@@ -156,18 +156,52 @@ async def stream_run(
     assistant_repository: AssistantRepository = Depends(get_assistant_repository),
     thread_repository: ThreadRepository = Depends(get_thread_repository),
 ):
-    user_id = get_header_user_id(request)
-    input_, config = await _run_input_and_config(
-        payload, assistant_repository, thread_repository, user_id
-    )
+    try:
+        user_id = get_header_user_id(request)
+        input_, config = await _run_input_and_config(
+            payload, assistant_repository, thread_repository, user_id
+        )
 
-    # Get architecture handler and format initial state
-    architecture_type = config["configurable"].get("type", "agent")
-    architecture = state_registry.get_architecture(architecture_type)
-    input_ = architecture.format_initial_state(input_)
+        agent = get_configured_agent()
 
-    agent = get_configured_agent()
-    return EventSourceResponse(to_sse(astream_state(agent, input_, config)))
+        #  wrap the event generation to handle errors during streaming:
+        async def safe_stream():
+            try:
+                async for event in astream_state(agent, input_, config):
+                    yield event
+            except Exception as e:
+                logger.error(
+                    "Error during stream processing",
+                    error=str(e),
+                    assistant_id=payload.assistant_id,
+                    thread_id=payload.thread_id,
+                    exc_info=True
+                )
+                # Yield error event that will be handled by the frontend
+                yield {
+                    "error": True,
+                    "message": f"Stream processing error: {str(e)}"
+                }
+
+        return EventSourceResponse(
+            to_sse(safe_stream()),
+            headers={
+                "X-Accel-Buffering": "no",  # Disable buffering in nginx
+                "Cache-Control": "no-cache",  # Prevent caching
+            }
+        )
+    except Exception as e:
+        logger.error(
+            "Error setting up stream",
+            error=str(e),
+            assistant_id=payload.assistant_id,
+            thread_id=payload.thread_id,
+            exc_info=True
+        )
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to initialize stream: {str(e)}"
+        )
 
 
 @router.post(
@@ -176,7 +210,11 @@ async def stream_run(
     response_model=dict,
     operation_id="create_run",
     summary="Create a run",
-    description="Create a run to be processed by the LLM.",
+    description="""
+        Create a run to be processed by the LLM. 
+        Note: this endpoint is for generating a series of runs for eval purposes
+        to be picked up by your eval tool (eg. Arize Phoenix, LangFuse, LangSmith).
+        """,
 )
 async def create_run(
     auth: AuthenticatedUser,
