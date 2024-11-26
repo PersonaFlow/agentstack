@@ -1,115 +1,105 @@
-"use client";
+'use client'
 
-import { useCreateAssistant } from "@/data-provider/query-service";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { AssistantForm } from "./assistant-form";
-import { useConfigSchema } from "@/hooks/useConfig";
-import { formSchema } from "@/data-provider/types";
-import { useAvailableTools } from "@/hooks/useAvailableTools";
-import { useToast } from "@/components/ui/use-toast";
-import { useRouter } from "next/navigation";
-import { SquarePlus } from "lucide-react";
+import { useCreateAssistant } from '@/data-provider/query-service'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
+import { AssistantForm } from './assistant-form'
+import { useConfigSchema } from '@/hooks/useConfig'
+import { formSchema } from '@/data-provider/types'
+import { useAvailableTools } from '@/hooks/useAvailableTools'
+import { useToast } from '@/components/ui/use-toast'
+import { useRouter } from 'next/navigation'
+import { SquarePlus } from 'lucide-react'
 
-const DEFAULT_agent_type = "GPT 4o Mini";
-const DEFAULT_llm_type = "GPT 4o Mini";
+const DEFAULT_agent_type = 'GPT 4o Mini'
+const DEFAULT_llm_type = 'GPT 4o Mini'
 
 const defaultValues = {
   public: false,
-  name: "",
+  name: '',
   config: {
     configurable: {
       interrupt_before_action: false,
-      type: "",
+      type: '',
       agent_type: DEFAULT_agent_type,
       llm_type: DEFAULT_llm_type,
-      retrieval_description: "",
-      system_message: "",
+      retrieval_description: '',
+      system_message: '',
       tools: [],
     },
   },
   file_ids: [],
-};
+}
 
-const RetrievalType = "retrieval";
+const RetrievalType = 'retrieval'
 
 export function CreateAssistant() {
-  const createAssistant = useCreateAssistant();
+  const createAssistant = useCreateAssistant()
 
-  const router = useRouter();
+  const router = useRouter()
 
-  const { toast } = useToast();
+  const { toast } = useToast()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues,
-  });
+  })
 
-  const architectureType = form.watch("config.configurable.type");
-  const tools = form.watch("config.configurable.tools");
+  const architectureType = form.watch('config.configurable.type')
+  const tools = form.watch('config.configurable.tools')
 
   // Only use config schema as defaults - don't use in edit
-  const { systemMessage, retrievalDescription } = useConfigSchema(
-    architectureType ?? "",
-  );
+  const { systemMessage, retrievalDescription } = useConfigSchema(architectureType ?? '')
 
-  const { availableTools } = useAvailableTools();
+  const { availableTools } = useAvailableTools()
 
   useEffect(() => {
     if (architectureType) {
-      form.setValue(
-        "config.configurable.system_message",
-        systemMessage as string,
-      );
-      form.setValue(
-        "config.configurable.retrieval_description",
-        retrievalDescription,
-      );
+      form.setValue('config.configurable.system_message', systemMessage as string)
+      form.setValue('config.configurable.retrieval_description', retrievalDescription)
     }
-  }, [architectureType]);
+  }, [architectureType])
 
   useEffect(() => {
-    if (architectureType && architectureType !== "agent") {
+    if (architectureType && architectureType !== 'agent') {
       // Unregister agent_type
-      form.unregister("config.configurable.agent_type");
+      form.unregister('config.configurable.agent_type')
     }
 
-    if (architectureType === "chatbot") {
-      form.setValue("config.configurable.tools", []);
+    if (architectureType === 'chatbot') {
+      form.setValue('config.configurable.tools', [])
     }
 
-    if (architectureType === "chat_retrieval") {
-      const retrievalTool = availableTools?.find(
-        (tool) => tool.type === RetrievalType,
-      );
-      const retrievalTools = [retrievalTool];
+    if (architectureType === 'chat_retrieval') {
+      const retrievalTool = availableTools?.find((tool) => tool.type === RetrievalType)
+      const retrievalTools = [retrievalTool]
       // const containsCodeInterpreter = tools.includes("Code interpretor");
       // if (containsCodeInterpreter) retrievalTools.push("Code interpreter");
-      form.setValue("config.configurable.tools", retrievalTools);
+      form.setValue('config.configurable.tools', retrievalTools)
     }
-  }, [architectureType]);
+  }, [architectureType])
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     // @ts-ignore
     createAssistant.mutate(values, {
       onSuccess: (response) => {
-        console.log("Successfully created assistant: ");
-        console.log(response);
-        router.push(`/a/${response.id}`);
+        console.log('Successfully created assistant: ')
+        console.log(response)
+        router.push(`/a/${response.id}`)
         toast({
-          variant: "default",
-          title: "Successfully created new assistant.",
-        });
+          variant: 'default',
+          title: 'Successfully created new assistant.',
+        })
       },
       onError: () => {
         toast({
-          variant: "destructive",
-          title: "Failed to update assistant.",
-        });
+          variant: 'destructive',
+          title: 'Failed to update assistant.',
+        })
       },
-    });
+    })
   }
 
   return (
@@ -120,5 +110,5 @@ export function CreateAssistant() {
       </div>
       <AssistantForm form={form} onSubmit={onSubmit} />
     </>
-  );
+  )
 }

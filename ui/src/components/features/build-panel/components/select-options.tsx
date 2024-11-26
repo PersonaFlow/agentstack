@@ -1,30 +1,20 @@
-"use client";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-} from "@/components/ui/form";
-import { UseFormReturn } from "react-hook-form";
+'use client'
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+import { Checkbox } from '@/components/ui/checkbox'
+import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form'
+import { UseFormReturn } from 'react-hook-form'
 
 type TSelectOptionsProps = {
-  form: UseFormReturn<any>;
-};
+  form: UseFormReturn<any>
+}
 
 const options = [
   {
-    display: "Interrupt before action",
-    value: "interrupt_before_action",
-    name: "config.configurable.interrupt_before_action",
+    display: 'Interrupt before action',
+    value: 'interrupt_before_action',
+    name: 'config.configurable.interrupt_before_action',
   },
-];
+]
 
 export default function SelectOptions({ form }: TSelectOptionsProps) {
   return (
@@ -41,21 +31,16 @@ export default function SelectOptions({ form }: TSelectOptionsProps) {
                 return (
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                     <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={() => field.onChange(!field.value)}
-                      />
+                      <Checkbox checked={field.value} onCheckedChange={() => field.onChange(!field.value)} />
                     </FormControl>
-                    <FormLabel className="text-sm font-normal">
-                      {option.display}
-                    </FormLabel>
+                    <FormLabel className="text-sm font-normal">{option.display}</FormLabel>
                   </FormItem>
-                );
+                )
               }}
             />
           ))}
         </AccordionContent>
       </AccordionItem>
     </Accordion>
-  );
+  )
 }

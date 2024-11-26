@@ -1,24 +1,14 @@
-"use client";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-} from "@/components/ui/form";
-import { UseFormReturn } from "react-hook-form";
+'use client'
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+import { Checkbox } from '@/components/ui/checkbox'
+import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form'
+import { UseFormReturn } from 'react-hook-form'
 
-const actions = [{}];
+const actions = [{}]
 
 type TSelectActionsProps = {
-  form: UseFormReturn<any>;
-};
+  form: UseFormReturn<any>
+}
 
 export default function SelectActions({ form }: TSelectActionsProps) {
   return (
@@ -59,5 +49,5 @@ export default function SelectActions({ form }: TSelectActionsProps) {
         </AccordionContent>
       </AccordionItem>
     </Accordion>
-  );
+  )
 }

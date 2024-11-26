@@ -1,28 +1,23 @@
-"use client";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { FormControl, FormField, FormItem } from "@/components/ui/form";
-import { UseFormReturn, useFieldArray } from "react-hook-form";
-import { ToolDialog } from "./tool-dialog";
-import { CircleX } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { TTool } from "@/data-provider/types";
+'use client'
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+import { FormControl, FormField, FormItem } from '@/components/ui/form'
+import { UseFormReturn, useFieldArray } from 'react-hook-form'
+import { ToolDialog } from './tool-dialog'
+import { CircleX } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { TTool } from '@/data-provider/types'
 
 type TSelectToolsProps = {
-  form: UseFormReturn<any>;
-};
+  form: UseFormReturn<any>
+}
 
 export default function SelectTools({ form }: TSelectToolsProps) {
   const { remove } = useFieldArray({
-    name: "config.configurable.tools",
+    name: 'config.configurable.tools',
     control: form.control,
-  });
+  })
 
-  const { tools } = form.getValues().config.configurable;
+  const { tools } = form.getValues().config.configurable
 
   return (
     <Accordion type="multiple">
@@ -49,10 +44,10 @@ export default function SelectTools({ form }: TSelectToolsProps) {
                           </Badge>
                         </FormControl>
                       </FormItem>
-                    );
+                    )
                   }}
                 />
-              );
+              )
             })}
           </div>
           <div className="mr-auto mt-6">
@@ -61,5 +56,5 @@ export default function SelectTools({ form }: TSelectToolsProps) {
         </AccordionContent>
       </AccordionItem>
     </Accordion>
-  );
+  )
 }
