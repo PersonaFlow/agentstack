@@ -2,15 +2,15 @@ name: UI PR Check
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
     paths:
-      - 'ui/**'
-      - '.github/workflows/pr-ui.yml'
+      - "ui/**"
+      - ".github/workflows/pr-ui.yml"
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
     paths:
-      - 'ui/**'
-      - '.github/workflows/pr-ui.yml'
+      - "ui/**"
+      - ".github/workflows/pr-ui.yml"
 jobs:
   build:
     name: Build and Test UI
@@ -20,34 +20,35 @@ jobs:
         node-version: [20.x]
 
     steps:
-    - uses: actions/checkout@v4
-      with:
-        sparse-checkout: |
-          .github
-          ui
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-        cache-dependency-path: ui/package-lock.json
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            .github
+            ui
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+          cache-dependency-path: ui/package-lock.json
 
-    - name: Cache build
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.npm
-          ${{ github.workspace }}/.next/cache
-        # Generate a new cache whenever packages or source files change.
-        key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
-        # If source files changed but packages didn't, rebuild from a prior cache.
-        restore-keys: |
-          ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-
+      - name: Cache build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            ${{ github.workspace }}/.next/cache
+          # Generate a new cache whenever packages or source files change.
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
+          # If source files changed but packages didn't, rebuild from a prior cache.
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-
 
-    - name: Build and Test UI
-      working-directory: ui
-      run: |
+      - name: Build and Test UI
+        working-directory: ui
+        run: |
           pwd
           npm ci
+          npm run format:check
           npm run build
           npm run test:ci
