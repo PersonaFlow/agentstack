@@ -1,26 +1,26 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "@/styles/main.css";
-import Providers from "@/providers/Providers";
-import { Toaster } from "@/components/ui/toaster";
-import BuildPanel from "@/components/features/build-panel/components/build-panel";
-import Navbar from "@/components/features/navbar/components/navbar";
-import Header from "@/components/features/header/components/header";
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import '@/styles/main.css'
+import Providers from '@/providers/Providers'
+import { Toaster } from '@/components/ui/toaster'
+import BuildPanel from '@/components/features/build-panel/components/build-panel'
+import Navbar from '@/components/features/navbar/components/navbar'
+import Header from '@/components/features/header/components/header'
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: "PersonaFlow",
-  description: "Where AI meets individuality for unmatched personalization",
+  title: 'PersonaFlow',
+  description: 'Where AI meets individuality for unmatched personalization',
   icons: {
-    icon: '/icon.ico'
-  }
-};
+    icon: '/icon.ico',
+  },
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   return (
     <html lang="en">
@@ -40,5 +40,5 @@ export default function RootLayout({
         </div>
       </body>
     </html>
-  );
+  )
 }

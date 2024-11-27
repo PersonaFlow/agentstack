@@ -1,15 +1,11 @@
-"use client";
+'use client'
 
-import { EditAssistant } from "./edit-assistant";
-import { CreateAssistant } from "./create-assistant";
-import { useSlugRoutes } from "@/hooks/useSlugParams";
+import { EditAssistant } from './edit-assistant'
+import { CreateAssistant } from './create-assistant'
+import { useSlugRoutes } from '@/hooks/useSlugParams'
 
 export function AssistantBuilder() {
-  const {assistantId} = useSlugRoutes();
+  const { assistantId } = useSlugRoutes()
 
-  return (
-    <>
-      {assistantId ? <EditAssistant /> : <CreateAssistant />}
-    </>
-  );
+  return <>{assistantId ? <EditAssistant /> : <CreateAssistant />}</>
 }

@@ -1,48 +1,50 @@
-import { Badge } from "@/components/ui/badge";
-import { FormControl, FormField, FormItem } from "@/components/ui/form";
-import Spinner from "@/components/ui/spinner";
-import { useToast } from "@/components/ui/use-toast";
-import { useAssistantFiles, useDeleteAssistantFile, useDeleteFile, useFiles } from "@/data-provider/query-service";
-import { useSlugRoutes } from "@/hooks/useSlugParams";
-import { CircleX } from "lucide-react";
-import { useEffect, useState } from "react";
-import { UseFormReturn, useFieldArray } from "react-hook-form";
+import { Badge } from '@/components/ui/badge'
+import { FormControl, FormField, FormItem } from '@/components/ui/form'
+import Spinner from '@/components/ui/spinner'
+import { useToast } from '@/components/ui/use-toast'
+import {
+  useAssistantFiles,
+  useDeleteAssistantFile,
+  useDeleteFile,
+  useFiles,
+} from '@/data-provider/query-service'
+import { useSlugRoutes } from '@/hooks/useSlugParams'
+import { CircleX } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { UseFormReturn, useFieldArray } from 'react-hook-form'
 
 type TBadgeValue = {
-  label: string;
-  value: string;
-};
+  label: string
+  value: string
+}
 
 export default function SelectFiles() {
-  const deleteFile = useDeleteAssistantFile();
+  const deleteFile = useDeleteAssistantFile()
 
-  const { assistantId } = useSlugRoutes();
+  const { assistantId } = useSlugRoutes()
 
-  const {toast} = useToast();
+  const { toast } = useToast()
 
-  const { data: assistantFiles, isLoading } = useAssistantFiles(
-    assistantId as string,
-  );
+  const { data: assistantFiles, isLoading } = useAssistantFiles(assistantId as string)
 
   const badgeValues = assistantFiles?.map((assistantFile) => {
-    return { label: assistantFile.filename, value: assistantFile.id };
-  });
+    return { label: assistantFile.filename, value: assistantFile.id }
+  })
 
-  const handleClick = ({value: fileId}: TBadgeValue) => {
-
+  const handleClick = ({ value: fileId }: TBadgeValue) => {
     deleteFile.mutate(
       { assistantId: assistantId as string, fileId },
       {
         onSuccess: () =>
           toast({
-            variant: "default",
-            title: "File has been deleted.",
+            variant: 'default',
+            title: 'File has been deleted.',
           }),
       },
-    );
-  };
+    )
+  }
 
-  if (isLoading) return <Spinner />;
+  if (isLoading) return <Spinner />
 
   return (
     <div className="flex gap-2 flex-wrap">
@@ -61,8 +63,8 @@ export default function SelectFiles() {
               <CircleX size={16} />
             </div>
           </Badge>
-        );
+        )
       })}
     </div>
-  );
+  )
 }

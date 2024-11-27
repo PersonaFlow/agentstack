@@ -1,40 +1,35 @@
-const formatParam = (param?: any) => (param ? param : "");
+const formatParam = (param?: any) => (param ? param : '')
 
-const BASE_PATH = "/api/v1";
+const BASE_PATH = '/api/v1'
 
 // --Runs--
-export const runs = `${BASE_PATH}/runs`;
-export const runnableInputSchema = `${BASE_PATH}/runs/input_schema`;
-export const runnableOutputSchema = `${BASE_PATH}/runs/output_schema`;
-export const runnableConfigSchema = `${BASE_PATH}/runs/config_schema`;
-export const title = `${BASE_PATH}/runs/title`;
+export const runs = `${BASE_PATH}/runs`
+export const runnableInputSchema = `${BASE_PATH}/runs/input_schema`
+export const runnableOutputSchema = `${BASE_PATH}/runs/output_schema`
+export const runnableConfigSchema = `${BASE_PATH}/runs/config_schema`
+export const title = `${BASE_PATH}/runs/title`
 
 // -- Me --
-export const me = `${BASE_PATH}/users/me`;
+export const me = `${BASE_PATH}/users/me`
 
 export const myThreads = (grouped?: boolean) => {
-  const timezoneOffset = new Date().getTimezoneOffset();
-  return `${BASE_PATH}/users/me/threads?grouped=${grouped}&timezoneOffset=${timezoneOffset}`;
-};
+  const timezoneOffset = new Date().getTimezoneOffset()
+  return `${BASE_PATH}/users/me/threads?grouped=${grouped}&timezoneOffset=${timezoneOffset}`
+}
 
 // --Admin Users--
-export const users = (userId?: string) =>
-  `${BASE_PATH}/admin/users/${formatParam(userId)}`;
+export const users = (userId?: string) => `${BASE_PATH}/admin/users/${formatParam(userId)}`
 
 // --Threads--
-export const threads = (threadId?: string) =>
-  `${BASE_PATH}/threads/${formatParam(threadId)}`;
+export const threads = (threadId?: string) => `${BASE_PATH}/threads/${formatParam(threadId)}`
 
-export const threadState = (threadId: string) =>
-  `${BASE_PATH}/threads/${threadId}/state`;
+export const threadState = (threadId: string) => `${BASE_PATH}/threads/${threadId}/state`
 
 // --Messages--
-export const messages = (messageId?: string) =>
-  `${BASE_PATH}/messages/${formatParam(messageId)}`;
+export const messages = (messageId?: string) => `${BASE_PATH}/messages/${formatParam(messageId)}`
 
 // --Assistants--
-export const assistants = (assistantId?: string) =>
-  `${BASE_PATH}/assistants/${formatParam(assistantId)}`;
+export const assistants = (assistantId?: string) => `${BASE_PATH}/assistants/${formatParam(assistantId)}`
 
 export const assistantFiles = (
   assistantId: string,
@@ -42,26 +37,23 @@ export const assistantFiles = (
   order?: string,
   before?: string,
   after?: string,
-) =>
-  `${BASE_PATH}/assistants/${assistantId}/files`;
+) => `${BASE_PATH}/assistants/${assistantId}/files`
 
 export const assistantFile = (assistantId: string, fileId?: string) =>
-  `${BASE_PATH}/assistants/${assistantId}/files/${formatParam(fileId)}`;
+  `${BASE_PATH}/assistants/${assistantId}/files/${formatParam(fileId)}`
 
 // --RAG--
-export const ingest = () => `${BASE_PATH}/rag/ingest`;
-export const query = () => `${BASE_PATH}/rag/query`;
+export const ingest = () => `${BASE_PATH}/rag/ingest`
+export const query = () => `${BASE_PATH}/rag/query`
 
 // --Files--
-export const files = `${BASE_PATH}/files`;
+export const files = `${BASE_PATH}/files`
 
-export const file = (fileId?: string, purpose?: string) =>
-  `${BASE_PATH}/files/${formatParam(fileId)}`;
+export const file = (fileId?: string, purpose?: string) => `${BASE_PATH}/files/${formatParam(fileId)}`
 
-export const fileContent = (fileId: string) =>
-  `${BASE_PATH}/files/${fileId}/content`;
+export const fileContent = (fileId: string) => `${BASE_PATH}/files/${fileId}/content`
 
-export const deleteFile = (fileId: string) => `${BASE_PATH}files/${fileId}`;
+export const deleteFile = (fileId: string) => `${BASE_PATH}files/${fileId}`
 
 // --Health Check--
-export const healthCheck = () => `${BASE_PATH}/health_check`;
+export const healthCheck = () => `${BASE_PATH}/health_check`

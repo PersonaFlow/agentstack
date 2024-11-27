@@ -9,7 +9,8 @@
     "lint": "next lint",
     "test": "jest",
     "test:ci": "jest --ci --coverage",
-    "prepare": "husky"
+    "prepare": "husky",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "@hookform/resolvers": "^3.4.2",

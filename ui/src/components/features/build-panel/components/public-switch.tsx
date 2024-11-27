@@ -1,15 +1,10 @@
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-} from "@/components/ui/form";
-import { Switch } from "@/components/ui/switch";
-import { UseFormReturn } from "react-hook-form";
+import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form'
+import { Switch } from '@/components/ui/switch'
+import { UseFormReturn } from 'react-hook-form'
 
 type TPublicSwitchProps = {
-  form: UseFormReturn<any>;
-};
+  form: UseFormReturn<any>
+}
 
 export default function PublicSwitch({ form }: TPublicSwitchProps) {
   return (
@@ -21,14 +16,11 @@ export default function PublicSwitch({ form }: TPublicSwitchProps) {
           <FormItem className="flex flex-col">
             <FormLabel>Public</FormLabel>
             <FormControl>
-              <Switch
-                defaultChecked={field.value}
-                onCheckedChange={(checked) => field.onChange(checked)}
-              />
+              <Switch defaultChecked={field.value} onCheckedChange={(checked) => field.onChange(checked)} />
             </FormControl>
           </FormItem>
-        );
+        )
       }}
     />
-  );
+  )
 }
