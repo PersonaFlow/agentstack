@@ -288,11 +288,10 @@ def get_configured_agent() -> Pregel:
             default_key="agent",
             prefix_keys=True,
             corrective_rag=get_configured_crag(),
-            chat_retrieval=get_configured_chat_retrieval()
+            chat_retrieval=get_configured_chat_retrieval(),
         )
         .with_types(
             input_type=Messages,
             output_type=Sequence[AnyMessage],
         )  # type: ignore[return-value]
     )
-

@@ -113,7 +113,7 @@ async def _run_input_and_config(
 
     # Get architecture type from config
     architecture_type = config["configurable"].get("type", "agent")
-    
+
     try:
         # Use state registry to prepare input and config
         input_, config = state_registry.prepare_state_and_config(
@@ -121,15 +121,15 @@ async def _run_input_and_config(
             input_data=payload.input,
             config=config,
             assistant_id=payload.assistant_id,
-            thread_id=payload.thread_id
+            thread_id=payload.thread_id,
         )
-        
+
         # Validate the prepared input
         agent = get_configured_agent()
         agent.get_input_schema(config).validate(input_)
-        
+
         return input_, config
-        
+
     except ValidationError as e:
         raise RequestValidationError(e.errors(), body=payload)
 
@@ -175,20 +175,17 @@ async def stream_run(
                     error=str(e),
                     assistant_id=payload.assistant_id,
                     thread_id=payload.thread_id,
-                    exc_info=True
+                    exc_info=True,
                 )
                 # Yield error event that will be handled by the frontend
-                yield {
-                    "error": True,
-                    "message": f"Stream processing error: {str(e)}"
-                }
+                yield {"error": True, "message": f"Stream processing error: {str(e)}"}
 
         return EventSourceResponse(
             to_sse(safe_stream()),
             headers={
                 "X-Accel-Buffering": "no",  # Disable buffering in nginx
                 "Cache-Control": "no-cache",  # Prevent caching
-            }
+            },
         )
     except Exception as e:
         logger.error(
@@ -196,11 +193,10 @@ async def stream_run(
             error=str(e),
             assistant_id=payload.assistant_id,
             thread_id=payload.thread_id,
-            exc_info=True
+            exc_info=True,
         )
         raise HTTPException(
-            status_code=500,
-            detail=f"Failed to initialize stream: {str(e)}"
+            status_code=500, detail=f"Failed to initialize stream: {str(e)}"
         )
 
 

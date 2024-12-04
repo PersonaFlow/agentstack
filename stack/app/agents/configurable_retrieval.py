@@ -23,7 +23,6 @@ class ConfigurableRetrieval(RunnableBinding):
     user_id: Optional[str] = None
     # retrieval_config: Optional[Union[RetrievalConfigModel, dict]]
 
-
     def __init__(
         self,
         *,
@@ -38,7 +37,6 @@ class ConfigurableRetrieval(RunnableBinding):
     ) -> None:
         others.pop("bound", None)
 
-        
         # # If retrieval_config is provided in config, use that
         # if config and "retrieval_config" in config.get("configurable", {}):
         #     retrieval_config = RetrievalConfigModel(**config["configurable"]["retrieval_config"])
@@ -46,18 +44,16 @@ class ConfigurableRetrieval(RunnableBinding):
         # final_config = retrieval_config or RetrievalConfigModel()
 
         # config_dict = (
-        #     final_config.model_dump() 
-        #     if hasattr(final_config, 'model_dump') 
+        #     final_config.model_dump()
+        #     if hasattr(final_config, 'model_dump')
         #     else final_config.dict()
         # )
 
         retrieval_config = RetrievalConfigModel().to_dict()
 
         retriever = get_retriever(
-            assistant_id=assistant_id,
-            thread_id=thread_id,
-            config=retrieval_config
-        ) 
+            assistant_id=assistant_id, thread_id=thread_id, config=retrieval_config
+        )
 
         llm = get_llm(llm_type)
         chatbot = get_retrieval_executor(llm, retriever, system_message)
@@ -83,7 +79,7 @@ def get_configured_chat_retrieval() -> Runnable:
         ),
         thread_id=ConfigurableField(id="thread_id", name="Thread ID", is_shared=True),
         # retrieval_config=ConfigurableField(
-        #     id="retrieval_config", 
+        #     id="retrieval_config",
         #     name="Retrieval Configuration",
         #     description="Configuration for the retrieval system"
         # )
