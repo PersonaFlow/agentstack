@@ -81,7 +81,7 @@ def get_retrieval_executor(
     async def invoke_retrieval(state: AgentState):
         messages = state["messages"]
         if len(messages) == 1:
-            human_input = messages[-1]["content"]
+            human_input = messages[-1].content
             return {
                 "messages": [
                     AIMessage(
@@ -115,10 +115,10 @@ def get_retrieval_executor(
         }
 
     async def retrieve(state: AgentState):
+        messages = state["messages"]
         if not messages:
             return {"messages": [], "msg_count": 0}
 
-        messages = state["messages"]
         params = messages[-1].tool_calls[0]
         query = params["args"]["query"]
         response = await retriever.ainvoke(query)

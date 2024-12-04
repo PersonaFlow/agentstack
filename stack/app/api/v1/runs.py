@@ -24,10 +24,11 @@ from stack.app.repositories.assistant import (
 from stack.app.repositories.thread import ThreadRepository, get_thread_repository
 from stack.app.schema.feedback import FeedbackCreateRequest
 from stack.app.schema.title import TitleRequest
-from stack.app.utils.stream import astream_state, to_sse
+from stack.app.api.v1.stream import astream_state, to_sse
 from sse_starlette import EventSourceResponse
 from stack.app.core.configuration import get_settings
 from stack.app.core.auth.utils import get_header_user_id
+from .state_registry import state_registry
 
 
 settings = get_settings()
@@ -110,14 +111,27 @@ async def _run_input_and_config(
     if settings.ENABLE_LANGFUSE_TRACING:
         config["callbacks"].append(langfuse_tracer)
 
+    # Get architecture type from config
+    architecture_type = config["configurable"].get("type", "agent")
+
     try:
-        if payload.input is not None:
-            agent = get_configured_agent()
-            agent.get_input_schema(config).validate(payload.input)
+        # Use state registry to prepare input and config
+        input_, config = state_registry.prepare_state_and_config(
+            architecture_type=architecture_type,
+            input_data=payload.input,
+            config=config,
+            assistant_id=payload.assistant_id,
+            thread_id=payload.thread_id,
+        )
+
+        # Validate the prepared input
+        agent = get_configured_agent()
+        agent.get_input_schema(config).validate(input_)
+
+        return input_, config
+
     except ValidationError as e:
         raise RequestValidationError(e.errors(), body=payload)
-
-    return payload.input, config
 
 
 @router.post(
@@ -142,12 +156,48 @@ async def stream_run(
     assistant_repository: AssistantRepository = Depends(get_assistant_repository),
     thread_repository: ThreadRepository = Depends(get_thread_repository),
 ):
-    user_id = get_header_user_id(request)
-    input_, config = await _run_input_and_config(
-        payload, assistant_repository, thread_repository, user_id
-    )
-    agent = get_configured_agent()
-    return EventSourceResponse(to_sse(astream_state(agent, input_, config)))
+    try:
+        user_id = get_header_user_id(request)
+        input_, config = await _run_input_and_config(
+            payload, assistant_repository, thread_repository, user_id
+        )
+
+        agent = get_configured_agent()
+
+        #  wrap the event generation to handle errors during streaming:
+        async def safe_stream():
+            try:
+                async for event in astream_state(agent, input_, config):
+                    yield event
+            except Exception as e:
+                logger.error(
+                    "Error during stream processing",
+                    error=str(e),
+                    assistant_id=payload.assistant_id,
+                    thread_id=payload.thread_id,
+                    exc_info=True,
+                )
+                # Yield error event that will be handled by the frontend
+                yield {"error": True, "message": f"Stream processing error: {str(e)}"}
+
+        return EventSourceResponse(
+            to_sse(safe_stream()),
+            headers={
+                "X-Accel-Buffering": "no",  # Disable buffering in nginx
+                "Cache-Control": "no-cache",  # Prevent caching
+            },
+        )
+    except Exception as e:
+        logger.error(
+            "Error setting up stream",
+            error=str(e),
+            assistant_id=payload.assistant_id,
+            thread_id=payload.thread_id,
+            exc_info=True,
+        )
+        raise HTTPException(
+            status_code=500, detail=f"Failed to initialize stream: {str(e)}"
+        )
 
 
 @router.post(
@@ -156,7 +206,11 @@ async def stream_run(
     response_model=dict,
     operation_id="create_run",
     summary="Create a run",
-    description="Create a run to be processed by the LLM.",
+    description="""
+        Create a run to be processed by the LLM. 
+        Note: this endpoint is for generating a series of runs for eval purposes
+        to be picked up by your eval tool (eg. Arize Phoenix, LangFuse, LangSmith).
+        """,
 )
 async def create_run(
     auth: AuthenticatedUser,

@@ -30,7 +30,7 @@ from stack.app.schema.assistant import Assistant
 from stack.app.core.datastore import get_redis_connection
 from stack.app.rag.embedding_service import EmbeddingService
 from stack.app.core.redis import RedisService, get_redis_service
-from stack.app.utils.stream import ingest_task_event_generator
+from stack.app.api.v1.stream import ingest_task_event_generator
 
 
 logger = structlog.get_logger()
