@@ -94,11 +94,13 @@ class ChatRetrievalStateHandler(BaseStateHandler[List[BaseMessage], Dict[str, An
     def validate_input(self, input_data: Any) -> bool:
         return isinstance(input_data, list)
 
+
 class CRAGStateHandler(BaseStateHandler[Dict[str, Any], Dict[str, Any]]):
     """Handler for the CRAG architecture."""
     
     def format_initial_state(self, input_data: Any) -> Dict[str, Any]:
         if isinstance(input_data, list):
+            # question = input_data[0].content if input_data else ""
             question = input_data[0].get("content") if input_data else ""
             return {
                 "messages": input_data,
@@ -106,17 +108,28 @@ class CRAGStateHandler(BaseStateHandler[Dict[str, Any], Dict[str, Any]]):
                 "generation": "",
                 "web_search_needed": False,
                 "documents": [],
-                "iteration_count": 0
+                "iteration_count": 0,
+                "actions": []
             }
         return input_data
         
     def extract_messages(self, state: Dict[str, Any]) -> List[BaseMessage]:
+        """Extract messages including both actions and generation."""
         if not isinstance(state, dict):
             return []
+            
+        messages = []
+        
+        # Add any action messages
+        actions = state.get("actions", [])
+        messages.extend(actions)
+        
+        # Add generation if present
         generation = state.get("generation")
         if generation:
-            return [AIMessage(content=generation)]
-        return []
+            messages.append(AIMessage(content=generation))
+            
+        return messages
 
     def prepare_config(
         self,
@@ -127,10 +140,9 @@ class CRAGStateHandler(BaseStateHandler[Dict[str, Any], Dict[str, Any]]):
     ) -> tuple[Dict[str, Any], RunnableConfig]:
         formatted_state = self.format_initial_state(input_data)
         
-        # Ensure the architecture-specific configurations are present
         if "configurable" not in config:
             config["configurable"] = {}
-        
+            
         config["configurable"].update({
             "assistant_id": assistant_id,
             "thread_id": thread_id,
@@ -142,6 +154,7 @@ class CRAGStateHandler(BaseStateHandler[Dict[str, Any], Dict[str, Any]]):
         if not isinstance(input_data, list) or not input_data:
             return False
         return all(isinstance(msg, dict) and "content" in msg for msg in input_data)
+    
 
 class StateRegistry:
     """Registry for agent architectures."""

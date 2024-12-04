@@ -4,7 +4,7 @@ from langchain_core.runnables import RunnableBinding, ConfigurableField
 from langchain.schema.messages import HumanMessage, SystemMessage
 from langgraph.graph.message import Messages
 
-from .crag_executor import get_crag_executor
+from .corrective_action_executor import get_crag_executor
 from .llm import AgentType, get_llm
 from .tools import AvailableTools, TOOLS, get_retriever, RetrievalConfigModel
 

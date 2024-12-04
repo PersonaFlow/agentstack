@@ -81,7 +81,6 @@ def get_retrieval_executor(
     async def invoke_retrieval(state: AgentState):
         messages = state["messages"]
         if len(messages) == 1:
-            # human_input = messages[-1]["content"]
             human_input = messages[-1].content
             return {
                 "messages": [
