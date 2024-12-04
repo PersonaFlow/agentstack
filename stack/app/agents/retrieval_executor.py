@@ -114,19 +114,6 @@ def get_retrieval_executor(
             ]
         }
 
-    # async def retrieve(state: AgentState):
-    #     if not messages:
-    #         return {"messages": [], "msg_count": 0}
-
-    #     messages = state["messages"]
-    #     params = messages[-1].tool_calls[0]
-    #     query = params["args"]["query"]
-    #     response = await retriever.ainvoke(query)
-    #     msg = LiberalToolMessage(
-    #         name="retrieval", content=response, tool_call_id=params["id"]
-    #     )
-    #     return {"messages": [msg], "msg_count": 1}
-
     async def retrieve(state: AgentState):
         messages = state["messages"]
         if not messages:

@@ -114,20 +114,20 @@ def mock_agent():
 # =============================================================================
 # Tests for stream_run endpoint
 # @pytest.mark.asyncio
-@patch("stack.app.agents.configurable_agent", new_callable=lambda: MagicMock())
-@patch("stack.app.utils.stream.astream_state", new_callable=lambda: AsyncMock())
-@patch("stack.app.utils.stream.to_sse", new_callable=lambda: AsyncMock())
-@patch("stack.app.api.v1.runs._run_input_and_config", new_callable=lambda: AsyncMock())
-async def test__stream_run__new_thread_creation(
-    mock_agent,
-    mocked_astream_state,
-    mocked_to_sse,
-    mocked_run_input_and_config,
-    valid_payload,
-    random_schema_thread,
-    random_schema_assistant,
-):
-    pass
+# @patch("stack.app.agents.configurable_agent", new_callable=lambda: MagicMock())
+# @patch("stack.app.utils.stream.astream_state", new_callable=lambda: AsyncMock())
+# @patch("stack.app.utils.stream.to_sse", new_callable=lambda: AsyncMock())
+# @patch("stack.app.api.v1.runs._run_input_and_config", new_callable=lambda: AsyncMock())
+# async def test__stream_run__new_thread_creation(
+#     mock_agent,
+#     mocked_astream_state,
+#     mocked_to_sse,
+#     mocked_run_input_and_config,
+#     valid_payload,
+#     random_schema_thread,
+#     random_schema_assistant,
+# ):
+#     pass
     # thread_repository = MagicMock(ThreadRepository)
     # assistant_repository = MagicMock(AssistantRepository)
 
