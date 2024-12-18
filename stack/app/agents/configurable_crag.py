@@ -1,244 +1,143 @@
-# corrective_rag_agent.py
-
-from typing import List, Dict, Any, Optional, Sequence
-from typing_extensions import TypedDict
-from langchain_core.runnables import (
-    RunnableBinding,
-    ConfigurableField,
-    RunnablePassthrough,
-)
-from langchain.schema import Document, BaseMessage
-from langchain_core.messages import AnyMessage
-from langgraph.graph import StateGraph
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser
-from stack.app.rag.custom_retriever import Retriever
-from tools import Tavily
-from llm import AgentType, get_llm
+from typing import Optional, Sequence, Any, Mapping
+from langchain_core.messages import BaseMessage
+from langchain_core.runnables import RunnableBinding, ConfigurableField
 from langgraph.graph.message import Messages
-from stack.app.agents.tools import RETRIEVAL_DESCRIPTION
-import langchain
 
-DEFAULT_SYSTEM_MESSAGE = "You are a helpful assistant."
-
-
-class GraphState(TypedDict):
-    """Represents the state of our CRAG process.
-
-    Attributes:
-        messages: The current conversation messages
-        documents: List of retrieved documents
-        generation: LLM generation
-        web_search: Whether to add search results
-    """
-
-    messages: Messages
-    documents: List[Document]
-    generation: Optional[str]
-    web_search: str
+from .corrective_action_executor import get_crag_executor
+from .llm import AgentType, get_llm
+from .tools import AvailableTools, TOOLS, get_retriever, RetrievalConfigModel
 
 
-class ConfigurableCorrectiveRagAgent(RunnableBinding):
-    """A configurable agent that implements the Corrective RAG (CRAG)
-    technique."""
+class ConfigurableCorrectiveRAGAgent(RunnableBinding):
+    """A configurable Corrective RAG agent that can be used in a
+    RunnableSequence."""
 
-    agent: AgentType
-    system_message: str
-    retrieval_description: str
-    assistant_id: Optional[str]
-    thread_id: Optional[str]
-    crag_relevance_threshold: float = 0.7
-    max_corrective_iterations: int = 3
+    agent: AgentType = AgentType.GPT_4O_MINI
+    system_prompt: str = (
+        "You are a helpful AI assistant that evaluates document relevance."
+    )
+    question_rewriter_prompt: Optional[
+        str
+    ] = "You are an expert at reformulating questions to be clearer and more effective for search."
+    max_corrective_iterations: int = 1
+    enable_web_search: bool = True
+    relevance_threshold: float = 0.7
+    assistant_id: Optional[str] = None
+    thread_id: str = ""
+    retrieval_config: Optional[dict] = None
 
     def __init__(
         self,
-        agent_type: AgentType = AgentType.GPT_4O_MINI,
-        system_message: str = DEFAULT_SYSTEM_MESSAGE,
-        retrieval_description: str = RETRIEVAL_DESCRIPTION,
-        assistant_id: Optional[str] = None,
-        thread_id: Optional[str] = None,
-        crag_relevance_threshold: float = 0.7,
+        *,
+        agent: AgentType = AgentType.GPT_4O_MINI,
+        system_prompt: str = "You are a helpful AI assistant that evaluates document relevance.",
+        question_rewriter_prompt: Optional[str] = None,
         max_corrective_iterations: int = 3,
-        **kwargs: Any
-    ):
-        self.agent_type = agent_type
-        self.system_message = system_message
-        self.retrieval_description = retrieval_description
-        self.assistant_id = assistant_id
-        self.thread_id = thread_id
-        self.crag_relevance_threshold = crag_relevance_threshold
-        self.max_corrective_iterations = max_corrective_iterations
+        enable_web_search: bool = True,
+        relevance_threshold: float = 0.7,
+        assistant_id: Optional[str] = None,
+        thread_id: str = "",
+        # retrieval_config: Optional[dict] = None,
+        kwargs: Optional[Mapping[str, Any]] = None,
+        config: Optional[Mapping[str, Any]] = None,
+        **others: Any,
+    ) -> None:
+        others.pop("bound", None)
+        llm = get_llm(agent)
+        web_search_tool = None
+        if enable_web_search:
+            web_search_getter = TOOLS[AvailableTools.TAVILY]
+            web_search_tool = web_search_getter()
 
-        self.llm = get_llm(agent_type)
-        self.retriever = Retriever(metadata={"namespace": assistant_id or thread_id})
-        self.web_search_tool = Tavily()
+        retrieval_config = RetrievalConfigModel().to_dict()
 
-        workflow = self._build_graph()
-        super().__init__(bound=workflow.compile(), kwargs=kwargs)
-
-    def retrieve(self, state: GraphState) -> Dict[str, Any]:
-        """Retrieve relevant documents."""
-        question = state["messages"][-1].content if state["messages"] else ""
-        documents = self.retriever.get_relevant_documents(question)
-        return {"documents": documents, "messages": state["messages"]}
-
-    def grade_documents(self, state: GraphState) -> Dict[str, Any]:
-        """Grade the relevance of retrieved documents."""
-        question = state["messages"][-1].content if state["messages"] else ""
-        documents = state["documents"]
-
-        grade_prompt = ChatPromptTemplate.from_messages(
-            [
-                (
-                    "system",
-                    "You are a document grader assessing relevance to a question.",
-                ),
-                (
-                    "human",
-                    "Question: {question}\n\nDocument: {document}\n\nIs this document relevant?",
-                ),
-            ]
-        )
-        grader_chain = grade_prompt | self.llm | StrOutputParser()
-
-        filtered_docs = []
-        web_search = "No"
-        for doc in documents:
-            grade = grader_chain.invoke(
-                {"question": question, "document": doc.page_content}
-            )
-            if "yes" in grade.lower():
-                filtered_docs.append(doc)
-            else:
-                web_search = "Yes"
-
-        return {
-            "documents": filtered_docs,
-            "messages": state["messages"],
-            "web_search": web_search,
-        }
-
-    def generate(self, state: GraphState) -> Dict[str, Any]:
-        """Generate a response based on the retrieved documents."""
-        question = state["messages"][-1].content if state["messages"] else ""
-        documents = state["documents"]
-
-        prompt = langchain.hub.pull("rlm/rag-prompt")
-
-        rag_chain = (
-            {"context": lambda x: x["documents"], "question": RunnablePassthrough()}
-            | prompt
-            | self.llm
-            | StrOutputParser()
+        retriever = get_retriever(
+            assistant_id=assistant_id, thread_id=thread_id, config=retrieval_config
         )
 
-        generation = rag_chain.invoke({"documents": documents, "question": question})
-        return {
-            "documents": documents,
-            "messages": state["messages"],
-            "generation": generation,
-        }
-
-    def transform_query(self, state: GraphState) -> Dict[str, Any]:
-        """Transform the query for better web search results."""
-        question = state["messages"][-1].content if state["messages"] else ""
-
-        rewrite_prompt = ChatPromptTemplate.from_messages(
-            [
-                (
-                    "system",
-                    "You are a question rewriter that optimizes queries for web search.",
-                ),
-                (
-                    "human",
-                    "Original question: {question}\n\nRewrite this for optimal web search:",
-                ),
-            ]
+        crag = get_crag_executor(
+            llm=llm,
+            retriever=retriever,
+            system_prompt=system_prompt,
+            web_search_tool=web_search_tool if enable_web_search else None,
+            question_rewriter_prompt=question_rewriter_prompt,
+            max_corrective_iterations=max_corrective_iterations,
+            enable_web_search=enable_web_search,
+            relevance_threshold=relevance_threshold,
         )
-        rewrite_chain = rewrite_prompt | self.llm | StrOutputParser()
 
-        new_question = rewrite_chain.invoke({"question": question})
-        return {
-            "documents": state["documents"],
-            "messages": state["messages"][:-1] + [BaseMessage(content=new_question)],
-        }
-
-    def web_search(self, state: GraphState) -> Dict[str, Any]:
-        """Perform a web search to supplement retrieved documents."""
-        question = state["messages"][-1].content if state["messages"] else ""
-        documents = state["documents"]
-
-        search_results = self.web_search_tool.invoke({"query": question})
-        web_results = Document(
-            page_content="\n".join([d["content"] for d in search_results])
+        super().__init__(  # type: ignore[call-arg]
+            agent=agent,
+            system_prompt=system_prompt,
+            question_rewriter_prompt=question_rewriter_prompt,
+            max_corrective_iterations=max_corrective_iterations,
+            enable_web_search=enable_web_search,
+            relevance_threshold=relevance_threshold,
+            assistant_id=assistant_id,
+            thread_id=thread_id,
+            retrieval_config=retrieval_config,
+            bound=crag,
+            kwargs=kwargs or {},
+            config=config or {},
         )
-        documents.append(web_results)
-
-        return {
-            "documents": documents,
-            "messages": state["messages"],
-        }
-
-    def decide_to_generate(self, state: GraphState) -> str:
-        """Decide whether to generate an answer or transform the query."""
-        web_search = state.get("web_search", "No")
-        return "transform_query" if web_search == "Yes" else "generate"
-
-    def _build_graph(self) -> StateGraph:
-        """Build the CRAG process graph."""
-        workflow = StateGraph(GraphState)
-
-        workflow.add_node("retrieve", self.retrieve)
-        workflow.add_node("grade_documents", self.grade_documents)
-        workflow.add_node("generate", self.generate)
-        workflow.add_node("transform_query", self.transform_query)
-        workflow.add_node("web_search", self.web_search)
-
-        workflow.set_entry_point("retrieve")
-        workflow.add_edge("retrieve", "grade_documents")
-        workflow.add_conditional_edges(
-            "grade_documents",
-            self.decide_to_generate,
-            {
-                "transform_query": "transform_query",
-                "generate": "generate",
-            },
-        )
-        workflow.add_edge("transform_query", "web_search")
-        workflow.add_edge("web_search", "generate")
-        workflow.add_edge("generate", "end")
-
-        return workflow
 
 
-# The configuration for corrective_rag should be added to configurable_agent.py
-corrective_rag = (
-    ConfigurableCorrectiveRagAgent(
+def get_configured_crag() -> ConfigurableCorrectiveRAGAgent:
+    """Get a configured CRAG instance."""
+
+    initial_agent = ConfigurableCorrectiveRAGAgent(
         agent=AgentType.GPT_4O_MINI,
-        system_message=DEFAULT_SYSTEM_MESSAGE,
-        retrieval_description=RETRIEVAL_DESCRIPTION,
+        system_prompt="You are a helpful AI assistant that evaluates document relevance.",
+        question_rewriter_prompt="You are a question re-writer that converts an input question to a better version that is optimized for web search. Look at the input and try to reason about the underlying semantic intent / meaning.",
+        max_corrective_iterations=3,
+        enable_web_search=True,
+        relevance_threshold=0.7,
         assistant_id=None,
-        thread_id=None,
+        thread_id="",
     )
-    .configurable_fields(
-        agent=ConfigurableField(id="agent_type", name="Agent Type"),
-        system_message=ConfigurableField(id="system_message", name="Instructions"),
-        crag_relevance_threshold=ConfigurableField(
-            id="relevance_threshold", name="Relevance Threshold"
+
+    return initial_agent.configurable_fields(
+        agent=ConfigurableField(
+            id="agent_type", name="Agent Type", description="The type of agent to use"
+        ),
+        system_prompt=ConfigurableField(
+            id="system_prompt",
+            name="System Prompt",
+            description="The system prompt for the corrective RAG agent",
+        ),
+        question_rewriter_prompt=ConfigurableField(
+            id="question_rewriter_prompt",
+            name="Question Rewriter Prompt",
+            description="The prompt for rewriting questions to be more effective",
         ),
         max_corrective_iterations=ConfigurableField(
-            id="max_iterations", name="Max Iterations"
+            id="max_corrective_iterations",
+            name="Max Corrective Iterations",
+            description="Maximum number of correction iterations",
+        ),
+        enable_web_search=ConfigurableField(
+            id="enable_web_search",
+            name="Enable Web Search",
+            description="Whether to enable web search for supplemental retrieval",
+        ),
+        relevance_threshold=ConfigurableField(
+            id="relevance_threshold",
+            name="Relevance Threshold",
+            description="Threshold for document relevance scoring",
         ),
         assistant_id=ConfigurableField(
-            id="assistant_id", name="Assistant ID", is_shared=True
+            id="assistant_id",
+            name="Assistant ID",
+            is_shared=True,
+            annotation=Optional[str],
         ),
-        thread_id=ConfigurableField(id="thread_id", name="Thread ID", is_shared=True),
-        retrieval_description=ConfigurableField(
-            id="retrieval_description", name="Retrieval Description"
+        thread_id=ConfigurableField(
+            id="thread_id",
+            name="Thread ID",
+            is_shared=True,
+            annotation=str,
         ),
-    )
-    .with_types(
+    ).with_types(
         input_type=Messages,
-        output_type=Sequence[AnyMessage],
-    )
-)
+        output_type=Sequence[BaseMessage],
+    )  # type: ignore[return-value]
