@@ -55,7 +55,7 @@ assistant_config = {
         ),
         "user_id": "default",
         "thread_id": str(uuid.uuid4()),
-        # "assistant_id": str(uuid.uuid4()),
+        # Change the assistant_id to the one you want to use
         "assistant_id": "ba8b90a5-17de-48ff-8f0d-3e0c88344ee8",
     }
 }
@@ -148,7 +148,7 @@ def main():
     
     # Set up argument parser
     parser = argparse.ArgumentParser(description='Debug Configurable Agent')
-    parser.add_argument('--query', type=str, default="Use ONLY content from the retrieval tool to tell me about Aligning LLM-Assisted Evaluation of LLM Outputs with Human Preferences",
+    parser.add_argument('--query', type=str, default="Tell me about Aligning LLM-Assisted Evaluation of LLM Outputs with Human Preferences",
                       help='Query to send to the agent')
     parser.add_argument('--config', type=str,
                       help='Path to JSON configuration file')

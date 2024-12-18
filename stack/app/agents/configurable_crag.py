@@ -1,7 +1,6 @@
 from typing import Optional, Sequence, Any, Mapping
 from langchain_core.messages import BaseMessage
 from langchain_core.runnables import RunnableBinding, ConfigurableField
-from langchain.schema.messages import HumanMessage, SystemMessage
 from langgraph.graph.message import Messages
 
 from .corrective_action_executor import get_crag_executor
@@ -49,16 +48,6 @@ class ConfigurableCorrectiveRAGAgent(RunnableBinding):
         if enable_web_search:
             web_search_getter = TOOLS[AvailableTools.TAVILY]
             web_search_tool = web_search_getter()
-
-        # tool_config = None
-        # if config and "tools" in config.get("configurable", {}):
-        #     for tool in config["configurable"]["tools"]:
-        #         if tool["type"] == "retrieval":
-        #             tool_config = tool.get("config")
-        #             break
-
-        # # Use the tool config, passed retrieval_config, or None (fallback to defaults)
-        # retrieval_config = tool_config or retrieval_config
 
         retrieval_config = RetrievalConfigModel().to_dict()
 
