@@ -1,0 +1,294 @@
+# services.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: stack
+spec:
+  ports:
+    - port: 9000
+      targetPort: 9000
+  selector:
+    app: stack
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-db
+spec:
+  ports:
+    - port: 5432
+      targetPort: 5432
+  selector:
+    app: postgres-db
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qdrant
+spec:
+  ports:
+    - port: 6333
+      targetPort: 6333
+      name: qdrant-rest
+    - port: 6334
+      targetPort: 6334
+      name: qdrant-grpc
+  selector:
+    app: qdrant
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: unstructured-api
+spec:
+  ports:
+    - port: 8000
+      targetPort: 8000
+  selector:
+    app: unstructured-api
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+spec:
+  ports:
+    - port: 6379
+      targetPort: 6379
+  selector:
+    app: redis
+---
+# configmaps.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: qdrant-config
+data:
+  config.yaml: |
+    log_level: INFO
+---
+# pvcs.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgresql-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: qdrant-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+# deployments.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stack
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stack
+  template:
+    metadata:
+      labels:
+        app: stack
+    spec:
+      containers:
+        - name: stack
+          image: personaflow/stack:latest
+          ports:
+            - containerPort: 9000
+          envFrom:
+            - configMapRef:
+                name: stack-config
+          # Add your env file as a ConfigMap and reference it here
+---
+# postgres-config.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init-scripts
+data:
+  init.sql: |
+    -- Your initialization SQL goes here
+    \c postgres
+    CREATE USER internal WITH PASSWORD 'internal';
+    CREATE DATABASE internal;
+    -- GRANT ALL PRIVILEGES ON DATABASE internal TO internal;
+    ALTER USER internal WITH SUPERUSER;
+
+    \c internal;
+    CREATE SCHEMA personaflow;
+    ALTER SCHEMA personaflow OWNER TO internal;
+
+    CREATE EXTENSION IF NOT EXISTS pgcrypto;
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-db
+  template:
+    metadata:
+      labels:
+        app: postgres-db
+    spec:
+      containers:
+        - name: postgres-db
+          image: postgres:latest
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              value: postgres  # Consider using a Secret for passwords
+          volumeMounts:
+            - name: postgresql-data
+              mountPath: /var/lib/postgresql/data
+            - name: postgres-init-scripts
+              mountPath: /docker-entrypoint-initdb.d
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -q
+                - -d
+                - postgres
+                - -U
+                - postgres
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 5
+      volumes:
+        - name: postgresql-data
+          persistentVolumeClaim:
+            claimName: postgresql-data
+        - name: postgres-init-scripts
+          configMap:
+            name: postgres-init-scripts
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qdrant
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: qdrant
+  template:
+    metadata:
+      labels:
+        app: qdrant
+    spec:
+      containers:
+        - name: qdrant
+          image: qdrant/qdrant:latest
+          ports:
+            - containerPort: 6333
+            - containerPort: 6334
+          volumeMounts:
+            - name: qdrant-data
+              mountPath: /qdrant_data
+            - name: qdrant-config
+              mountPath: /qdrant/config
+      volumes:
+        - name: qdrant-data
+          persistentVolumeClaim:
+            claimName: qdrant-data
+        - name: qdrant-config
+          configMap:
+            name: qdrant-config
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: unstructured-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: unstructured-api
+  template:
+    metadata:
+      labels:
+        app: unstructured-api
+    spec:
+      containers:
+        - name: unstructured-api
+          image: quay.io/unstructured-io/unstructured-api:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: UNSTRUCTURED_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: unstructured-api-secret
+                  key: UNSTRUCTURED_API_KEY
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:latest
+          ports:
+            - containerPort: 6379
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
+          livenessProbe:
+            exec:
+              command:
+                - redis-cli
+                - ping
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 5
+      volumes:
+        - name: redis-data
+          persistentVolumeClaim:
+            claimName: redis-data
+# Create the secrets / resources:
+# kubectl create secret generic unstructured-api-secret --from-literal=UNSTRUCTURED_API_KEY=your-key
+# kubectl create configmap stack-config --from-file=.env.production
+# kubectl apply -f kubernetes-manifests.yaml
