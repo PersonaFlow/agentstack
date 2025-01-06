@@ -11,6 +11,7 @@ target(
       "//:reqs#asyncpg",
       "//:reqs#python-multipart",
       "//:reqs#pytest-asyncio",
-      "//:reqs#itsdangerous"
+      "//:reqs#itsdangerous",
+      "//:reqs#langgraph-checkpoint-postgres"
     ]
 )

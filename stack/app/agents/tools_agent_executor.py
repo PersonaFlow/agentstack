@@ -9,11 +9,11 @@ from langchain_core.messages import (
     SystemMessage,
     ToolMessage,
 )
-from langgraph.checkpoint import BaseCheckpointSaver
 from langgraph.graph import END
 from langgraph.graph.message import MessageGraph
 from langgraph.prebuilt import ToolExecutor, ToolInvocation
 
+from stack.app.core.datastore import get_checkpointer
 from stack.app.schema.message_types import LiberalToolMessage
 
 
@@ -22,7 +22,6 @@ def get_tools_agent_executor(
     llm: LanguageModelLike,
     system_message: str,
     interrupt_before_action: bool,
-    checkpoint: BaseCheckpointSaver,
 ):
     async def _get_messages(messages):
         msgs = []
@@ -100,7 +99,7 @@ def get_tools_agent_executor(
     # add a normal edge from `tools` to `agent`.
     # after `tools` is called, `agent` node is called next.
     workflow.add_edge("action", "agent")
-
+    checkpoint = get_checkpointer()
     return workflow.compile(
         checkpointer=checkpoint,
         interrupt_before=["action"] if interrupt_before_action else None,

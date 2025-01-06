@@ -2,10 +2,11 @@ import mimetypes
 import json
 import csv
 import io
-from langchain.document_loaders.parsers import BS4HTMLParser, PDFMinerParser
-from langchain.document_loaders.parsers.generic import MimeTypeBasedParser
-from langchain.document_loaders.parsers.msword import MsWordParser
-from langchain.document_loaders.parsers.txt import TextParser
+from langchain_community.document_loaders.parsers.html.bs4 import BS4HTMLParser
+from langchain_community.document_loaders.parsers.pdf import PDFMinerParser
+from langchain_community.document_loaders.parsers.generic import MimeTypeBasedParser
+from langchain_community.document_loaders.parsers.msword import MsWordParser
+from langchain_community.document_loaders.parsers.txt import TextParser
 import structlog
 
 logger = structlog.get_logger()

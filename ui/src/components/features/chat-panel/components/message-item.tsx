@@ -1,12 +1,12 @@
-import { MessageType, TMessage, TAssistant } from "@/data-provider/types";
-import Markdown from "../../markdown/markdown";
-import { UserRound } from "lucide-react";
-import { Bot } from "lucide-react";
+import { MessageType, TMessage, TAssistant } from '@/data-provider/types'
+import Markdown from '../../markdown/markdown'
+import { UserRound } from 'lucide-react'
+import { Bot } from 'lucide-react'
 
 type TMessageItemProps = {
-  message: TMessage;
-  assistant?: TAssistant;
-};
+  message: TMessage
+  assistant?: TAssistant
+}
 
 export default function MessageItem({ message, assistant }: TMessageItemProps) {
   if (message.type === MessageType.HUMAN) {
@@ -26,7 +26,7 @@ export default function MessageItem({ message, assistant }: TMessageItemProps) {
       //     <Markdown text={ message.content as string} />
       //   </div>
       // </div>
-    );
+    )
   }
 
   if (message.type === MessageType.AI) {
@@ -36,9 +36,7 @@ export default function MessageItem({ message, assistant }: TMessageItemProps) {
           <div className="rounded-full p-2 bg-slate-300 content-center flex justify-center">
             <Bot size="22" />
           </div>
-          <p className="text-sm text-slate-600 font-semibold">
-            {assistant?.name}
-          </p>
+          <p className="text-sm text-slate-600 font-semibold">{assistant?.name}</p>
         </div>
         <div className="flex flex-col ml-12 mt-2 space-y-3 max-w-2xl">
           <div className="bg-white rounded flex-col items-center p-3 space-y-3">
@@ -50,6 +48,6 @@ export default function MessageItem({ message, assistant }: TMessageItemProps) {
       // <div className="py-2 px-3 text-base md:px-4 m-auto md:px-5 lg:px-1 xl:px-5">
       //   <Markdown text={ message.content as string} />
       // </div>
-    );
+    )
   }
 }

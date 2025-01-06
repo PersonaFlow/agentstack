@@ -3,7 +3,7 @@ python_sources(name="lib")
 pex_binary(
     name="local",
     entry_point="app/main.py",
-    dependencies=["//:reqs#asyncpg", "//:reqs#python-multipart", "//:reqs#itsdangerous"],
+    dependencies=["//:reqs#asyncpg", "//:reqs#python-multipart", "//:reqs#itsdangerous", "//:reqs#langgraph-checkpoint-postgres"],
     execution_mode="venv",
 )
 

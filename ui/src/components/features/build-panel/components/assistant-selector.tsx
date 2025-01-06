@@ -1,36 +1,25 @@
-"use client";
+'use client'
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import Spinner from "@/components/ui/spinner";
-import { useAssistants } from "@/data-provider/query-service";
-import { useSlugRoutes } from "@/hooks/useSlugParams";
-import { useRouter } from "next/navigation";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import Spinner from '@/components/ui/spinner'
+import { useAssistants } from '@/data-provider/query-service'
+import { useSlugRoutes } from '@/hooks/useSlugParams'
+import { useRouter } from 'next/navigation'
 
 export function AssistantSelector() {
-  const { assistantId } = useSlugRoutes();
-  const { data: assistantsData, isLoading } = useAssistants();
-  const router = useRouter();
+  const { assistantId } = useSlugRoutes()
+  const { data: assistantsData, isLoading } = useAssistants()
+  const router = useRouter()
 
-  if (isLoading || !assistantsData) return <Spinner />;
+  if (isLoading || !assistantsData) return <Spinner />
 
   const handleValueChange = (selectedAssistantId: string) => {
-    router.push(`/a/${selectedAssistantId}`);
-  };
-  const selectedAssistant = assistantsData.find(
-    (assistant) => assistant.id === assistantId,
-  );
+    router.push(`/a/${selectedAssistantId}`)
+  }
+  const selectedAssistant = assistantsData.find((assistant) => assistant.id === assistantId)
 
   return (
-    <Select
-      onValueChange={handleValueChange}
-      value={selectedAssistant?.id ?? ""}
-    >
+    <Select onValueChange={handleValueChange} value={selectedAssistant?.id ?? ''}>
       <SelectTrigger className="w-[180px] border-accent">
         <SelectValue placeholder="Select assistant.." />
       </SelectTrigger>
@@ -42,5 +31,5 @@ export function AssistantSelector() {
         ))}
       </SelectContent>
     </Select>
-  );
+  )
 }

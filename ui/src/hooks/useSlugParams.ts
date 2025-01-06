@@ -1,7 +1,7 @@
-"use client";
-import { getSlugParams } from "@/utils/routeUtils";
-import { useParams } from "next/navigation";
-import { useMemo } from "react";
+'use client'
+import { getSlugParams } from '@/utils/routeUtils'
+import { useParams } from 'next/navigation'
+import { useMemo } from 'react'
 
 /**
  *
@@ -13,12 +13,12 @@ import { useMemo } from "react";
  */
 
 export const useSlugRoutes = () => {
-  const {slug} = useParams();
+  const { slug } = useParams()
 
   const { assistantId, threadId } = useMemo(() => {
-    const formatSlug = (slug ?? []) as string[];
-    return getSlugParams(formatSlug);
-  }, [slug]);
+    const formatSlug = (slug ?? []) as string[]
+    return getSlugParams(formatSlug)
+  }, [slug])
 
-  return { assistantId, threadId };
-};
+  return { assistantId, threadId }
+}

@@ -87,7 +87,7 @@ class Settings(BaseSettings):
     TAVILY_API_KEY: Optional[str] = os.getenv("TAVILY_API_KEY", None)
 
     # Number of iterations assistant is allowed to run to accomplish task or improve results or response (Required)
-    LANGGRAPH_RECURSION_LIMIT: str | int = os.getenv("LANGGRAPH_RECURSION_LIMIT", 25)
+    LANGGRAPH_RECURSION_LIMIT: int = int(os.getenv("LANGGRAPH_RECURSION_LIMIT", 8))
 
     EXCLUDE_REQUEST_LOG_ENDPOINTS: list[str] = ["/docs"]
 
@@ -123,12 +123,6 @@ class Settings(BaseSettings):
 
     #  LLM Configurations
     OPENAI_PROXY_URL: Optional[str] = os.getenv("OPENAI_PROXY_URL", None)
-    GPT_4_MODEL_NAME: Optional[str] = os.getenv(
-        "GPT_4_MODEL_NAME", "gpt-4-1106-preview"
-    )
-    GPT_35_MODEL_NAME: Optional[str] = os.getenv(
-        "GPT_35_MODEL_NAME", "gpt-3.5-turbo-1106"
-    )
 
     AZURE_OPENAI_DEPLOYMENT_NAME: Optional[str] = os.getenv(
         "AZURE_OPENAI_DEPLOYMENT_NAME", None
@@ -140,7 +134,7 @@ class Settings(BaseSettings):
     )
 
     ANTHROPIC_MODEL_NAME: Optional[str] = os.getenv(
-        "ANTHROPIC_MODEL_NAME", "claude-3-haiku-20240307"
+        "ANTHROPIC_MODEL_NAME", "claude-3.5-sonnet"
     )
 
     AWS_BEDROCK_REGION: Optional[str] = os.getenv("AWS_BEDROCK_REGION", "us-west-2")

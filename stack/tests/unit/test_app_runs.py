@@ -27,7 +27,7 @@ from stack.app.api.v1.runs import (
     stream_run,
     EventSourceResponse,
 )
-from stack.app.agents.configurable_agent import agent
+from stack.app.agents.configurable_agent import get_configured_agent
 
 
 app = create_app(Settings())

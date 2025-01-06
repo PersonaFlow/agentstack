@@ -8,10 +8,10 @@ from stack.app.repositories.blacklist import (
 from stack.app.core.auth.strategies.basic import BasicAuthentication
 from stack.tests.unit.conftest import passthrough
 from stack.app.app_factory import create_app
-from stack.app.core.configuration import Settings
+from stack.app.core.configuration import settings
 from starlette.testclient import TestClient
 
-app = create_app(Settings())
+app = create_app(settings)
 client = TestClient(app)
 
 

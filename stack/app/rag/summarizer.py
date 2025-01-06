@@ -1,7 +1,7 @@
 from typing import Optional
 from stack.app.core.configuration import get_settings
 from stack.app.schema.rag import BaseDocumentChunk
-from stack.app.core.llms import (
+from stack.app.agents.llm import (
     get_openai_llm,
     get_anthropic_llm,
     get_google_llm,

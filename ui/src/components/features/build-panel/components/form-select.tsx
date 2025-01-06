@@ -1,35 +1,18 @@
-"use client";
+'use client'
 
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { UseFormReturn } from "react-hook-form";
+import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { UseFormReturn } from 'react-hook-form'
 
 type TFormSelectProps = {
-  form: UseFormReturn<any>;
-  title: string;
-  formName: string;
-  options: string[];
-  placeholder: string;
-};
+  form: UseFormReturn<any>
+  title: string
+  formName: string
+  options: string[]
+  placeholder: string
+}
 
-export function FormSelect({
-  form,
-  title,
-  options,
-  formName,
-  placeholder,
-}: TFormSelectProps) {
+export function FormSelect({ form, title, options, formName, placeholder }: TFormSelectProps) {
   return (
     <FormField
       control={form.control}
@@ -54,5 +37,5 @@ export function FormSelect({
         </FormItem>
       )}
     />
-  );
+  )
 }

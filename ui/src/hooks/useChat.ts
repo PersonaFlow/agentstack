@@ -1,33 +1,34 @@
-import { TMessage, TStreamState } from "@/data-provider/types";
-import { useEffect } from "react";
-import { mergeMessagesById } from "./useStream";
-import { useThreadState } from "@/data-provider/query-service";
-import { useAtom } from "jotai";
-import { messagesAtom } from "@/store";
+import { TMessage, TStreamState } from '@/data-provider/types'
+import { useEffect } from 'react'
+import { mergeMessagesById } from './useStream'
+import { useThreadState } from '@/data-provider/query-service'
+import { useAtom } from 'jotai'
+import { messagesAtom } from '@/store'
 
-export function useChatMessages(
-  threadId: string | null,
-  stream: TStreamState | null,
-) {
+export function useChatMessages(threadId: string | null, stream: TStreamState | null) {
   const [streamedMessages, setStreamedMessages] = useAtom(messagesAtom)
 
-  const { data: threadData, refetch, isFetched } = useThreadState(threadId as string, {
-    enabled: !!threadId
-  });
+  const {
+    data: threadData,
+    refetch,
+    isFetched,
+  } = useThreadState(threadId as string, {
+    enabled: !!threadId,
+  })
 
   // Refetch messages after streaming
   useEffect(() => {
-    if (stream?.status !== "inflight" && threadId) {
-      refetch();
+    if (stream?.status !== 'inflight' && threadId) {
+      refetch()
     }
-  }, [stream?.status, threadId, refetch]);
+  }, [stream?.status, threadId, refetch])
 
   // Stop persisting streamed messages after streaming and message refetch
   useEffect(() => {
     if (isFetched) {
       setStreamedMessages([])
     }
-  },[isFetched])
+  }, [isFetched])
 
   useEffect(() => {
     if (stream?.messages) {
@@ -35,11 +36,11 @@ export function useChatMessages(
     }
   }, [stream?.messages])
 
-  const messages = threadData?.values ? threadData.values : null;
+  const messages = threadData?.values ? threadData.values : null
 
   return {
     messages: mergeMessagesById(messages, streamedMessages),
     next: threadData?.next || [],
-    refreshMessages: refetch
-  };
+    refreshMessages: refetch,
+  }
 }

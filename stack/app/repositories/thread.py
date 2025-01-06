@@ -12,7 +12,7 @@ from typing import Optional, Any
 from typing import Any, Dict, Mapping, Optional, Sequence, Union
 from langchain_core.runnables import RunnableConfig
 from stack.app.schema.assistant import Assistant
-from stack.app.agents.configurable_agent import agent
+from stack.app.agents.configurable_agent import get_configured_agent
 from langchain_core.messages import AnyMessage
 
 
@@ -156,6 +156,7 @@ class ThreadRepository(BaseRepository):
     async def get_thread_state(self, thread_id: str, assistant: Assistant):
         """Get the state of a thread."""
         try:
+            agent = get_configured_agent()
             state = await agent.aget_state(
                 {
                     "configurable": {

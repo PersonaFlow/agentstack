@@ -1,14 +1,14 @@
-import { List, Search } from "lucide-react";
+import { List, Search } from 'lucide-react'
 
 const icons = [
-  { title: "query", icon: <List /> },
-  { title: "search", icon: <Search /> },
-];
+  { title: 'query', icon: <List /> },
+  { title: 'search', icon: <Search /> },
+]
 
 type TToolQueryProps = {
-  query: string;
-  tool: string;
-};
+  query: string
+  tool: string
+}
 
 export default function ToolQuery({ query, tool }: TToolQueryProps) {
   return (
@@ -20,5 +20,5 @@ export default function ToolQuery({ query, tool }: TToolQueryProps) {
         <Search /> Using: {tool}
       </h2>
     </>
-  );
+  )
 }

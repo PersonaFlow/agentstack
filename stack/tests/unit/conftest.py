@@ -1,9 +1,8 @@
 import uuid
 from datetime import datetime
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 import pytest
-from unittest.mock import patch
 from stack.app.core.auth.strategies.oidc import OIDCSettings
 from stack.app.app_factory import create_app
 from stack.app.core.configuration import Settings, settings
@@ -25,6 +24,14 @@ def passthrough(repository):
         return repository
 
     return wrapper
+
+
+@pytest.fixture(autouse=True)
+def mock_db_init():
+    with patch("stack.app.core.datastore._async_session_maker", MagicMock()), patch(
+        "stack.app.core.datastore._async_engine", MagicMock()
+    ), patch("stack.app.core.datastore._checkpointer", MagicMock()):
+        yield
 
 
 @pytest.fixture
