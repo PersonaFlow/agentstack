@@ -7,15 +7,16 @@ import { useEffect, useState } from 'react'
 import { MessageType, TStreamState } from '@/data-provider/types'
 import { useSlugRoutes } from '@/hooks/useSlugParams'
 import { useRouter } from 'next/navigation'
-import { QueryClient, useQueryClient } from '@tanstack/react-query'
-import { QueryKeys, useGenerateTitle } from '@/data-provider/query-service'
+import { useQueryClient } from '@tanstack/react-query'
+import { useGenerateTitle } from '@/data-provider/query-service'
 import { useChatMessages } from '@/hooks/useChat'
+import { useSchema } from '@/hooks/useSchema'
 
 export default function ChatPanel() {
   const [userMessage, setUserMessage] = useState('')
   const [isNewThread, setIsNewThread] = useState(false)
 
-  const queryClient = useQueryClient()
+  const d = useSchema()
 
   const { stream, startStream, stopStream: handleStop, isStreaming } = useStream()
 
