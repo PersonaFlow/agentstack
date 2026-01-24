@@ -60,7 +60,6 @@ class UserRepository(BaseRepository):
                 user_data["hashed_password"] = self.hash_and_salt_password(
                     data.password
                 )
-            user = User(**user_data)
             values = self._prepare_user_data(data)
             user = await self.create(model=User, values=values)
             await self.postgresql_session.commit()
